@@ -1,0 +1,231 @@
+*{
+    box-sizing: border-box;
+    margin:0;
+    padding:0;
+}
+
+.header{
+    background-color: white;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 25px 7.5%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 100;
+    font-family: 'Poppins', sans-serif;
+}
+
+.navbar a {
+    position: relative;
+    color: black;
+    font-size: 16px;
+    font-weight: 700;
+    text-decoration: none;
+    margin-right: 30px;
+}
+
+.navbar a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -6px;
+    width: 100%;
+    height: 2px;
+    background: black;
+    border-radius: 5px;
+    transform: translateY(10px);
+    opacity: 0;
+    transition: 0.5s;
+}
+
+.navbar a:hover::after{
+    transform: translateY(0px);
+    opacity: 1;
+}
+
+#user-account {
+    border: none;
+    outline: none;
+    font-size: 16px;
+    font-weight: bold;
+    color: black
+}
+
+#user-account option {
+    font-size: 16px;
+    font-weight: bold;
+    background-color: #FFCD6B;
+    color: black;
+}
+
+body{
+    background: url('../image/user-background.jpeg');
+    background-repeat: no-repeat;
+    background-size:cover;
+    overflow:hidden;
+    margin-top: 10px;
+    margin-left: 7.5%;
+    display: grid;
+    place-content: center;
+    height: 100vh;
+    font-family: 'Poppins', sans-serif;
+}
+
+.container {
+    position: relative;
+    width: 850px;
+    height: 500px;
+    background-color: white;
+    box-shadow: 25px 30px 55px #5557;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.sign-up{
+    position: absolute;
+    width: 60%;
+    height: 100%;
+    padding: 0px 40px;
+}
+
+.message-container .success-message {
+    color: green;
+}
+
+.message-container .error-message {
+    color: red;
+}
+
+form{
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0px 50px;
+}
+
+.sign-up h1 {
+    color: #FFCD6B;
+    margin-bottom: 20px;
+}
+
+.infield {
+    position: relative;
+    margin: 8px 0px;
+    width: 100%;
+}
+
+input{
+    width: 100%;
+    padding: 12px 8px;
+    background-color: #f3f3f3;
+    border: none;
+    outline: none;
+    border-radius: 5px;
+}
+
+label {
+    position: absolute;
+    left: 50%;
+    top: 100%;
+    transform: translateX(-50%);
+    width: 100%;
+    height: 2px;
+    background: #FFCD6B;
+    transition: 0.3s;
+}
+
+button {
+    border-radius: 20px;
+    border: 1px solid #FFCD6B;
+    background: #FFCD6B;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 12px 45px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 20px;
+}
+
+.sign-up button:hover {
+    background: white;
+    color: #FFCD6B;
+}
+
+.form-container button:hover {
+    background: white;
+    color: #FFCD6B
+}
+
+.left {
+    position: absolute;
+    top: 0;
+    left: 60%;
+    width: 40%;
+    height: 100%;
+    background: #FFCD6B;
+}
+
+.left-panel {
+    padding: 20px;
+    margin-top: 40%;
+    color: white;
+    text-align: center;
+}
+
+.left-panel h1 {
+    color: white;
+}
+
+.left-panel span {
+    font-size: 14px;
+    font-weight: 300;
+    line-height: 20px;
+    letter-spacing: 0.5px;
+}
+
+.left-panel button {
+    border: 1px solid white; 
+}
+
+.left-panel button:hover {
+    background-color: #9c7d3f;
+}
+
+.avatar-upload {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    margin: 0 auto 10px;
+}
+  
+.avatar-upload .avatar-preview {
+    width: 150px;
+    height: 150px;
+    position: relative;
+    border-radius: 50%;
+    border: 6px solid #fff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    background: #f8f8f8;
+}
+
+.avatar-upload .avatar-preview img {
+    width: 100%;
+    height: 100%;
+}
+
+.avatar-upload .avatar-edit  {
+    margin: 5%;
+}
+
+#imageUpload {
+    border: none;
+    outline: none;
+    background: transparent; 
+}
