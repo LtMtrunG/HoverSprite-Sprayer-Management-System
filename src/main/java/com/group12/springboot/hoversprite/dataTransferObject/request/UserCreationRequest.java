@@ -1,35 +1,16 @@
- package com.group12.springboot.hoversprite.entity;
+package com.group12.springboot.hoversprite.dataTransferObject.request;
 
-import jakarta.persistence.*;
-import java.util.Set;
+import com.group12.springboot.hoversprite.validator.PasswordConstraint;
+import jakarta.validation.constraints.Size;
 
-@Entity
-public class User {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String id;
+public class UserCreationRequest {
+    private String email;
+    @Size(min = 2, message = "Password must have at least 2 characters.")
+    @PasswordConstraint
     private String password;
     private String fullName;
     private String phoneNumber;
-    private String email;
     private String address;
-
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "users_roles",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id")
-    )
-    private Set<Role> roles;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
 
     public String getPassword() {
         return password;
@@ -69,13 +50,5 @@ public class User {
 
     public void setAddress(String address) {
         this.address = address;
-    }
-
-    public Set<Role> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(Set<Role> roles) {
-        this.roles = roles;
     }
 }
