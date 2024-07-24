@@ -6,7 +6,7 @@ import com.group12.springboot.hoversprite.entity.enums.Role;
 import java.util.Set;
 
 public class UserResponse {
-    private String id;
+    private Long id;
     private String fullName;
     private String phoneNumber;
     private String email;
@@ -22,11 +22,11 @@ public class UserResponse {
         this.role = user.getRole();
     }
 
-    public String getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

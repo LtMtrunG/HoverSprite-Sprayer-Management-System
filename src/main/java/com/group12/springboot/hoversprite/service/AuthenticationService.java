@@ -55,7 +55,7 @@ public class AuthenticationService {
     private String generateToken(User user){
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
         JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
-                                                    .subject(user.getFullName())
+                                                    .subject(user.getEmail())
                                                     .issuer("hoversprite.com")
                                                     .issueTime(new Date())
                                                     .expirationTime(new Date(

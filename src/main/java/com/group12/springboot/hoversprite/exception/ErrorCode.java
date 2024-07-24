@@ -6,6 +6,7 @@ public enum ErrorCode {
     INVALID_PASSWORD(1003, "Password must contain at least one capital letter and one special character."),
     EMAIL_NOT_EXISTS(1004, "Email no existed"),
     UNAUTHENTICATED(1005, "Unauthenticated"),
+    UNAUTHORIZED(1006, "Unauthorized"),
     INVALID_TOKEN(1006, "Invalid Token"),
     UNCATEGORIZED_EXCEPTION(9999, "Uncategorized error")
     ;

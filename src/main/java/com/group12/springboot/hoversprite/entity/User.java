@@ -5,24 +5,36 @@ import jakarta.persistence.*;
 import java.util.Set;
 
 @Entity
+@Table(name="TBL_USERS")
 public class User {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String id;
+    private Long id;
+
+    @Column(name="password")
     private String password;
+
+    @Column(name="full_name")
     private String fullName;
+
+    @Column(name="phone_number")
     private String phoneNumber;
+
+    @Column(name="email")
     private String email;
+
+    @Column(name="address")
     private String address;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name="role")
     private Role role;
 
-    public String getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
