@@ -1,22 +1,26 @@
- package com.group12.springboot.hoversprite.entity;
+package com.group12.springboot.hoversprite.dataTransferObject.response;
 
+import com.group12.springboot.hoversprite.entity.User;
 import com.group12.springboot.hoversprite.entity.enums.Role;
-import jakarta.persistence.*;
+
 import java.util.Set;
 
-@Entity
-public class User {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class UserResponse {
     private String id;
-    private String password;
     private String fullName;
     private String phoneNumber;
     private String email;
     private String address;
-
     private Role role;
+
+    public UserResponse(User user){
+        this.id = user.getId();
+        this.fullName = user.getFullName();
+        this.phoneNumber = user.getPhoneNumber();
+        this.email = user.getEmail();
+        this.address = user.getAddress();
+        this.role = user.getRole();
+    }
 
     public String getId() {
         return id;
@@ -24,14 +28,6 @@ public class User {
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
     }
 
     public String getFullName() {
@@ -66,11 +62,11 @@ public class User {
         this.address = address;
     }
 
-    public Role getRole() {
+    public Role getRoles() {
         return role;
     }
 
-    public void setRole(Role role) {
+    public void setRoles(Role role) {
         this.role = role;
     }
 }
