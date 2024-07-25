@@ -2,31 +2,51 @@
 //
 //import com.group12.springboot.hoversprite.dataTransferObject.request.BookingCreationRequest;
 //import com.group12.springboot.hoversprite.dataTransferObject.response.BookingResponse;
+//import com.group12.springboot.hoversprite.dataTransferObject.response.DailyScheduleResponse;
 //import com.group12.springboot.hoversprite.entity.Booking;
+//import com.group12.springboot.hoversprite.entity.DailySchedule;
 //import com.group12.springboot.hoversprite.entity.User;
 //import com.group12.springboot.hoversprite.exception.CustomException;
 //import com.group12.springboot.hoversprite.exception.ErrorCode;
 //import com.group12.springboot.hoversprite.repository.BookingRepository;
+//import com.group12.springboot.hoversprite.repository.DailyScheduleRepository;
 //import com.group12.springboot.hoversprite.repository.UserRepository;
 //import org.springframework.beans.factory.annotation.Autowired;
 //import org.springframework.security.access.prepost.PreAuthorize;
 //import org.springframework.security.core.context.SecurityContextHolder;
 //import org.springframework.stereotype.Service;
 //
+//import java.time.LocalDate;
+//import java.time.LocalDateTime;
+//import java.time.LocalTime;
 //import java.util.List;
+//import java.util.Optional;
 //import java.util.stream.Collectors;
 //
 //@Service
 //public class BookingService {
 //    @Autowired
 //    BookingRepository bookingRepository;
-//
 //    @Autowired
 //    UserRepository userRepository;
+//    @Autowired
+//    DailyScheduleRepository dailyScheduleRepository;
 //
-//    @PreAuthorize("hasRole('RECEPTIONIST')")
-//    public BookingResponse createBooking(BookingCreationRequest request){
+//    @PreAuthorize("hasAuthority('APPROVE_BOOKING')")
+//    public BookingResponse createPendingBooking(BookingCreationRequest request){
 //        Booking booking = new Booking();
+//
+//        LocalDateTime localDateTime = request.getSprayingTime();
+//        LocalDate date = localDateTime.toLocalDate();
+//        LocalTime time = localDateTime.toLocalTime();
+//
+//        Optional<DailySchedule> optionalDailySchedule = dailyScheduleRepository.findById(date);
+//
+//        if (optionalDailySchedule.isEmpty()) {
+////            return createDailySchedule(request);
+//        } else {
+//            optionalDailySchedule.get
+//        }
 //
 //        booking.setReceptionist(request.getReceptionist());
 //        booking.setUser(request.getUser());

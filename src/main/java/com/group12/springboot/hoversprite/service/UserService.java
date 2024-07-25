@@ -4,9 +4,11 @@ import com.group12.springboot.hoversprite.dataTransferObject.request.UserCreatio
 import com.group12.springboot.hoversprite.dataTransferObject.request.UserUpdateRequest;
 import com.group12.springboot.hoversprite.dataTransferObject.response.ListResponse;
 import com.group12.springboot.hoversprite.dataTransferObject.response.UserResponse;
+import com.group12.springboot.hoversprite.entity.Role;
 import com.group12.springboot.hoversprite.entity.User;
 import com.group12.springboot.hoversprite.exception.CustomException;
 import com.group12.springboot.hoversprite.exception.ErrorCode;
+import com.group12.springboot.hoversprite.repository.RoleRepository;
 import com.group12.springboot.hoversprite.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PostAuthorize;
@@ -18,7 +20,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
+
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -29,6 +34,9 @@ public class UserService {
     @Autowired
     UserRepository userRepository;
 
+    @Autowired
+    RoleRepository roleRepository;
+
     public UserResponse createUser(UserCreationRequest request){
         User user = new User();
 
@@ -37,13 +45,14 @@ public class UserService {
         }
 
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
+        Role role = roleRepository.findByName(request.getRole()).orElseThrow(() -> new RuntimeException("User's Role Not Found."));
 
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setFullName(request.getFullName());
         user.setPhoneNumber(request.getPhoneNumber());
         user.setAddress(request.getAddress());
-        user.setRole(request.getRole());
+        user.setRole(role);
         userRepository.save(user);
 
         return new UserResponse(user);
@@ -79,13 +88,11 @@ public class UserService {
     @PostAuthorize("returnObject.email == authentication.name")
     public UserResponse getMyInfo(){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-         if (authentication instanceof JwtAuthenticationToken) {
-            JwtAuthenticationToken jwtAuthToken = (JwtAuthenticationToken) authentication;
-            Jwt jwt = (Jwt) jwtAuthToken.getPrincipal();
-            String email = jwt.getSubject();
-            User user = userRepository.findByEmail(email).orElseThrow(() -> new CustomException(ErrorCode.EMAIL_NOT_EXISTS));
-            return new UserResponse(user);
-        } else throw new CustomException(ErrorCode.UNAUTHORIZED);
+        JwtAuthenticationToken jwtAuthToken = (JwtAuthenticationToken) authentication;
+        Jwt jwt = (Jwt) jwtAuthToken.getPrincipal();
+        String email = jwt.getSubject();
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new CustomException(ErrorCode.EMAIL_NOT_EXISTS));
+        return new UserResponse(user);
     }
 
     @PostAuthorize("returnObject.email == authentication.name")

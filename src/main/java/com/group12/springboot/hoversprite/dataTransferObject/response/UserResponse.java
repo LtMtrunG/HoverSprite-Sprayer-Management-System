@@ -1,7 +1,7 @@
 package com.group12.springboot.hoversprite.dataTransferObject.response;
 
 import com.group12.springboot.hoversprite.entity.User;
-import com.group12.springboot.hoversprite.entity.enums.Role;
+import com.group12.springboot.hoversprite.entity.Role;
 
 import java.util.Set;
 
@@ -62,11 +62,11 @@ public class UserResponse {
         this.address = address;
     }
 
-    public Role getRoles() {
+    public Role getRole() {
         return role;
     }
 
-    public void setRoles(Role role) {
+    public void setRole(Role role) {
         this.role = role;
     }
 }

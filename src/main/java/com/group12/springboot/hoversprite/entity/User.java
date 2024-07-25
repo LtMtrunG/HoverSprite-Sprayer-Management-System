@@ -1,6 +1,5 @@
  package com.group12.springboot.hoversprite.entity;
 
-import com.group12.springboot.hoversprite.entity.enums.Role;
 import jakarta.persistence.*;
 import java.util.Set;
 
@@ -26,8 +25,7 @@ public class User {
     @Column(name="address")
     private String address;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name="role")
+    @ManyToOne
     private Role role;
 
     public Long getId() {

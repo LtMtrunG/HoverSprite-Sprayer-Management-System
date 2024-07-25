@@ -4,6 +4,7 @@ import com.group12.springboot.hoversprite.dataTransferObject.request.Authenticat
 import com.group12.springboot.hoversprite.dataTransferObject.request.IntrospectTokenRequest;
 import com.group12.springboot.hoversprite.dataTransferObject.response.AuthenticationResponse;
 import com.group12.springboot.hoversprite.dataTransferObject.response.IntrospectTokenResponse;
+import com.group12.springboot.hoversprite.entity.Role;
 import com.group12.springboot.hoversprite.entity.User;
 import com.group12.springboot.hoversprite.exception.CustomException;
 import com.group12.springboot.hoversprite.exception.ErrorCode;
@@ -18,11 +19,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.StringJoiner;
 
 @Service
 public class AuthenticationService {
@@ -61,7 +64,7 @@ public class AuthenticationService {
                                                     .expirationTime(new Date(
                                                             Instant.now().plus(6, ChronoUnit.HOURS).toEpochMilli()
                                                     ))
-                                                    .claim("scope", user.getRole())
+                                                    .claim("scope", buildScope(user))
                                                     .build();
         Payload payload = new Payload(claimsSet.toJSONObject());
         JWSObject jwsObject = new JWSObject(header, payload);
@@ -83,5 +86,17 @@ public class AuthenticationService {
         IntrospectTokenResponse introspectTokenResponse = new IntrospectTokenResponse();
         introspectTokenResponse.setValid(valid && expirationTime.after(new Date()));
         return introspectTokenResponse;
+    }
+
+    private String buildScope(User user) {
+        StringJoiner stringJoiner = new StringJoiner(" ");
+        Role role = user.getRole();
+        if (role != null) {
+            stringJoiner.add("ROLE_" + role.getName());
+            if (!CollectionUtils.isEmpty(role.getPermissions()))
+                role.getPermissions().forEach(permission -> stringJoiner.add(permission.getName()));
+        }
+
+        return stringJoiner.toString();
     }
 }

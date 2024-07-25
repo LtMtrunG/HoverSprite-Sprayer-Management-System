@@ -1,21 +1,26 @@
 package com.group12.springboot.hoversprite.exception;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+
 public enum ErrorCode {
-    INVALID_MESSAGE_KEY(1001, "Invalid Message Key"),
-    EMAIL_USED(1002, "Email has already been used."),
-    INVALID_PASSWORD(1003, "Password must contain at least one capital letter and one special character."),
-    EMAIL_NOT_EXISTS(1004, "Email no existed"),
-    UNAUTHENTICATED(1005, "Unauthenticated"),
-    UNAUTHORIZED(1006, "Unauthorized"),
-    INVALID_TOKEN(1006, "Invalid Token"),
-    UNCATEGORIZED_EXCEPTION(9999, "Uncategorized error")
+    INVALID_MESSAGE_KEY(1001, "Invalid Message Key", HttpStatus.BAD_REQUEST),
+    EMAIL_USED(1002, "Email has already been used.", HttpStatus.BAD_REQUEST),
+    INVALID_PASSWORD(1003, "Password must contain at least one capital letter and one special character.", HttpStatus.BAD_REQUEST),
+    EMAIL_NOT_EXISTS(1004, "Email no existed", HttpStatus.NOT_FOUND),
+    UNAUTHENTICATED(1005, "Unauthenticated", HttpStatus.UNAUTHORIZED),
+    UNAUTHORIZED(1006, "You do not have permission", HttpStatus.FORBIDDEN),
+    DAILY_SCHEDULE_CREATED(1007, "The daily schedule already created", HttpStatus.BAD_REQUEST),
+    UNCATEGORIZED_EXCEPTION(9999, "Uncategorized error", HttpStatus.INTERNAL_SERVER_ERROR)
     ;
     private int code;
     private String message;
+    private final HttpStatusCode statusCode;
 
-    ErrorCode(int code, String message) {
+    ErrorCode(int code, String message, HttpStatusCode statusCode) {
         this.code = code;
         this.message = message;
+        this.statusCode = statusCode;
     }
 
     public int getCode() {
@@ -24,5 +29,9 @@ public enum ErrorCode {
 
     public String getMessage() {
         return message;
+    }
+
+    public HttpStatusCode getStatusCode() {
+        return statusCode;
     }
 }

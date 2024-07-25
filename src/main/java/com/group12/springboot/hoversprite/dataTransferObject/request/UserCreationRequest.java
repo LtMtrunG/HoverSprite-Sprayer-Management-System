@@ -1,8 +1,10 @@
 package com.group12.springboot.hoversprite.dataTransferObject.request;
 
-import com.group12.springboot.hoversprite.entity.enums.Role;
+import com.group12.springboot.hoversprite.entity.Role;
 import com.group12.springboot.hoversprite.validator.PasswordConstraint;
 import jakarta.validation.constraints.Size;
+
+import java.util.Set;
 
 public class UserCreationRequest {
     private String email;
@@ -12,7 +14,7 @@ public class UserCreationRequest {
     private String fullName;
     private String phoneNumber;
     private String address;
-    private Role role;
+    private String role;
 
     public String getPassword() {
         return password;
@@ -54,11 +56,11 @@ public class UserCreationRequest {
         this.address = address;
     }
 
-    public Role getRole() {
+    public String getRole() {
         return role;
     }
 
-    public void setRole(Role role) {
+    public void setRole(String role) {
         this.role = role;
     }
 }
