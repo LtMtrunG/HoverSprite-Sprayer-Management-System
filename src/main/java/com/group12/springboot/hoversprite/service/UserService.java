@@ -1,11 +1,14 @@
 package com.group12.springboot.hoversprite.service;
 
-import com.group12.springboot.hoversprite.dataTransferObject.request.UserCreationRequest;
-import com.group12.springboot.hoversprite.dataTransferObject.request.UserUpdateRequest;
+import com.group12.springboot.hoversprite.dataTransferObject.request.user.FarmerCreationRequest;
+import com.group12.springboot.hoversprite.dataTransferObject.request.user.ReceptionistCreationRequest;
+import com.group12.springboot.hoversprite.dataTransferObject.request.user.SprayerCreationRequest;
+import com.group12.springboot.hoversprite.dataTransferObject.request.user.UserUpdateRequest;
 import com.group12.springboot.hoversprite.dataTransferObject.response.ListResponse;
 import com.group12.springboot.hoversprite.dataTransferObject.response.UserResponse;
 import com.group12.springboot.hoversprite.entity.Role;
 import com.group12.springboot.hoversprite.entity.User;
+import com.group12.springboot.hoversprite.entity.enums.RoleType;
 import com.group12.springboot.hoversprite.exception.CustomException;
 import com.group12.springboot.hoversprite.exception.ErrorCode;
 import com.group12.springboot.hoversprite.repository.RoleRepository;
@@ -21,9 +24,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -37,7 +38,7 @@ public class UserService {
     @Autowired
     RoleRepository roleRepository;
 
-    public UserResponse createUser(UserCreationRequest request){
+    public UserResponse createFarmer(FarmerCreationRequest request){
         User user = new User();
 
         if (userRepository.existsByEmail(request.getEmail())){
@@ -45,7 +46,7 @@ public class UserService {
         }
 
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
-        Role role = roleRepository.findByName(request.getRole()).orElseThrow(() -> new RuntimeException("User's Role Not Found."));
+        Role role = roleRepository.findByName(RoleType.FARMER.name()).orElseThrow(() -> new RuntimeException("User's Role Not Found."));
 
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
@@ -59,9 +60,54 @@ public class UserService {
     }
 
     @PreAuthorize("hasRole('RECEPTIONIST')")
-    public ListResponse<UserResponse> getUsers(int pageNo, int pageSize){
+    public UserResponse createReceptionist( ReceptionistCreationRequest request){
+        User user = new User();
+
+        if (userRepository.existsByEmail(request.getEmail())){
+            throw new CustomException(ErrorCode.EMAIL_USED);
+        }
+
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
+        Role role = roleRepository.findByName(RoleType.RECEPTIONIST.name()).orElseThrow(() -> new RuntimeException("User's Role Not Found."));
+
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setFullName(request.getFullName());
+        user.setPhoneNumber(request.getPhoneNumber());
+        user.setAddress(request.getAddress());
+        user.setRole(role);
+        userRepository.save(user);
+
+        return new UserResponse(user);
+    }
+
+    @PreAuthorize("hasRole('RECEPTIONIST')")
+    public UserResponse createSprayer(SprayerCreationRequest request){
+        User user = new User();
+
+        if (userRepository.existsByEmail(request.getEmail())){
+            throw new CustomException(ErrorCode.EMAIL_USED);
+        }
+
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
+        Role role = roleRepository.findByName(RoleType.SPRAYER.name()).orElseThrow(() -> new RuntimeException("User's Role Not Found."));
+
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setFullName(request.getFullName());
+        user.setPhoneNumber(request.getPhoneNumber());
+        user.setAddress(request.getAddress());
+        user.setRole(role);
+        user.setSprayerLevel(request.getSprayerLevel());
+        userRepository.save(user);
+
+        return new UserResponse(user);
+    }
+
+    @PreAuthorize("hasRole('RECEPTIONIST')")
+    public ListResponse<UserResponse> getUsersByRole(int pageNo, int pageSize, String role){
         Pageable pageable = PageRequest.of(pageNo, pageSize);
-        Page<User> userPage = userRepository.findAll(pageable);
+        Page<User> userPage = userRepository.findAllByRoleName(role, pageable);
 
         List<UserResponse> userResponses = userPage.getContent().stream()
                 .map(UserResponse::new)
@@ -77,6 +123,8 @@ public class UserService {
 
         return listResponse;
     }
+
+
 
     @PreAuthorize("hasRole('RECEPTIONIST')")
     public UserResponse getUserById(Long userId){

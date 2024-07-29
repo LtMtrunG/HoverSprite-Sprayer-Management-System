@@ -1,7 +1,8 @@
 package com.group12.springboot.hoversprite.controller;
 
-import com.group12.springboot.hoversprite.dataTransferObject.request.AuthenticationRequest;
-import com.group12.springboot.hoversprite.dataTransferObject.request.IntrospectTokenRequest;
+import com.group12.springboot.hoversprite.dataTransferObject.request.auth.AuthenticationRequest;
+import com.group12.springboot.hoversprite.dataTransferObject.request.auth.IntrospectTokenRequest;
+import com.group12.springboot.hoversprite.dataTransferObject.request.auth.LogoutRequest;
 import com.group12.springboot.hoversprite.dataTransferObject.response.ApiResponse;
 import com.group12.springboot.hoversprite.dataTransferObject.response.AuthenticationResponse;
 import com.group12.springboot.hoversprite.dataTransferObject.response.IntrospectTokenResponse;
@@ -34,6 +35,13 @@ public class AuthenticationController {
         ApiResponse<IntrospectTokenResponse> apiResponse = new ApiResponse<>();
         IntrospectTokenResponse introspectTokenResponse = authenticationService.introspect(request);
         apiResponse.setResult(introspectTokenResponse);
+        return apiResponse;
+    }
+
+    @PostMapping("/logout")
+    ApiResponse<Void> logout(@RequestBody LogoutRequest request) throws ParseException, JOSEException {
+        ApiResponse<Void> apiResponse = new ApiResponse<>();
+        authenticationService.logout(request);
         return apiResponse;
     }
 }

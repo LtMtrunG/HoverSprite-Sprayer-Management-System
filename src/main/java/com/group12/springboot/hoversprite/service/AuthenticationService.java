@@ -1,13 +1,16 @@
 package com.group12.springboot.hoversprite.service;
 
-import com.group12.springboot.hoversprite.dataTransferObject.request.AuthenticationRequest;
-import com.group12.springboot.hoversprite.dataTransferObject.request.IntrospectTokenRequest;
+import com.group12.springboot.hoversprite.dataTransferObject.request.auth.AuthenticationRequest;
+import com.group12.springboot.hoversprite.dataTransferObject.request.auth.IntrospectTokenRequest;
+import com.group12.springboot.hoversprite.dataTransferObject.request.auth.LogoutRequest;
 import com.group12.springboot.hoversprite.dataTransferObject.response.AuthenticationResponse;
 import com.group12.springboot.hoversprite.dataTransferObject.response.IntrospectTokenResponse;
+import com.group12.springboot.hoversprite.entity.InvalidatedToken;
 import com.group12.springboot.hoversprite.entity.Role;
 import com.group12.springboot.hoversprite.entity.User;
 import com.group12.springboot.hoversprite.exception.CustomException;
 import com.group12.springboot.hoversprite.exception.ErrorCode;
+import com.group12.springboot.hoversprite.repository.InvalidatedTokenRepository;
 import com.group12.springboot.hoversprite.repository.UserRepository;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
@@ -26,11 +29,15 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.StringJoiner;
+import java.util.UUID;
 
 @Service
 public class AuthenticationService {
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    InvalidatedTokenRepository invalidatedTokenRepository;
 
     @NonFinal
     protected static final String SIGNER_KEY = "WN1p+NNBEUYPdgLAec9Glzja6hTei7ElFAk975/CDLEIy6dmlrwofb4fdNRKuouN";
@@ -64,6 +71,7 @@ public class AuthenticationService {
                                                     .expirationTime(new Date(
                                                             Instant.now().plus(6, ChronoUnit.HOURS).toEpochMilli()
                                                     ))
+                                                    .jwtID(UUID.randomUUID().toString())
                                                     .claim("scope", buildScope(user))
                                                     .build();
         Payload payload = new Payload(claimsSet.toJSONObject());
@@ -79,13 +87,48 @@ public class AuthenticationService {
 
     public IntrospectTokenResponse introspect(IntrospectTokenRequest request) throws JOSEException, ParseException {
         var token = request.getToken();
+        System.out.println("Introspecting token: " + token);
+
+        boolean valid = true;
+
+        try {
+            verifyToken(token);
+        } catch (CustomException e){
+            System.out.println("Token validation failed: " + e.getMessage());
+            valid = false;
+        }
+        IntrospectTokenResponse introspectTokenResponse = new IntrospectTokenResponse();
+        introspectTokenResponse.setValid(valid);
+
+        return introspectTokenResponse;
+    }
+
+    public void logout(LogoutRequest request) throws ParseException, JOSEException {
+        var signedToken = verifyToken(request.getToken());
+
+        String jit = signedToken.getJWTClaimsSet().getJWTID();
+        Date expiryTime = signedToken.getJWTClaimsSet().getExpirationTime();
+
+        InvalidatedToken invalidatedToken = new InvalidatedToken();
+        invalidatedToken.setId(jit);
+        invalidatedToken.setExpiryTime(expiryTime);
+
+        invalidatedTokenRepository.save(invalidatedToken);
+    }
+
+    private SignedJWT verifyToken(String token) throws JOSEException, ParseException {
         JWSVerifier verifier = new MACVerifier(SIGNER_KEY.getBytes());
         SignedJWT signedJWT = SignedJWT.parse(token);
-        Date expirationTime = signedJWT.getJWTClaimsSet().getExpirationTime();
+        Date expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();
         var valid = signedJWT.verify(verifier);
-        IntrospectTokenResponse introspectTokenResponse = new IntrospectTokenResponse();
-        introspectTokenResponse.setValid(valid && expirationTime.after(new Date()));
-        return introspectTokenResponse;
+
+        if (!(valid && expiryTime.after(new Date())))
+            throw new CustomException(ErrorCode.UNAUTHENTICATED);
+
+        if(invalidatedTokenRepository.existsById(signedJWT.getJWTClaimsSet().getJWTID()))
+            throw new CustomException(ErrorCode.UNAUTHENTICATED);
+
+        return signedJWT;
     }
 
     private String buildScope(User user) {

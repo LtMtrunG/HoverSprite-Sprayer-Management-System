@@ -1,4 +1,4 @@
-package com.group12.springboot.hoversprite.dataTransferObject.request;
+package com.group12.springboot.hoversprite.dataTransferObject.request.user;
 
 public class UserUpdateRequest {
     private String password;

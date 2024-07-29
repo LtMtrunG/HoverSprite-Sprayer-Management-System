@@ -1,4 +1,4 @@
-package com.group12.springboot.hoversprite.dataTransferObject.request;
+package com.group12.springboot.hoversprite.dataTransferObject.request.auth;
 
 public class IntrospectTokenRequest {
     private String token;

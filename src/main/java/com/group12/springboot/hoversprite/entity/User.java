@@ -1,7 +1,8 @@
  package com.group12.springboot.hoversprite.entity;
 
+import com.group12.springboot.hoversprite.constraint.PasswordConstraint;
+import com.group12.springboot.hoversprite.entity.enums.SprayerLevel;
 import jakarta.persistence.*;
-import java.util.Set;
 
 @Entity
 @Table(name="TBL_USERS")
@@ -11,6 +12,7 @@ public class User {
     private Long id;
 
     @Column(name="password")
+    @PasswordConstraint
     private String password;
 
     @Column(name="full_name")
@@ -24,6 +26,10 @@ public class User {
 
     @Column(name="address")
     private String address;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name="sprayer_level")
+    private SprayerLevel sprayerLevel;
 
     @ManyToOne
     private Role role;
@@ -82,5 +88,13 @@ public class User {
 
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    public SprayerLevel getSprayerLevel() {
+        return sprayerLevel;
+    }
+
+    public void setSprayerLevel(SprayerLevel sprayerLevel) {
+        this.sprayerLevel = sprayerLevel;
     }
 }

@@ -1,20 +1,15 @@
-package com.group12.springboot.hoversprite.dataTransferObject.request;
+package com.group12.springboot.hoversprite.dataTransferObject.request.user;
 
-import com.group12.springboot.hoversprite.entity.Role;
-import com.group12.springboot.hoversprite.validator.PasswordConstraint;
+import com.group12.springboot.hoversprite.constraint.PasswordConstraint;
 import jakarta.validation.constraints.Size;
 
-import java.util.Set;
-
-public class UserCreationRequest {
+public class FarmerCreationRequest {
     private String email;
-    @Size(min = 2, message = "PASSWORD_INVALID")
     @PasswordConstraint
     private String password;
     private String fullName;
     private String phoneNumber;
     private String address;
-    private String role;
 
     public String getPassword() {
         return password;
@@ -54,13 +49,5 @@ public class UserCreationRequest {
 
     public void setAddress(String address) {
         this.address = address;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
     }
 }

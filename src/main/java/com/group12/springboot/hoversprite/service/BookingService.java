@@ -1,66 +1,140 @@
-//package com.group12.springboot.hoversprite.service;
-//
-//import com.group12.springboot.hoversprite.dataTransferObject.request.BookingCreationRequest;
-//import com.group12.springboot.hoversprite.dataTransferObject.response.BookingResponse;
-//import com.group12.springboot.hoversprite.dataTransferObject.response.DailyScheduleResponse;
-//import com.group12.springboot.hoversprite.entity.Booking;
-//import com.group12.springboot.hoversprite.entity.DailySchedule;
-//import com.group12.springboot.hoversprite.entity.User;
-//import com.group12.springboot.hoversprite.exception.CustomException;
-//import com.group12.springboot.hoversprite.exception.ErrorCode;
-//import com.group12.springboot.hoversprite.repository.BookingRepository;
-//import com.group12.springboot.hoversprite.repository.DailyScheduleRepository;
-//import com.group12.springboot.hoversprite.repository.UserRepository;
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.security.access.prepost.PreAuthorize;
-//import org.springframework.security.core.context.SecurityContextHolder;
-//import org.springframework.stereotype.Service;
-//
-//import java.time.LocalDate;
-//import java.time.LocalDateTime;
-//import java.time.LocalTime;
-//import java.util.List;
-//import java.util.Optional;
-//import java.util.stream.Collectors;
-//
-//@Service
-//public class BookingService {
-//    @Autowired
-//    BookingRepository bookingRepository;
-//    @Autowired
-//    UserRepository userRepository;
-//    @Autowired
-//    DailyScheduleRepository dailyScheduleRepository;
-//
-//    @PreAuthorize("hasAuthority('APPROVE_BOOKING')")
-//    public BookingResponse createPendingBooking(BookingCreationRequest request){
-//        Booking booking = new Booking();
-//
-//        LocalDateTime localDateTime = request.getSprayingTime();
-//        LocalDate date = localDateTime.toLocalDate();
-//        LocalTime time = localDateTime.toLocalTime();
-//
-//        Optional<DailySchedule> optionalDailySchedule = dailyScheduleRepository.findById(date);
-//
-//        if (optionalDailySchedule.isEmpty()) {
-////            return createDailySchedule(request);
-//        } else {
-//            optionalDailySchedule.get
-//        }
-//
-//        booking.setReceptionist(request.getReceptionist());
-//        booking.setUser(request.getUser());
-//        booking.setSprayers(request.getSprayers());
-//        booking.setCropType(request.getCropType());
-//        booking.setStatus(request.getStatus());
-//        booking.setFarmlandArea(request.getFarmlandArea());
-//        booking.setCreatedTime(request.getCreatedTime());
-//        booking.setSprayingTime(request.getSprayingTime());
-//        booking.setTotalCost(request.getTotalCost());
-//
-//        return new BookingResponse(booking);
-//    }
-//
+package com.group12.springboot.hoversprite.service;
+
+import com.group12.springboot.hoversprite.dataTransferObject.request.booking.BookingCancelRequest;
+import com.group12.springboot.hoversprite.dataTransferObject.request.booking.BookingConfirmationRequest;
+import com.group12.springboot.hoversprite.dataTransferObject.request.booking.BookingCreationRequest;
+import com.group12.springboot.hoversprite.dataTransferObject.request.timeslot.TimeSlotCreateRequest;
+import com.group12.springboot.hoversprite.dataTransferObject.response.BookingResponse;
+import com.group12.springboot.hoversprite.entity.Booking;
+import com.group12.springboot.hoversprite.entity.TimeSlot;
+import com.group12.springboot.hoversprite.entity.enums.BookingStatus;
+import com.group12.springboot.hoversprite.exception.CustomException;
+import com.group12.springboot.hoversprite.exception.ErrorCode;
+import com.group12.springboot.hoversprite.repository.BookingRepository;
+import com.group12.springboot.hoversprite.repository.TimeSlotRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.Optional;
+
+@Service
+public class BookingService {
+    @Autowired
+    private TimeSlotRepository timeSlotRepository;
+
+    @Autowired
+    private TimeSlotService timeSlotService;
+
+    @Autowired
+    private BookingRepository bookingRepository;
+
+    @PreAuthorize("hasRole('FARMER')")
+    public BookingResponse createPendingBooking(BookingCreationRequest request) {
+        LocalDate date = request.getDate();
+        LocalTime startTime = request.getStartTime();
+
+        TimeSlot timeSlot = checkOrCreateTimeSlot(date, startTime);
+
+        if (timeSlot.isAvailable()) {
+            timeSlot.bookSession();
+            timeSlotRepository.save(timeSlot);
+        } else {
+            throw new CustomException(ErrorCode.SESSION_NOT_AVAILABLE);
+        }
+
+        Booking booking = createBookingWithStatus(BookingStatus.PENDING, request, timeSlot);
+
+        return new BookingResponse(booking);
+    }
+
+    @PreAuthorize("hasRole('RECEPTIONIST')")
+    public BookingResponse createConfirmedBooking(BookingCreationRequest request) {
+        LocalDate date = request.getDate();
+        LocalTime startTime = request.getStartTime();
+
+        TimeSlot timeSlot = checkOrCreateTimeSlot(date, startTime);
+
+        if (timeSlot.isAvailable()) {
+            timeSlot.bookSession();
+            timeSlotRepository.save(timeSlot);
+        } else {
+            throw new CustomException(ErrorCode.SESSION_NOT_AVAILABLE);
+        }
+
+        Booking booking = createBookingWithStatus(BookingStatus.CONFIRMED, request, timeSlot);
+
+        return new BookingResponse(booking);
+    }
+
+    @PreAuthorize("hasRole('RECEPTIONIST')")
+    public BookingResponse cancelBooking(BookingCancelRequest request) {
+        Optional<Booking> optionalBooking = bookingRepository.findById(request.getId());
+
+        if(optionalBooking.isEmpty()){
+            throw new CustomException(ErrorCode.BOOKING_NOT_EXISTS);
+        }
+
+        Booking booking = new Booking(optionalBooking.get());
+        booking.setStatus(BookingStatus.CANCELLED);
+
+        return new BookingResponse(booking);
+    }
+
+    @PreAuthorize("hasRole('RECEPTIONIST')")
+    public BookingResponse confirmBooking(BookingConfirmationRequest request) {
+        Optional<Booking> optionalBooking = bookingRepository.findById(request.getId());
+
+        if(optionalBooking.isEmpty()){
+            throw new CustomException(ErrorCode.BOOKING_NOT_EXISTS);
+        }
+
+        Booking booking = new Booking(optionalBooking.get());
+        booking.setStatus(BookingStatus.CONFIRMED);
+
+        return new BookingResponse(booking);
+    }
+
+    private TimeSlot checkOrCreateTimeSlot(LocalDate date, LocalTime startTime) {
+        Optional<TimeSlot> optionalTimeSlot = timeSlotRepository.findByDateAndStartTime(date, startTime);
+
+        if (optionalTimeSlot.isPresent()) {
+            return optionalTimeSlot.get();
+        } else {
+            TimeSlotCreateRequest createRequest = new TimeSlotCreateRequest();
+            createRequest.setDate(date);
+            createRequest.setStartTime(startTime);
+
+            timeSlotService.createTimeSlot(createRequest);
+
+            return timeSlotRepository.findByDateAndStartTime(date, startTime)
+                    .orElseThrow(() -> new RuntimeException("Failed to create time slot"));
+        }
+    }
+
+    private Booking createBookingWithStatus(BookingStatus status, BookingCreationRequest request, TimeSlot timeslot){
+        Booking booking = new Booking();
+        booking.setUser(request.getUser());
+        booking.setCropType(request.getCropType());
+        booking.setStatus(BookingStatus.PENDING);
+        booking.setFarmlandArea(request.getFarmlandArea());
+        booking.setCreatedTime(request.getCreatedTime());
+        booking.setTimeSlot(timeslot);
+        booking.setTotalCost(booking.getFarmlandArea() * 30000);
+
+        if(status == BookingStatus.CONFIRMED & request.getReceptionist() != null){
+            booking.setReceptionist(request.getReceptionist());
+        }
+
+        booking = bookingRepository.save(booking);
+
+        return booking;
+    }
+
+
+
 //    @PreAuthorize("hasRole('RECEPTIONIST')")
 //    public List<BookingResponse> getBookings(){
 //        List<Booking> bookings = bookingRepository.findAll();
@@ -85,6 +159,6 @@
 //                .map(BookingResponse::new)
 //                .collect(Collectors.toList());
 //    }
-//
-//
-//}
+
+
+}

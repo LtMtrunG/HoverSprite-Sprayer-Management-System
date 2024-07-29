@@ -1,6 +1,7 @@
 package com.group12.springboot.hoversprite.dataTransferObject.response;
 
 import com.group12.springboot.hoversprite.entity.Booking;
+import com.group12.springboot.hoversprite.entity.TimeSlot;
 import com.group12.springboot.hoversprite.entity.User;
 import com.group12.springboot.hoversprite.entity.enums.BookingStatus;
 import com.group12.springboot.hoversprite.entity.enums.CropType;
@@ -20,7 +21,7 @@ public class BookingResponse {
     private BookingStatus status;
     private double farmlandArea;
     private LocalDateTime createdTime;
-    private LocalDateTime sprayingTime;
+    private TimeSlot timeSlot;
     private double totalCost;
 
     public BookingResponse(Booking booking){
@@ -31,7 +32,7 @@ public class BookingResponse {
         this.status = booking.getStatus();
         this.farmlandArea = booking.getFarmlandArea();
         this.createdTime = booking.getCreatedTime();
-        this.sprayingTime = booking.getSprayingTime();
+        this.timeSlot = booking.getTimeSlot();
         this.totalCost = booking.getTotalCost();
     }
 
@@ -91,12 +92,12 @@ public class BookingResponse {
         this.createdTime = createdTime;
     }
 
-    public LocalDateTime getSprayingTime() {
-        return sprayingTime;
+    public TimeSlot getTimeSlot() {
+        return timeSlot;
     }
 
-    public void setSprayingTime(LocalDateTime sprayingTime) {
-        this.sprayingTime = sprayingTime;
+    public void setTimeSlot(TimeSlot timeSlot) {
+        this.timeSlot = timeSlot;
     }
 
     public double getTotalCost() {

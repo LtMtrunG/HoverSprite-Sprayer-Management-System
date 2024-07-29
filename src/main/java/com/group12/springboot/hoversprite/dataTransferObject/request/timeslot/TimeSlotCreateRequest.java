@@ -1,4 +1,4 @@
-package com.group12.springboot.hoversprite.dataTransferObject.request;
+package com.group12.springboot.hoversprite.dataTransferObject.request.timeslot;
 
 import java.time.LocalDate;
 import java.time.LocalTime;

@@ -1,12 +1,12 @@
 package com.group12.springboot.hoversprite.entity;
 
+import com.group12.springboot.hoversprite.constraint.DateConstraint;
+import com.group12.springboot.hoversprite.constraint.StartTimeConstraint;
 import jakarta.persistence.*;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.HashSet;
-import java.util.Set;
 
 @Entity
 @Table(name="TBL_TIME_SLOTS")
@@ -16,9 +16,14 @@ public class TimeSlot {
     private Long id;
 
     @Column(name = "date")
+    @DateConstraint
     private LocalDate date;
 
+    @Column(name = "day_of_week")
+    private DayOfWeek dayOfWeek;
+
     @Column(name = "start_time")
+    @StartTimeConstraint
     private LocalTime startTime;
 
     @Column(name = "end_time")
@@ -34,6 +39,7 @@ public class TimeSlot {
 
     public TimeSlot(LocalDate date, LocalTime startTime, LocalTime endTime) {
         this.date = date;
+        this.dayOfWeek = date.getDayOfWeek();
         this.startTime = startTime;
         this.endTime = endTime;
     }
@@ -52,6 +58,14 @@ public class TimeSlot {
 
     public void setDate(LocalDate date) {
         this.date = date;
+    }
+
+    public DayOfWeek getDayOfWeek() {
+        return dayOfWeek;
+    }
+
+    public void setDayOfWeek(DayOfWeek dayOfWeek) {
+        this.dayOfWeek = dayOfWeek;
     }
 
     public LocalTime getStartTime() {

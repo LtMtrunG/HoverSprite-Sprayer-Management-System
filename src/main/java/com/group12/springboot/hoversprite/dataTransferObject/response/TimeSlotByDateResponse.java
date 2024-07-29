@@ -8,17 +8,10 @@ import java.util.Set;
 
 public class TimeSlotByDateResponse {
     private int size;
-    private Set<TimeSlot> timeSlots;
+    private int totalSessions;
+    private int bookedSessions;
     private boolean isFull = false;
-
-    public TimeSlotByDateResponse(List<TimeSlot> timeSlots) {
-        this.size = timeSlots.size();
-        this.timeSlots = new HashSet<>(timeSlots);
-        if (this.size == 6) {
-            this.isFull = true;
-        }
-    }
-
+    private List<TimeSlot> timeSlots;
 
     public int getSize() {
         return size;
@@ -28,12 +21,28 @@ public class TimeSlotByDateResponse {
         this.size = size;
     }
 
-    public Set<TimeSlot> getTimeSlots() {
+    public List<TimeSlot> getTimeSlots() {
         return timeSlots;
     }
 
-    public void setTimeSlots(Set<TimeSlot> timeSlots) {
+    public void setTimeSlots(List<TimeSlot> timeSlots) {
         this.timeSlots = timeSlots;
+    }
+
+    public int getTotalSessions() {
+        return totalSessions;
+    }
+
+    public void setTotalSessions(int totalSessions) {
+        this.totalSessions = totalSessions;
+    }
+
+    public int getBookedSessions() {
+        return bookedSessions;
+    }
+
+    public void setBookedSessions(int bookedSessions) {
+        this.bookedSessions = bookedSessions;
     }
 
     public boolean isFull() {

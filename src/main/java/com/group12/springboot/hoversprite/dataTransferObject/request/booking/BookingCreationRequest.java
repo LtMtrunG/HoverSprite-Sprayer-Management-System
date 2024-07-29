@@ -1,10 +1,12 @@
-package com.group12.springboot.hoversprite.dataTransferObject.request;
+package com.group12.springboot.hoversprite.dataTransferObject.request.booking;
 
+import com.group12.springboot.hoversprite.constraint.StartTimeConstraint;
 import com.group12.springboot.hoversprite.entity.User;
-import com.group12.springboot.hoversprite.entity.enums.BookingStatus;
 import com.group12.springboot.hoversprite.entity.enums.CropType;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 public class BookingCreationRequest {
@@ -12,11 +14,11 @@ public class BookingCreationRequest {
     private User user;
     private List<User> sprayers;
     private CropType cropType;
-    private BookingStatus status;
     private double farmlandArea;
     private LocalDateTime createdTime;
-    private LocalDateTime sprayingTime;
-    private double totalCost;
+    private LocalDate date;
+    @StartTimeConstraint
+    private LocalTime startTime;
 
 
     public User getReceptionist() {
@@ -51,14 +53,6 @@ public class BookingCreationRequest {
         this.cropType = cropType;
     }
 
-    public BookingStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(BookingStatus status) {
-        this.status = status;
-    }
-
     public double getFarmlandArea() {
         return farmlandArea;
     }
@@ -75,19 +69,19 @@ public class BookingCreationRequest {
         this.createdTime = createdTime;
     }
 
-    public LocalDateTime getSprayingTime() {
-        return sprayingTime;
+    public LocalDate getDate() {
+        return date;
     }
 
-    public void setSprayingTime(LocalDateTime sprayingTime) {
-        this.sprayingTime = sprayingTime;
+    public void setDate(LocalDate date) {
+        this.date = date;
     }
 
-    public double getTotalCost() {
-        return totalCost;
+    public LocalTime getStartTime() {
+        return startTime;
     }
 
-    public void setTotalCost(double totalCost) {
-        this.totalCost = totalCost;
+    public void setStartTime(LocalTime startTime) {
+        this.startTime = startTime;
     }
 }

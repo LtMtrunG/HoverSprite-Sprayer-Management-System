@@ -11,4 +11,5 @@ import java.util.Optional;
 public interface TimeSlotRepository extends JpaRepository<TimeSlot, Long> {
     List<TimeSlot> findAllByDate(LocalDate date);
     Optional<TimeSlot> findByDateAndStartTime(LocalDate date, LocalTime startTime);
+    List<TimeSlot> findAllByDateBetween(LocalDate startDate, LocalDate endDate);
 }

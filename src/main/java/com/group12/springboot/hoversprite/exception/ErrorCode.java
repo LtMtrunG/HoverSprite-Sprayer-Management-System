@@ -11,6 +11,9 @@ public enum ErrorCode {
     UNAUTHENTICATED(1005, "Unauthenticated", HttpStatus.UNAUTHORIZED),
     UNAUTHORIZED(1006, "You do not have permission", HttpStatus.FORBIDDEN),
     DAILY_SCHEDULE_CREATED(1007, "The daily schedule already created", HttpStatus.BAD_REQUEST),
+    INVALID_TOKEN(1008, "Invalid Token", HttpStatus.UNAUTHORIZED),
+    SESSION_NOT_AVAILABLE(1009, "The selected time slot is not available.", HttpStatus.BAD_REQUEST),
+    BOOKING_NOT_EXISTS(1010, "Booking no existed", HttpStatus.NOT_FOUND),
     UNCATEGORIZED_EXCEPTION(9999, "Uncategorized error", HttpStatus.INTERNAL_SERVER_ERROR)
     ;
     private int code;

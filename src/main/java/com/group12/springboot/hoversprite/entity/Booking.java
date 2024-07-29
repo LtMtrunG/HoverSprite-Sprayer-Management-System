@@ -5,6 +5,7 @@ import com.group12.springboot.hoversprite.entity.enums.CropType;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -44,11 +45,26 @@ public class Booking {
     @Column(name="created_time")
     private LocalDateTime createdTime;
 
-    @Column(name="spraying_time")
-    private LocalDateTime sprayingTime;
+    @ManyToOne
+    @JoinColumn(name="time_slot_id")
+    private TimeSlot timeSlot;
 
     @Column(name="total_cost")
     private double totalCost;
+
+    public Booking(){};
+
+    public Booking(Booking booking) {
+        this.receptionist = booking.receptionist;
+        this.user = booking.user;
+        this.sprayers = new ArrayList<>(booking.sprayers);
+        this.cropType = booking.cropType;
+        this.status = booking.status;
+        this.farmlandArea = booking.farmlandArea;
+        this.createdTime = booking.createdTime;
+        this.timeSlot = booking.timeSlot;
+        this.totalCost = booking.totalCost;
+    }
 
     public Long getId() {
         return id;
@@ -114,12 +130,12 @@ public class Booking {
         this.createdTime = createdTime;
     }
 
-    public LocalDateTime getSprayingTime() {
-        return sprayingTime;
+    public TimeSlot getTimeSlot() {
+        return timeSlot;
     }
 
-    public void setSprayingTime(LocalDateTime sprayingTime) {
-        this.sprayingTime = sprayingTime;
+    public void setTimeSlot(TimeSlot timeSlot) {
+        this.timeSlot = timeSlot;
     }
 
     public double getTotalCost() {
