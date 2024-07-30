@@ -1,5 +1,6 @@
 package com.group12.springboot.hoversprite.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.group12.springboot.hoversprite.entity.enums.BookingStatus;
 import com.group12.springboot.hoversprite.entity.enums.CropType;
 import jakarta.persistence.*;
@@ -52,6 +53,13 @@ public class Booking {
     @Column(name="total_cost")
     private double totalCost;
 
+    @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<Action> actions;
+
+    @OneToOne(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Feedback feedback;
+
     public Booking(){};
 
     public Booking(Booking booking) {
@@ -64,6 +72,7 @@ public class Booking {
         this.createdTime = booking.createdTime;
         this.timeSlot = booking.timeSlot;
         this.totalCost = booking.totalCost;
+        this.actions = booking.getActions();
     }
 
     public Long getId() {
@@ -144,6 +153,30 @@ public class Booking {
 
     public void setTotalCost(double totalCost) {
         this.totalCost = totalCost;
+    }
+
+    public List<Action> getActions() {
+        return actions;
+    }
+
+    public void setActions(List<Action> actions) {
+        this.actions = actions;
+    }
+
+    public void addAction(Action action) {
+        if (this.actions == null) {
+            this.actions = new ArrayList<>();
+        }
+        this.actions.add(action);
+        action.setBooking(this);
+    }
+
+    public Feedback getFeedback() {
+        return feedback;
+    }
+
+    public void setFeedback(Feedback feedback) {
+        this.feedback = feedback;
     }
 }
 

@@ -12,6 +12,8 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.file.AccessDeniedException;
+
 @RestController
 public class UserController {
     @Autowired
@@ -55,10 +57,17 @@ public class UserController {
         return apiResponse;
     }
 
-    @GetMapping("/user/{userId}")
+    @GetMapping("/user/id/{userId}")
     ApiResponse<UserResponse> getUserById(@PathVariable("userId") Long userId){
         ApiResponse<UserResponse> apiResponse = new ApiResponse<>();
         apiResponse.setResult(userService.getUserById(userId));
+        return apiResponse;
+    }
+
+    @GetMapping("/user/phone/{phoneNumber}")
+    ApiResponse<UserResponse> getUserByPhone(@PathVariable("phoneNumber") String phoneNumber){
+        ApiResponse<UserResponse> apiResponse = new ApiResponse<>();
+        apiResponse.setResult(userService.getUserByPhone(phoneNumber));
         return apiResponse;
     }
 
@@ -70,7 +79,7 @@ public class UserController {
     }
 
     @PutMapping("/user/{userId}")
-    ApiResponse<UserResponse> updateUser(@PathVariable("userId") Long userId, @RequestBody UserUpdateRequest request){
+    ApiResponse<UserResponse> updateUser(@PathVariable("userId") Long userId, @RequestBody UserUpdateRequest request) throws AccessDeniedException {
         ApiResponse<UserResponse> apiResponse = new ApiResponse<>();
         apiResponse.setResult(userService.updateUser(userId, request));
         return apiResponse;

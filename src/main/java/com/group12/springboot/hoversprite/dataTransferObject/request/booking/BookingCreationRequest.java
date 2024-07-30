@@ -1,5 +1,6 @@
 package com.group12.springboot.hoversprite.dataTransferObject.request.booking;
 
+import com.group12.springboot.hoversprite.constraint.DateConstraint;
 import com.group12.springboot.hoversprite.constraint.StartTimeConstraint;
 import com.group12.springboot.hoversprite.entity.User;
 import com.group12.springboot.hoversprite.entity.enums.CropType;
@@ -16,6 +17,7 @@ public class BookingCreationRequest {
     private CropType cropType;
     private double farmlandArea;
     private LocalDateTime createdTime;
+    @DateConstraint
     private LocalDate date;
     @StartTimeConstraint
     private LocalTime startTime;

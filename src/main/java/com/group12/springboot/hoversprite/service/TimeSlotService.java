@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 @Service
 public class TimeSlotService {
     @Autowired
-    TimeSlotRepository timeSlotRepository;
+    private TimeSlotRepository timeSlotRepository;
 
     private static final Set<LocalTime> VALID_TIMES = new HashSet<>();
 
@@ -126,6 +126,14 @@ public class TimeSlotService {
         }
 
         return responses;
+    }
+
+    public void save(TimeSlot timeSlot){
+        timeSlotRepository.save(timeSlot);
+    }
+
+    Optional<TimeSlot> findByDateAndStartTime(LocalDate date, LocalTime startTime){
+        return timeSlotRepository.findByDateAndStartTime(date, startTime);
     }
 
 

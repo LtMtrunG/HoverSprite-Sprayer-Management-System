@@ -12,6 +12,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import java.nio.file.AccessDeniedException;
 import java.text.ParseException;
 import java.util.Set;
 
@@ -22,7 +23,7 @@ public class ApiExceptionHandler {
     ResponseEntity<ApiResponse> handleRuntimeException(Exception exception){
         ApiResponse apiResponse = new ApiResponse();
         apiResponse.setCode(ErrorCode.UNCATEGORIZED_EXCEPTION.getCode());
-        apiResponse.setMessage(ErrorCode.UNCATEGORIZED_EXCEPTION.getMessage());
+        apiResponse.setMessage(exception.getMessage());
         return ResponseEntity.status(ErrorCode.UNCATEGORIZED_EXCEPTION.getStatusCode()).body(apiResponse);
     }
 
@@ -68,7 +69,7 @@ public class ApiExceptionHandler {
     }
 
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
-    ResponseEntity<ApiResponse> handlingValidation(MethodArgumentNotValidException exception) {
+    ResponseEntity<ApiResponse> handlingMethodArgumentNotValidException(MethodArgumentNotValidException exception) {
         StringBuilder errors = new StringBuilder();
 
         exception.getBindingResult().getAllErrors().forEach((error) -> {
@@ -99,5 +100,14 @@ public class ApiExceptionHandler {
         apiResponse.setMessage(firstErrorMessage);
 
         return ResponseEntity.status(ErrorCode.INVALID_MESSAGE_KEY.getStatusCode()).body(apiResponse);
+    }
+
+    @ExceptionHandler(value = AccessDeniedException.class)
+    ResponseEntity<ApiResponse> handlingAccessDeniedException(AccessDeniedException exception) {
+        ApiResponse apiResponse = new ApiResponse();
+        apiResponse.setCode(ErrorCode.ACCESS_DENIED.getCode());
+        apiResponse.setMessage(exception.getMessage());
+
+        return ResponseEntity.status(ErrorCode.ACCESS_DENIED.getStatusCode()).body(apiResponse);
     }
 }

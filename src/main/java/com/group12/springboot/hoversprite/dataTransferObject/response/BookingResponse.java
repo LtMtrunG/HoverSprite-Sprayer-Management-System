@@ -1,19 +1,14 @@
 package com.group12.springboot.hoversprite.dataTransferObject.response;
 
-import com.group12.springboot.hoversprite.entity.Booking;
-import com.group12.springboot.hoversprite.entity.TimeSlot;
-import com.group12.springboot.hoversprite.entity.User;
+import com.group12.springboot.hoversprite.entity.*;
 import com.group12.springboot.hoversprite.entity.enums.BookingStatus;
 import com.group12.springboot.hoversprite.entity.enums.CropType;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 public class BookingResponse {
+    private Long id;
     private User receptionist;
     private User user;
     private List<User> sprayers;
@@ -23,8 +18,10 @@ public class BookingResponse {
     private LocalDateTime createdTime;
     private TimeSlot timeSlot;
     private double totalCost;
+    private List<Action> actions;
 
     public BookingResponse(Booking booking){
+        this.id = booking.getId();
         this.receptionist = booking.getReceptionist();
         this.user = booking.getUser();
         this.sprayers = booking.getSprayers();
@@ -34,6 +31,15 @@ public class BookingResponse {
         this.createdTime = booking.getCreatedTime();
         this.timeSlot = booking.getTimeSlot();
         this.totalCost = booking.getTotalCost();
+        this.actions = booking.getActions();
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public User getReceptionist() {
@@ -106,5 +112,13 @@ public class BookingResponse {
 
     public void setTotalCost(double totalCost) {
         this.totalCost = totalCost;
+    }
+
+    public List<Action> getActions() {
+        return actions;
+    }
+
+    public void setActions(List<Action> actions) {
+        this.actions = actions;
     }
 }

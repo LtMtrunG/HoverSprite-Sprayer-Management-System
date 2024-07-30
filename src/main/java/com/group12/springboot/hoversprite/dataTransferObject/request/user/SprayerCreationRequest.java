@@ -1,7 +1,7 @@
 package com.group12.springboot.hoversprite.dataTransferObject.request.user;
 
 import com.group12.springboot.hoversprite.constraint.PasswordConstraint;
-import com.group12.springboot.hoversprite.entity.enums.SprayerLevel;
+import com.group12.springboot.hoversprite.entity.enums.Expertise;
 
 public class SprayerCreationRequest {
     private String email;
@@ -10,7 +10,7 @@ public class SprayerCreationRequest {
     private String fullName;
     private String phoneNumber;
     private String address;
-    private SprayerLevel sprayerLevel;
+    private Expertise expertise;
 
     public String getEmail() {
         return email;
@@ -52,11 +52,11 @@ public class SprayerCreationRequest {
         this.address = address;
     }
 
-    public SprayerLevel getSprayerLevel() {
-        return sprayerLevel;
+    public Expertise getExpertise() {
+        return expertise;
     }
 
-    public void setSprayerLevel(SprayerLevel sprayerLevel) {
-        this.sprayerLevel = sprayerLevel;
+    public void setExpertise(Expertise expertise) {
+        this.expertise = expertise;
     }
 }

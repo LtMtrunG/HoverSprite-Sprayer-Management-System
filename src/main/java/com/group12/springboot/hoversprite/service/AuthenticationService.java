@@ -34,10 +34,8 @@ import java.util.UUID;
 @Service
 public class AuthenticationService {
     @Autowired
-    UserRepository userRepository;
-
-    @Autowired
-    InvalidatedTokenRepository invalidatedTokenRepository;
+    private UserRepository userRepository;
+    private InvalidatedTokenService invalidatedTokenService;
 
     @NonFinal
     protected static final String SIGNER_KEY = "WN1p+NNBEUYPdgLAec9Glzja6hTei7ElFAk975/CDLEIy6dmlrwofb4fdNRKuouN";
@@ -109,11 +107,7 @@ public class AuthenticationService {
         String jit = signedToken.getJWTClaimsSet().getJWTID();
         Date expiryTime = signedToken.getJWTClaimsSet().getExpirationTime();
 
-        InvalidatedToken invalidatedToken = new InvalidatedToken();
-        invalidatedToken.setId(jit);
-        invalidatedToken.setExpiryTime(expiryTime);
-
-        invalidatedTokenRepository.save(invalidatedToken);
+        invalidatedTokenService.createInvalidatedToken(jit, expiryTime);
     }
 
     private SignedJWT verifyToken(String token) throws JOSEException, ParseException {
@@ -125,7 +119,7 @@ public class AuthenticationService {
         if (!(valid && expiryTime.after(new Date())))
             throw new CustomException(ErrorCode.UNAUTHENTICATED);
 
-        if(invalidatedTokenRepository.existsById(signedJWT.getJWTClaimsSet().getJWTID()))
+        if(invalidatedTokenService.existsById(signedJWT.getJWTClaimsSet().getJWTID()))
             throw new CustomException(ErrorCode.UNAUTHENTICATED);
 
         return signedJWT;

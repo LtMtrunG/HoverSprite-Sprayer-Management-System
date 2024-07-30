@@ -24,7 +24,9 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 
+import java.nio.file.AccessDeniedException;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -33,10 +35,10 @@ import org.springframework.data.domain.Pageable;
 @Service
 public class UserService {
     @Autowired
-    UserRepository userRepository;
+    private UserRepository userRepository;
 
     @Autowired
-    RoleRepository roleRepository;
+    private RoleRepository roleRepository;
 
     public UserResponse createFarmer(FarmerCreationRequest request){
         User user = new User();
@@ -98,7 +100,7 @@ public class UserService {
         user.setPhoneNumber(request.getPhoneNumber());
         user.setAddress(request.getAddress());
         user.setRole(role);
-        user.setSprayerLevel(request.getSprayerLevel());
+        user.setExpertise(request.getExpertise());
         userRepository.save(user);
 
         return new UserResponse(user);
@@ -124,12 +126,17 @@ public class UserService {
         return listResponse;
     }
 
-
-
     @PreAuthorize("hasRole('RECEPTIONIST')")
     public UserResponse getUserById(Long userId){
         User user = userRepository.findById(userId)
                              .orElseThrow(() -> new RuntimeException("User Not Found."));
+        return new UserResponse(user);
+    }
+
+    @PreAuthorize("hasRole('RECEPTIONIST')")
+    public UserResponse getUserByPhone(String phoneNumber){
+        User user = userRepository.findByPhoneNumber(phoneNumber)
+                .orElseThrow(() -> new RuntimeException("User Not Found."));
         return new UserResponse(user);
     }
 
@@ -143,10 +150,19 @@ public class UserService {
         return new UserResponse(user);
     }
 
-    @PostAuthorize("returnObject.email == authentication.name")
-    public UserResponse updateUser(Long userId, UserUpdateRequest request){
+    public UserResponse updateUser(Long userId, UserUpdateRequest request) throws AccessDeniedException {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User Not Found."));
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        boolean authorize =  user.getEmail().equals(currentUsername) ||
+                authentication.getAuthorities().stream()
+                        .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_RECEPTIONIST"));
+
+        if(!authorize){
+            throw new AccessDeniedException("You do not have permission to update this user.");
+        }
 
         user.setPassword(request.getPassword());
         user.setFullName(request.getFullName());
@@ -161,5 +177,9 @@ public class UserService {
     @PreAuthorize("hasRole('RECEPTIONIST')")
     public void deleteUser(Long userId){
         userRepository.deleteById(userId);
+    }
+
+    public Optional<User> findByEmail(String email){
+        return userRepository.findByEmail(email);
     }
 }

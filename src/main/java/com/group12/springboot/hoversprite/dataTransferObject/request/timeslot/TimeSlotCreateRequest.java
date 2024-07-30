@@ -1,10 +1,15 @@
 package com.group12.springboot.hoversprite.dataTransferObject.request.timeslot;
 
+import com.group12.springboot.hoversprite.constraint.DateConstraint;
+import com.group12.springboot.hoversprite.constraint.StartTimeConstraint;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 
 public class TimeSlotCreateRequest {
+    @DateConstraint
     private LocalDate date;
+    @StartTimeConstraint
     private LocalTime startTime;
 
     public LocalDate getDate() {

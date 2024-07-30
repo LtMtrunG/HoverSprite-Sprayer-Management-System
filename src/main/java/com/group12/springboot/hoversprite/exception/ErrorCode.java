@@ -14,6 +14,8 @@ public enum ErrorCode {
     INVALID_TOKEN(1008, "Invalid Token", HttpStatus.UNAUTHORIZED),
     SESSION_NOT_AVAILABLE(1009, "The selected time slot is not available.", HttpStatus.BAD_REQUEST),
     BOOKING_NOT_EXISTS(1010, "Booking no existed", HttpStatus.NOT_FOUND),
+    ACCESS_DENIED(1011, "Access Denied", HttpStatus.FORBIDDEN),
+    INVALID_ACTION(1012, "Invalid Action", HttpStatus.BAD_REQUEST),
     UNCATEGORIZED_EXCEPTION(9999, "Uncategorized error", HttpStatus.INTERNAL_SERVER_ERROR)
     ;
     private int code;

@@ -1,7 +1,7 @@
  package com.group12.springboot.hoversprite.entity;
 
 import com.group12.springboot.hoversprite.constraint.PasswordConstraint;
-import com.group12.springboot.hoversprite.entity.enums.SprayerLevel;
+import com.group12.springboot.hoversprite.entity.enums.Expertise;
 import jakarta.persistence.*;
 
 @Entity
@@ -28,8 +28,8 @@ public class User {
     private String address;
 
     @Enumerated(EnumType.STRING)
-    @Column(name="sprayer_level")
-    private SprayerLevel sprayerLevel;
+    @Column(name="expertise")
+    private Expertise expertise;
 
     @ManyToOne
     private Role role;
@@ -90,11 +90,11 @@ public class User {
         this.role = role;
     }
 
-    public SprayerLevel getSprayerLevel() {
-        return sprayerLevel;
+    public Expertise getExpertise() {
+        return expertise;
     }
 
-    public void setSprayerLevel(SprayerLevel sprayerLevel) {
-        this.sprayerLevel = sprayerLevel;
+    public void setExpertise(Expertise expertise) {
+        this.expertise = expertise;
     }
 }
