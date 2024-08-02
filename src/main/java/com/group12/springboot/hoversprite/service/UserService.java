@@ -1,13 +1,16 @@
 package com.group12.springboot.hoversprite.service;
 
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
 import com.group12.springboot.hoversprite.dataTransferObject.request.UserCreationRequest;
 import com.group12.springboot.hoversprite.dataTransferObject.request.UserUpdateRequest;
 import com.group12.springboot.hoversprite.entity.User;
 import com.group12.springboot.hoversprite.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class UserService {
@@ -21,8 +24,10 @@ public class UserService {
             throw new RuntimeException("Email has already been used.");
         }
 
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
+
         user.setEmail(request.getEmail());
-        user.setPassword(request.getPassword());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setFullName(request.getFullName());
         user.setPhoneNumber(request.getPhoneNumber());
         user.setAddress(request.getAddress());
@@ -34,12 +39,12 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    public User getUserById(String userId){
+    public User getUserById(Long userId){
         return userRepository.findById(userId)
                              .orElseThrow(() -> new RuntimeException("User Not Found."));
     }
 
-    public User updateUser(String userId, UserUpdateRequest request){
+    public User updateUser(Long userId, UserUpdateRequest request){
         User user = getUserById(userId);
 
         user.setPassword(request.getPassword());
@@ -50,7 +55,7 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public void deleteUser(String userId){
+    public void deleteUser(Long userId){
         userRepository.deleteById(userId);
     }
 }
