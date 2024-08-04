@@ -1,4 +1,4 @@
-package com.group12.springboot.hoversprite.entity;
+// package com.group12.springboot.hoversprite.entity;
 
 import jakarta.persistence.*;
 
@@ -18,13 +18,13 @@ public class Role {
     )
     Set<Permission> permissions;
 
-    public String getName() {
-        return name;
-    }
+//     public String getName() {
+//         return name;
+//     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+//     public void setName(String name) {
+//         this.name = name;
+//     }
 
     public Set<Permission> getPermissions() {
         return permissions;
