@@ -7,6 +7,7 @@ import com.group12.springboot.hoversprite.dataTransferObject.response.Authentica
 import com.group12.springboot.hoversprite.dataTransferObject.response.IntrospectResponse;
 import com.group12.springboot.hoversprite.service.AuthenticationService;
 import com.nimbusds.jose.JOSEException;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,7 +23,7 @@ public class AuthenticationController {
     private AuthenticationService authenticationService;
 
     @PostMapping("/login")
-    ApiResponse<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest request){
+    ApiResponse<AuthenticationResponse> authenticate(@RequestBody @Valid AuthenticationRequest request){
         ApiResponse<AuthenticationResponse> apiResponse = new ApiResponse<>();
         AuthenticationResponse authenticationResponse = authenticationService.authenticate(request);
         apiResponse.setResult(authenticationResponse);
@@ -30,7 +31,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/introspect")
-    ApiResponse<IntrospectResponse> introspect(@RequestBody IntrospectRequest request) throws ParseException, JOSEException {
+    ApiResponse<IntrospectResponse> introspect(@RequestBody @Valid IntrospectRequest request) throws ParseException, JOSEException {
         ApiResponse<IntrospectResponse> apiResponse = new ApiResponse<>();
         IntrospectResponse introspectTokenResponse = authenticationService.introspect(request);
         apiResponse.setResult(introspectTokenResponse);

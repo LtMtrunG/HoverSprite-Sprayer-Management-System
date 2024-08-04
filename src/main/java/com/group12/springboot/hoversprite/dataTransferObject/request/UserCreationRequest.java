@@ -1,54 +1,32 @@
 package com.group12.springboot.hoversprite.dataTransferObject.request;
 
 import com.group12.springboot.hoversprite.validator.PasswordConstraint;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class UserCreationRequest {
+    @Email
+    @NotNull
+    @Pattern(regexp = ".+(.com|.vn)$", message = "Email must end with .com or .vn")
     private String email;
     @Size(min = 2, message = "Password must have at least 2 characters.")
+    @NotNull
     @PasswordConstraint
     private String password;
+    @NotNull
+    @Pattern(regexp = "^(?:[A-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểễếỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ][a-zàáâãèéêìíòóôõùúăđĩũơưạảấầẩẫậắằẳẵặẹẻẽềềểễếệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹ]*\\s?)+$", message = "Each word should start with capital letters")
     private String fullName;
+    @NotNull
+    @Pattern(regexp = "^(0\\d{9}|\\+84\\d{9})$")
     private String phoneNumber;
+    @NotNull
     private String address;
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getFullName() {
-        return fullName;
-    }
-
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
-    }
-
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
-
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
 }
