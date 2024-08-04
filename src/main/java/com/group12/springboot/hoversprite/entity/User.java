@@ -1,4 +1,4 @@
- package com.group12.springboot.hoversprite.entity;
+package com.group12.springboot.hoversprite.entity;
 
 import com.group12.springboot.hoversprite.constraint.PasswordConstraint;
 import com.group12.springboot.hoversprite.entity.enums.Expertise;

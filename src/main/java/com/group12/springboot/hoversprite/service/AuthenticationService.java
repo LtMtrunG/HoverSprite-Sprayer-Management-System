@@ -1,36 +1,41 @@
 package com.group12.springboot.hoversprite.service;
 
-import com.group12.springboot.hoversprite.dataTransferObject.request.auth.AuthenticationRequest;
-import com.group12.springboot.hoversprite.dataTransferObject.request.auth.IntrospectTokenRequest;
-import com.group12.springboot.hoversprite.dataTransferObject.request.auth.LogoutRequest;
-import com.group12.springboot.hoversprite.dataTransferObject.response.AuthenticationResponse;
-import com.group12.springboot.hoversprite.dataTransferObject.response.IntrospectTokenResponse;
-import com.group12.springboot.hoversprite.entity.InvalidatedToken;
-import com.group12.springboot.hoversprite.entity.Role;
-import com.group12.springboot.hoversprite.entity.User;
-import com.group12.springboot.hoversprite.exception.CustomException;
-import com.group12.springboot.hoversprite.exception.ErrorCode;
-import com.group12.springboot.hoversprite.repository.InvalidatedTokenRepository;
-import com.group12.springboot.hoversprite.repository.UserRepository;
-import com.nimbusds.jose.*;
-import com.nimbusds.jose.crypto.MACSigner;
-import com.nimbusds.jose.crypto.MACVerifier;
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.SignedJWT;
-import lombok.experimental.NonFinal;
+import java.text.ParseException;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
+import java.util.Optional;
+import java.util.StringJoiner;
+import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.text.ParseException;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Date;
-import java.util.StringJoiner;
-import java.util.UUID;
-import java.util.Optional;
+import com.group12.springboot.hoversprite.dataTransferObject.request.auth.AuthenticationRequest;
+import com.group12.springboot.hoversprite.dataTransferObject.request.auth.IntrospectTokenRequest;
+import com.group12.springboot.hoversprite.dataTransferObject.request.auth.LogoutRequest;
+import com.group12.springboot.hoversprite.dataTransferObject.response.AuthenticationResponse;
+import com.group12.springboot.hoversprite.dataTransferObject.response.IntrospectTokenResponse;
+import com.group12.springboot.hoversprite.entity.Role;
+import com.group12.springboot.hoversprite.entity.User;
+import com.group12.springboot.hoversprite.exception.CustomException;
+import com.group12.springboot.hoversprite.exception.ErrorCode;
+import com.group12.springboot.hoversprite.repository.UserRepository;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSObject;
+import com.nimbusds.jose.JWSVerifier;
+import com.nimbusds.jose.Payload;
+import com.nimbusds.jose.crypto.MACSigner;
+import com.nimbusds.jose.crypto.MACVerifier;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
+
+import lombok.experimental.NonFinal;
 
 @Service
 public class AuthenticationService {

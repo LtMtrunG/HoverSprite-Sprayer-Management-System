@@ -1,8 +1,13 @@
-// package com.group12.springboot.hoversprite.entity;
-
-import jakarta.persistence.*;
+package com.group12.springboot.hoversprite.entity;
 
 import java.util.Set;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name="TBL_ROLES")
@@ -18,13 +23,13 @@ public class Role {
     )
     Set<Permission> permissions;
 
-//     public String getName() {
-//         return name;
-//     }
+    public String getName() {
+        return name;
+    }
 
-//     public void setName(String name) {
-//         this.name = name;
-//     }
+    public void setName(String name) {
+        this.name = name;
+    }
 
     public Set<Permission> getPermissions() {
         return permissions;
