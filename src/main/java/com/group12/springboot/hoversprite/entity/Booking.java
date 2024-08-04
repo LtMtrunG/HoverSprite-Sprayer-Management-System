@@ -1,0 +1,182 @@
+package com.group12.springboot.hoversprite.entity;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.group12.springboot.hoversprite.entity.enums.BookingStatus;
+import com.group12.springboot.hoversprite.entity.enums.CropType;
+import jakarta.persistence.*;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@Table(name = "TBL_BOOKINGS")
+public class Booking {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne
+    @JoinColumn(name="receptionist_id")
+    private User receptionist;
+
+    @ManyToOne
+    @JoinColumn(name="user_id")
+    private User user;
+
+    @ManyToMany
+    @JoinTable(
+            name = "TBL_BOOKINGS_SPRAYERS",
+            joinColumns = @JoinColumn(name = "booking_id"),
+            inverseJoinColumns = @JoinColumn(name = "sprayer_id")
+    )
+    private List<User> sprayers;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name="crop_type")
+    private CropType cropType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name="status")
+    private BookingStatus status;
+
+    @Column(name="farm_land_area")
+    private double farmlandArea;
+
+    @Column(name="created_time")
+    private LocalDateTime createdTime;
+
+    @ManyToOne
+    @JoinColumn(name="time_slot_id")
+    private TimeSlot timeSlot;
+
+    @Column(name="total_cost")
+    private double totalCost;
+
+    @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<Action> actions;
+
+    @OneToOne(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Feedback feedback;
+
+    public Booking(){};
+
+    public Booking(Booking booking) {
+        this.receptionist = booking.receptionist;
+        this.user = booking.user;
+        this.sprayers = new ArrayList<>(booking.sprayers);
+        this.cropType = booking.cropType;
+        this.status = booking.status;
+        this.farmlandArea = booking.farmlandArea;
+        this.createdTime = booking.createdTime;
+        this.timeSlot = booking.timeSlot;
+        this.totalCost = booking.totalCost;
+        this.actions = booking.getActions();
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public User getReceptionist() {
+        return receptionist;
+    }
+
+    public void setReceptionist(User receptionist) {
+        this.receptionist = receptionist;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public List<User> getSprayers() {
+        return sprayers;
+    }
+
+    public void setSprayers(List<User> sprayers) {
+        this.sprayers = sprayers;
+    }
+
+    public CropType getCropType() {
+        return cropType;
+    }
+
+    public void setCropType(CropType cropType) {
+        this.cropType = cropType;
+    }
+
+    public BookingStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(BookingStatus status) {
+        this.status = status;
+    }
+
+    public double getFarmlandArea() {
+        return farmlandArea;
+    }
+
+    public void setFarmlandArea(double farmlandArea) {
+        this.farmlandArea = farmlandArea;
+    }
+
+    public LocalDateTime getCreatedTime() {
+        return createdTime;
+    }
+
+    public void setCreatedTime(LocalDateTime createdTime) {
+        this.createdTime = createdTime;
+    }
+
+    public TimeSlot getTimeSlot() {
+        return timeSlot;
+    }
+
+    public void setTimeSlot(TimeSlot timeSlot) {
+        this.timeSlot = timeSlot;
+    }
+
+    public double getTotalCost() {
+        return totalCost;
+    }
+
+    public void setTotalCost(double totalCost) {
+        this.totalCost = totalCost;
+    }
+
+    public List<Action> getActions() {
+        return actions;
+    }
+
+    public void setActions(List<Action> actions) {
+        this.actions = actions;
+    }
+
+    public void addAction(Action action) {
+        if (this.actions == null) {
+            this.actions = new ArrayList<>();
+        }
+        this.actions.add(action);
+        action.setBooking(this);
+    }
+
+    public Feedback getFeedback() {
+        return feedback;
+    }
+
+    public void setFeedback(Feedback feedback) {
+        this.feedback = feedback;
+    }
+}
+

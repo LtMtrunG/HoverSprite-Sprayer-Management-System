@@ -1,26 +1,22 @@
 // package com.group12.springboot.hoversprite.entity;
 
-// import jakarta.persistence.*;
-// import java.util.Set;
+import jakarta.persistence.*;
 
-// @Entity
-// public class Role {
+import java.util.Set;
 
-//     @Id
-//     @GeneratedValue(strategy = GenerationType.IDENTITY)
-//     private Long id;
-//     private String name;
+@Entity
+@Table(name="TBL_ROLES")
+public class Role {
+    @Id
+    private String name;
 
-//     @ManyToMany(mappedBy = "roles")
-//     private Set<User> users;
-
-//     public Long getId() {
-//         return id;
-//     }
-
-//     public void setId(Long id) {
-//         this.id = id;
-//     }
+    @ManyToMany
+    @JoinTable(
+            name = "TBL_ROLES_PERMISSIONS",
+            joinColumns = @JoinColumn(name = "role_name"),
+            inverseJoinColumns = @JoinColumn(name = "permission_name")
+    )
+    Set<Permission> permissions;
 
 //     public String getName() {
 //         return name;
@@ -30,11 +26,11 @@
 //         this.name = name;
 //     }
 
-//     public Set<User> getUsers() {
-//         return users;
-//     }
+    public Set<Permission> getPermissions() {
+        return permissions;
+    }
 
-//     public void setUsers(Set<User> users) {
-//         this.users = users;
-//     }
-// }
+    public void setPermissions(Set<Permission> permissions) {
+        this.permissions = permissions;
+    }
+}

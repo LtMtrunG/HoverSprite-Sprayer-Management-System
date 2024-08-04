@@ -1,16 +1,24 @@
-package com.group12.springboot.hoversprite.dataTransferObject.request;
+package com.group12.springboot.hoversprite.dataTransferObject.request.user;
 
-import com.group12.springboot.hoversprite.validator.PasswordConstraint;
-import jakarta.validation.constraints.Size;
+import com.group12.springboot.hoversprite.constraint.PasswordConstraint;
+import com.group12.springboot.hoversprite.entity.enums.Expertise;
 
-public class UserCreationRequest {
+public class SprayerCreationRequest {
     private String email;
-    @Size(min = 2, message = "Password must have at least 2 characters.")
     @PasswordConstraint
     private String password;
     private String fullName;
     private String phoneNumber;
     private String address;
+    private Expertise expertise;
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
     public String getPassword() {
         return password;
@@ -36,19 +44,19 @@ public class UserCreationRequest {
         this.phoneNumber = phoneNumber;
     }
 
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
     public String getAddress() {
         return address;
     }
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public Expertise getExpertise() {
+        return expertise;
+    }
+
+    public void setExpertise(Expertise expertise) {
+        this.expertise = expertise;
     }
 }

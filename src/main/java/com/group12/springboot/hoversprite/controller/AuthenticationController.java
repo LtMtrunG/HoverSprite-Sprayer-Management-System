@@ -1,10 +1,11 @@
 package com.group12.springboot.hoversprite.controller;
 
-import com.group12.springboot.hoversprite.dataTransferObject.request.AuthenticationRequest;
-import com.group12.springboot.hoversprite.dataTransferObject.request.IntrospectRequest;
+import com.group12.springboot.hoversprite.dataTransferObject.request.auth.AuthenticationRequest;
+import com.group12.springboot.hoversprite.dataTransferObject.request.auth.IntrospectTokenRequest;
+import com.group12.springboot.hoversprite.dataTransferObject.request.auth.LogoutRequest;
 import com.group12.springboot.hoversprite.dataTransferObject.response.ApiResponse;
 import com.group12.springboot.hoversprite.dataTransferObject.response.AuthenticationResponse;
-import com.group12.springboot.hoversprite.dataTransferObject.response.IntrospectResponse;
+import com.group12.springboot.hoversprite.dataTransferObject.response.IntrospectTokenResponse;
 import com.group12.springboot.hoversprite.service.AuthenticationService;
 import com.nimbusds.jose.JOSEException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,10 +31,17 @@ public class AuthenticationController {
     }
 
     @PostMapping("/introspect")
-    ApiResponse<IntrospectResponse> introspect(@RequestBody IntrospectRequest request) throws ParseException, JOSEException {
-        ApiResponse<IntrospectResponse> apiResponse = new ApiResponse<>();
-        IntrospectResponse introspectTokenResponse = authenticationService.introspect(request);
+    ApiResponse<IntrospectTokenResponse> introspect(@RequestBody IntrospectTokenRequest request) throws ParseException, JOSEException {
+        ApiResponse<IntrospectTokenResponse> apiResponse = new ApiResponse<>();
+        IntrospectTokenResponse introspectTokenResponse = authenticationService.introspect(request);
         apiResponse.setResult(introspectTokenResponse);
+        return apiResponse;
+    }
+
+    @PostMapping("/logout")
+    ApiResponse<Void> logout(@RequestBody LogoutRequest request) throws ParseException, JOSEException {
+        ApiResponse<Void> apiResponse = new ApiResponse<>();
+        authenticationService.logout(request);
         return apiResponse;
     }
 }

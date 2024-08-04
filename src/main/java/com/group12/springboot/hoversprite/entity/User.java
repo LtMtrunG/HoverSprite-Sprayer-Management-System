@@ -1,42 +1,38 @@
  package com.group12.springboot.hoversprite.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.group12.springboot.hoversprite.constraint.PasswordConstraint;
+import com.group12.springboot.hoversprite.entity.enums.Expertise;
+import jakarta.persistence.*;
 
 @Entity
-@Table(name = "TBL_USERS")
+@Table(name="TBL_USERS")
 public class User {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "password")
+    @Column(name="password")
+    @PasswordConstraint
     private String password;
 
-    @Column(name = "full_name")
+    @Column(name="full_name")
     private String fullName;
 
-    @Column(name = "phone_number")
+    @Column(name="phone_number")
     private String phoneNumber;
 
-    @Column(name = "email")
+    @Column(name="email")
     private String email;
 
-    @Column(name = "address")
+    @Column(name="address")
     private String address;
 
-    // @ManyToMany(fetch = FetchType.EAGER)
-    // @JoinTable(
-    //         name = "users_roles",
-    //         joinColumns = @JoinColumn(name = "user_id"),
-    //         inverseJoinColumns = @JoinColumn(name = "role_id")
-    // )
-    // private Set<Role> roles;
+    @Enumerated(EnumType.STRING)
+    @Column(name="expertise")
+    private Expertise expertise;
+
+    @ManyToOne
+    private Role role;
 
     public Long getId() {
         return id;
@@ -86,11 +82,19 @@ public class User {
         this.address = address;
     }
 
-    // public Set<Role> getRoles() {
-    //     return roles;
-    // }
+    public Role getRole() {
+        return role;
+    }
 
-    // public void setRoles(Set<Role> roles) {
-    //     this.roles = roles;
-    // }
+    public void setRole(Role role) {
+        this.role = role;
+    }
+
+    public Expertise getExpertise() {
+        return expertise;
+    }
+
+    public void setExpertise(Expertise expertise) {
+        this.expertise = expertise;
+    }
 }

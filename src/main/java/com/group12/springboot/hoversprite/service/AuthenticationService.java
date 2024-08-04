@@ -1,40 +1,41 @@
 package com.group12.springboot.hoversprite.service;
 
-import java.text.ParseException;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Date;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-
-import com.group12.springboot.hoversprite.dataTransferObject.request.AuthenticationRequest;
-import com.group12.springboot.hoversprite.dataTransferObject.request.IntrospectRequest;
+import com.group12.springboot.hoversprite.dataTransferObject.request.auth.AuthenticationRequest;
+import com.group12.springboot.hoversprite.dataTransferObject.request.auth.IntrospectTokenRequest;
+import com.group12.springboot.hoversprite.dataTransferObject.request.auth.LogoutRequest;
 import com.group12.springboot.hoversprite.dataTransferObject.response.AuthenticationResponse;
-import com.group12.springboot.hoversprite.dataTransferObject.response.IntrospectResponse;
+import com.group12.springboot.hoversprite.dataTransferObject.response.IntrospectTokenResponse;
+import com.group12.springboot.hoversprite.entity.InvalidatedToken;
+import com.group12.springboot.hoversprite.entity.Role;
 import com.group12.springboot.hoversprite.entity.User;
 import com.group12.springboot.hoversprite.exception.CustomException;
 import com.group12.springboot.hoversprite.exception.ErrorCode;
+import com.group12.springboot.hoversprite.repository.InvalidatedTokenRepository;
 import com.group12.springboot.hoversprite.repository.UserRepository;
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.JWSObject;
-import com.nimbusds.jose.JWSVerifier;
-import com.nimbusds.jose.Payload;
+import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-
 import lombok.experimental.NonFinal;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import java.text.ParseException;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
+import java.util.StringJoiner;
+import java.util.UUID;
 
 @Service
 public class AuthenticationService {
     @Autowired
-    UserRepository userRepository;
+    private UserRepository userRepository;
+    private InvalidatedTokenService invalidatedTokenService;
 
     @NonFinal
     protected static final String SIGNER_KEY = "WN1p+NNBEUYPdgLAec9Glzja6hTei7ElFAk975/CDLEIy6dmlrwofb4fdNRKuouN";
@@ -50,24 +51,26 @@ public class AuthenticationService {
             throw new CustomException(ErrorCode.UNAUTHENTICATED);
         }
 
-        String token = generateToken(user);
+        var token = generateToken(user);
 
         AuthenticationResponse authenticationResponse = new AuthenticationResponse();
         authenticationResponse.setToken(token);
-        authenticationResponse.setAuthenticated(authenticated);
+        authenticationResponse.setAuthenticated(true);
+
         return authenticationResponse;
     }
 
     private String generateToken(User user){
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
         JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
-                                                    .subject(user.getFullName())
+                                                    .subject(user.getEmail())
                                                     .issuer("hoversprite.com")
                                                     .issueTime(new Date())
                                                     .expirationTime(new Date(
                                                             Instant.now().plus(6, ChronoUnit.HOURS).toEpochMilli()
                                                     ))
-                                                    .claim("scope", "scope")
+                                                    .jwtID(UUID.randomUUID().toString())
+                                                    .claim("scope", buildScope(user))
                                                     .build();
         Payload payload = new Payload(claimsSet.toJSONObject());
         JWSObject jwsObject = new JWSObject(header, payload);
@@ -80,19 +83,57 @@ public class AuthenticationService {
         }
     }
 
-    public IntrospectResponse introspect(IntrospectRequest request) throws JOSEException, ParseException {
+    public IntrospectTokenResponse introspect(IntrospectTokenRequest request) throws JOSEException, ParseException {
         var token = request.getToken();
-        JWSVerifier verifier = new MACVerifier(SIGNER_KEY.getBytes());
-        SignedJWT signedJWT = SignedJWT.parse(token);
-        Date expirationTime = signedJWT.getJWTClaimsSet().getExpirationTime();
-        var valid = signedJWT.verify(verifier);
-        IntrospectResponse introspectTokenResponse = new IntrospectResponse();
-        introspectTokenResponse.setValid(valid && expirationTime.after(new Date()));
+        System.out.println("Introspecting token: " + token);
+
+        boolean valid = true;
+
+        try {
+            verifyToken(token);
+        } catch (CustomException e){
+            System.out.println("Token validation failed: " + e.getMessage());
+            valid = false;
+        }
+        IntrospectTokenResponse introspectTokenResponse = new IntrospectTokenResponse();
+        introspectTokenResponse.setValid(valid);
+
         return introspectTokenResponse;
     }
+
+    public void logout(LogoutRequest request) throws ParseException, JOSEException {
+        var signedToken = verifyToken(request.getToken());
+
+        String jit = signedToken.getJWTClaimsSet().getJWTID();
+        Date expiryTime = signedToken.getJWTClaimsSet().getExpirationTime();
+
+        invalidatedTokenService.createInvalidatedToken(jit, expiryTime);
+    }
+
+    private SignedJWT verifyToken(String token) throws JOSEException, ParseException {
+        JWSVerifier verifier = new MACVerifier(SIGNER_KEY.getBytes());
+        SignedJWT signedJWT = SignedJWT.parse(token);
+        Date expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();
+        var valid = signedJWT.verify(verifier);
+
+        if (!(valid && expiryTime.after(new Date())))
+            throw new CustomException(ErrorCode.UNAUTHENTICATED);
+
+        if(invalidatedTokenService.existsById(signedJWT.getJWTClaimsSet().getJWTID()))
+            throw new CustomException(ErrorCode.UNAUTHENTICATED);
+
+        return signedJWT;
+    }
+
+    private String buildScope(User user) {
+        StringJoiner stringJoiner = new StringJoiner(" ");
+        Role role = user.getRole();
+        if (role != null) {
+            stringJoiner.add("ROLE_" + role.getName());
+            if (!CollectionUtils.isEmpty(role.getPermissions()))
+                role.getPermissions().forEach(permission -> stringJoiner.add(permission.getName()));
+        }
+
+        return stringJoiner.toString();
+    }
 }
-
-
-//request: email, password-> login -> response: token
-
-//request: token -> introspect -> response: valid

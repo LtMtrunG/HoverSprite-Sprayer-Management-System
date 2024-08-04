@@ -1,6 +1,7 @@
 package com.group12.springboot.hoversprite.validator;
 
 
+import com.group12.springboot.hoversprite.constraint.PasswordConstraint;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
