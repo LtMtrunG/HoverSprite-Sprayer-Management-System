@@ -30,6 +30,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.StringJoiner;
 import java.util.UUID;
+import java.util.Optional;
 
 @Service
 public class AuthenticationService {
@@ -41,8 +42,13 @@ public class AuthenticationService {
     protected static final String SIGNER_KEY = "WN1p+NNBEUYPdgLAec9Glzja6hTei7ElFAk975/CDLEIy6dmlrwofb4fdNRKuouN";
 
     public AuthenticationResponse authenticate(AuthenticationRequest request){
-        var user = userRepository.findByEmail(request.getEmail())
-                                        .orElseThrow(() -> new CustomException(ErrorCode.EMAIL_NOT_EXISTS));
+        Optional<User> userOpt = userRepository.findByEmail(request.getEmail());
+
+        if (!userOpt.isPresent()) {
+            userOpt = userRepository.findByPhoneNumber(request.getEmail());
+        }
+
+        User user = userOpt.orElseThrow(() -> new CustomException(ErrorCode.EMAIL_NOT_EXISTS));
 
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         boolean authenticated =  passwordEncoder.matches(request.getPassword(), user.getPassword());
