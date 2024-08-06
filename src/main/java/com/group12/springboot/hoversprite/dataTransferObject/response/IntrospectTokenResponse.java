@@ -1,6 +1,6 @@
 package com.group12.springboot.hoversprite.dataTransferObject.response;
 
-public class IntrospectResponse {
+public class IntrospectTokenResponse {
     private boolean valid;
 
     public boolean isValid() {

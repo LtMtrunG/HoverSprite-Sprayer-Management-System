@@ -1,6 +1,10 @@
-package com.group12.springboot.hoversprite.dataTransferObject.request;
+package com.group12.springboot.hoversprite.dataTransferObject.request.user;
 
-public class UserUpdateRequest {
+import com.group12.springboot.hoversprite.validator.PasswordConstraint;
+
+public class FarmerCreationRequest {
+    private String email;
+    @PasswordConstraint
     private String password;
     private String fullName;
     private String phoneNumber;
@@ -28,6 +32,14 @@ public class UserUpdateRequest {
 
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getAddress() {

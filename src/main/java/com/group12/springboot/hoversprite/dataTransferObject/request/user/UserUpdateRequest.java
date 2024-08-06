@@ -1,12 +1,7 @@
-package com.group12.springboot.hoversprite.dataTransferObject.request;
 
-import com.group12.springboot.hoversprite.validator.PasswordConstraint;
-import jakarta.validation.constraints.Size;
+package com.group12.springboot.hoversprite.dataTransferObject.request.user;
 
-public class UserCreationRequest {
-    private String email;
-    @Size(min = 2, message = "Password must have at least 2 characters.")
-    @PasswordConstraint
+public class UserUpdateRequest {
     private String password;
     private String fullName;
     private String phoneNumber;
@@ -34,14 +29,6 @@ public class UserCreationRequest {
 
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
     }
 
     public String getAddress() {

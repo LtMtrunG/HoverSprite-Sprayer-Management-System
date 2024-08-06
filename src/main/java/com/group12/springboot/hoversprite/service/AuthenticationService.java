@@ -5,16 +5,19 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Optional;
+import java.util.StringJoiner;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
-import com.group12.springboot.hoversprite.dataTransferObject.request.AuthenticationRequest;
-import com.group12.springboot.hoversprite.dataTransferObject.request.IntrospectRequest;
+import com.group12.springboot.hoversprite.dataTransferObject.request.auth.AuthenticationRequest;
+import com.group12.springboot.hoversprite.dataTransferObject.request.auth.IntrospectTokenRequest;
 import com.group12.springboot.hoversprite.dataTransferObject.response.AuthenticationResponse;
-import com.group12.springboot.hoversprite.dataTransferObject.response.IntrospectResponse;
+import com.group12.springboot.hoversprite.dataTransferObject.response.IntrospectTokenResponse;
+import com.group12.springboot.hoversprite.entity.Role;
 import com.group12.springboot.hoversprite.entity.User;
 import com.group12.springboot.hoversprite.exception.CustomException;
 import com.group12.springboot.hoversprite.exception.ErrorCode;
@@ -41,7 +44,6 @@ public class AuthenticationService {
     protected static final String SIGNER_KEY = "WN1p+NNBEUYPdgLAec9Glzja6hTei7ElFAk975/CDLEIy6dmlrwofb4fdNRKuouN";
 
     public AuthenticationResponse authenticate(AuthenticationRequest request){
-        
         Optional<User> userOpt = userRepository.findByEmail(request.getEmail());
 
         if (!userOpt.isPresent()) {
@@ -57,24 +59,25 @@ public class AuthenticationService {
             throw new CustomException(ErrorCode.UNAUTHENTICATED);
         }
 
-        String token = generateToken(user);
+        var token = generateToken(user);
 
         AuthenticationResponse authenticationResponse = new AuthenticationResponse();
         authenticationResponse.setToken(token);
-        authenticationResponse.setAuthenticated(authenticated);
+        authenticationResponse.setAuthenticated(true);
+
         return authenticationResponse;
     }
 
     private String generateToken(User user){
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
         JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
-                                                    .subject(user.getFullName())
+                                                    .subject(user.getEmail())
                                                     .issuer("hoversprite.com")
                                                     .issueTime(new Date())
                                                     .expirationTime(new Date(
                                                             Instant.now().plus(6, ChronoUnit.HOURS).toEpochMilli()
                                                     ))
-                                                    .claim("scope", "scope")
+                                                    .claim("scope", buildScope(user))
                                                     .build();
         Payload payload = new Payload(claimsSet.toJSONObject());
         JWSObject jwsObject = new JWSObject(header, payload);
@@ -87,19 +90,26 @@ public class AuthenticationService {
         }
     }
 
-    public IntrospectResponse introspect(IntrospectRequest request) throws JOSEException, ParseException {
+    public IntrospectTokenResponse introspect(IntrospectTokenRequest request) throws JOSEException, ParseException {
         var token = request.getToken();
         JWSVerifier verifier = new MACVerifier(SIGNER_KEY.getBytes());
         SignedJWT signedJWT = SignedJWT.parse(token);
         Date expirationTime = signedJWT.getJWTClaimsSet().getExpirationTime();
         var valid = signedJWT.verify(verifier);
-        IntrospectResponse introspectTokenResponse = new IntrospectResponse();
+        IntrospectTokenResponse introspectTokenResponse = new IntrospectTokenResponse();
         introspectTokenResponse.setValid(valid && expirationTime.after(new Date()));
         return introspectTokenResponse;
     }
+
+    private String buildScope(User user) {
+        StringJoiner stringJoiner = new StringJoiner(" ");
+        Role role = user.getRole();
+        if (role != null) {
+            stringJoiner.add("ROLE_" + role.getName());
+            if (!CollectionUtils.isEmpty(role.getPermissions()))
+                role.getPermissions().forEach(permission -> stringJoiner.add(permission.getName()));
+        }
+
+        return stringJoiner.toString();
+    }
 }
-
-
-//request: email, password-> login -> response: token
-
-//request: token -> introspect -> response: valid
