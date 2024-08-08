@@ -1,4 +1,4 @@
-package com.group12.springboot.hoversprite.dataTransferObject.response;
+package com.group12.springboot.hoversprite.dataTransferObject.response.timeslot;
 
 import java.util.List;
 

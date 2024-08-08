@@ -1,10 +1,10 @@
-package com.group12.springboot.hoversprite.dataTransferObject.response;
-
-import com.group12.springboot.hoversprite.entity.TimeSlot;
+package com.group12.springboot.hoversprite.dataTransferObject.response.timeslot;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
+
+import com.group12.springboot.hoversprite.entity.TimeSlot;
 
 
 public class TimeSlotCreateResponse {

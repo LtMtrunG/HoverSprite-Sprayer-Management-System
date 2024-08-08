@@ -1,9 +1,7 @@
-package com.group12.springboot.hoversprite.dataTransferObject.response;
+package com.group12.springboot.hoversprite.dataTransferObject.response.user;
 
-import com.group12.springboot.hoversprite.entity.User;
 import com.group12.springboot.hoversprite.entity.Role;
-
-import java.util.Set;
+import com.group12.springboot.hoversprite.entity.User;
 
 public class UserResponse {
     private Long id;

@@ -18,7 +18,7 @@ import com.group12.springboot.hoversprite.dataTransferObject.request.user.Spraye
 import com.group12.springboot.hoversprite.dataTransferObject.request.user.UserUpdateRequest;
 import com.group12.springboot.hoversprite.dataTransferObject.response.ApiResponse;
 import com.group12.springboot.hoversprite.dataTransferObject.response.ListResponse;
-import com.group12.springboot.hoversprite.dataTransferObject.response.UserResponse;
+import com.group12.springboot.hoversprite.dataTransferObject.response.user.UserResponse;
 import com.group12.springboot.hoversprite.service.UserService;
 
 import jakarta.validation.Valid;

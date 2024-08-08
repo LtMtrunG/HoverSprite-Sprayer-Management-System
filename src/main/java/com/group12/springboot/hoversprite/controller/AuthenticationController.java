@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.group12.springboot.hoversprite.dataTransferObject.request.auth.AuthenticationRequest;
 import com.group12.springboot.hoversprite.dataTransferObject.request.auth.IntrospectTokenRequest;
 import com.group12.springboot.hoversprite.dataTransferObject.response.ApiResponse;
-import com.group12.springboot.hoversprite.dataTransferObject.response.AuthenticationResponse;
-import com.group12.springboot.hoversprite.dataTransferObject.response.IntrospectTokenResponse;
+import com.group12.springboot.hoversprite.dataTransferObject.response.auth.AuthenticationResponse;
+import com.group12.springboot.hoversprite.dataTransferObject.response.auth.IntrospectTokenResponse;
 import com.group12.springboot.hoversprite.service.AuthenticationService;
 import com.nimbusds.jose.JOSEException;
 

@@ -1,11 +1,13 @@
-package com.group12.springboot.hoversprite.dataTransferObject.response;
-
-import com.group12.springboot.hoversprite.entity.*;
-import com.group12.springboot.hoversprite.entity.enums.BookingStatus;
-import com.group12.springboot.hoversprite.entity.enums.CropType;
+package com.group12.springboot.hoversprite.dataTransferObject.response.booking;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
+import com.group12.springboot.hoversprite.entity.Booking;
+import com.group12.springboot.hoversprite.entity.TimeSlot;
+import com.group12.springboot.hoversprite.entity.User;
+import com.group12.springboot.hoversprite.entity.enums.BookingStatus;
+import com.group12.springboot.hoversprite.entity.enums.CropType;
 
 public class BookingResponse {
     private Long id;

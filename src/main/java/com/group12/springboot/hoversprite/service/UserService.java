@@ -24,7 +24,7 @@ import com.group12.springboot.hoversprite.dataTransferObject.request.user.Recept
 import com.group12.springboot.hoversprite.dataTransferObject.request.user.SprayerCreationRequest;
 import com.group12.springboot.hoversprite.dataTransferObject.request.user.UserUpdateRequest;
 import com.group12.springboot.hoversprite.dataTransferObject.response.ListResponse;
-import com.group12.springboot.hoversprite.dataTransferObject.response.UserResponse;
+import com.group12.springboot.hoversprite.dataTransferObject.response.user.UserResponse;
 import com.group12.springboot.hoversprite.entity.Role;
 import com.group12.springboot.hoversprite.entity.User;
 import com.group12.springboot.hoversprite.entity.enums.RoleType;

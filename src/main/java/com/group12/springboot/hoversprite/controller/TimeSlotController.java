@@ -1,16 +1,22 @@
 package com.group12.springboot.hoversprite.controller;
 
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.group12.springboot.hoversprite.dataTransferObject.request.timeslot.TimeSlotByDateRequest;
 import com.group12.springboot.hoversprite.dataTransferObject.request.timeslot.TimeSlotCreateRequest;
 import com.group12.springboot.hoversprite.dataTransferObject.response.ApiResponse;
-import com.group12.springboot.hoversprite.dataTransferObject.response.TimeSlotByDateResponse;
-import com.group12.springboot.hoversprite.dataTransferObject.response.TimeSlotCreateResponse;
+import com.group12.springboot.hoversprite.dataTransferObject.response.timeslot.TimeSlotByDateResponse;
+import com.group12.springboot.hoversprite.dataTransferObject.response.timeslot.TimeSlotCreateResponse;
 import com.group12.springboot.hoversprite.service.TimeSlotService;
-import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/timeslots")

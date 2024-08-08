@@ -1,4 +1,4 @@
-package com.group12.springboot.hoversprite.dataTransferObject.response;
+package com.group12.springboot.hoversprite.dataTransferObject.response.auth;
 
 public class AuthenticationResponse {
     private boolean authenticated;

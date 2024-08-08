@@ -18,8 +18,8 @@ import org.springframework.stereotype.Service;
 
 import com.group12.springboot.hoversprite.dataTransferObject.request.timeslot.TimeSlotByDateRequest;
 import com.group12.springboot.hoversprite.dataTransferObject.request.timeslot.TimeSlotCreateRequest;
-import com.group12.springboot.hoversprite.dataTransferObject.response.TimeSlotByDateResponse;
-import com.group12.springboot.hoversprite.dataTransferObject.response.TimeSlotCreateResponse;
+import com.group12.springboot.hoversprite.dataTransferObject.response.timeslot.TimeSlotByDateResponse;
+import com.group12.springboot.hoversprite.dataTransferObject.response.timeslot.TimeSlotCreateResponse;
 import com.group12.springboot.hoversprite.entity.TimeSlot;
 import com.group12.springboot.hoversprite.repository.TimeSlotRepository;
 

@@ -27,8 +27,8 @@ import com.group12.springboot.hoversprite.dataTransferObject.request.booking.Boo
 import com.group12.springboot.hoversprite.dataTransferObject.request.booking.BookingInProgressRequest;
 import com.group12.springboot.hoversprite.dataTransferObject.request.booking.BookingUpdateRequest;
 import com.group12.springboot.hoversprite.dataTransferObject.request.timeslot.TimeSlotCreateRequest;
-import com.group12.springboot.hoversprite.dataTransferObject.response.BookingResponse;
 import com.group12.springboot.hoversprite.dataTransferObject.response.ListResponse;
+import com.group12.springboot.hoversprite.dataTransferObject.response.booking.BookingResponse;
 import com.group12.springboot.hoversprite.entity.Booking;
 import com.group12.springboot.hoversprite.entity.TimeSlot;
 import com.group12.springboot.hoversprite.entity.User;
@@ -45,6 +45,8 @@ public class BookingService {
     private TimeSlotService timeSlotService;
     @Autowired
     private UserService userService;
+    @Autowired
+    private EmailService emailService;
 
     @PreAuthorize("hasRole('FARMER')")
     public BookingResponse createPendingBooking(BookingCreationRequest request) {
@@ -130,6 +132,8 @@ public class BookingService {
         booking.setStatus(BookingStatus.CONFIRMED);
         booking.setReceptionist(receptionist);
         bookingRepository.save(booking);
+
+        emailService.sendEmail(booking.getUser().getEmail(), booking);
 
         return new BookingResponse(booking);
     }
