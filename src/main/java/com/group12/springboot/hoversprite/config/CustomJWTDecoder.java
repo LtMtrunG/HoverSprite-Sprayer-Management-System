@@ -40,6 +40,7 @@ public class CustomJWTDecoder implements JwtDecoder {
             }
         }catch (JOSEException | ParseException e){
             throw new JwtException(e.getMessage());
+            // throw new CustomException(ErrorCode.INVALID_TOKEN);
         }
 
         if (Objects.isNull(nimbusJwtDecoder)) {

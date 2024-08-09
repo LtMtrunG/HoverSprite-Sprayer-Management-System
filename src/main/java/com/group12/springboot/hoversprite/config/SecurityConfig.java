@@ -1,5 +1,7 @@
 package com.group12.springboot.hoversprite.config;
 
+import com.group12.springboot.hoversprite.exception.CustomAuthenticationEntryPoint;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,6 +22,8 @@ public class SecurityConfig {
 
     @Autowired
     private CustomJWTDecoder customJWTDecoder;
+    @Autowired
+    private CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.authorizeHttpRequests(request -> request.requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINT).permitAll()
@@ -27,6 +31,8 @@ public class SecurityConfig {
                                                             .anyRequest().authenticated());
         httpSecurity.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfigurer -> jwtConfigurer.decoder(customJWTDecoder)
                                                                                             .jwtAuthenticationConverter(jwtAuthenticationConverter())));
+        httpSecurity.exceptionHandling().authenticationEntryPoint(customAuthenticationEntryPoint);
+                                                                                            
         httpSecurity.csrf(AbstractHttpConfigurer::disable);
         return httpSecurity.build();
     }
