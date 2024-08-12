@@ -10,10 +10,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.group12.springboot.hoversprite.entity.Permission;
-import com.group12.springboot.hoversprite.entity.Role;
-import com.group12.springboot.hoversprite.repository.PermissionRepository;
-import com.group12.springboot.hoversprite.repository.RoleRepository;
+import com.group12.springboot.hoversprite.common.Permission;
+import com.group12.springboot.hoversprite.common.PermissionRepository;
+import com.group12.springboot.hoversprite.common.Role;
+import com.group12.springboot.hoversprite.common.RoleRepository;
 
 @Configuration
 public class AppInitConfig {

@@ -19,6 +19,9 @@ public enum ErrorCode {
     RECEPTIONIST_NOT_EXIST(1013, "Receptionist not exist", HttpStatus.NOT_FOUND),
     FARMER_NOT_EXIST(1014, "FARMER not exist", HttpStatus.NOT_FOUND),
     SPRAYER_NOT_EXIST(1015, "SPRAYER not exist", HttpStatus.NOT_FOUND),
+    PHONE_NUMBER_NOT_EXISTS(1016, "Phone number not existed", HttpStatus.NOT_FOUND),
+    USER_NOT_EXISTS(1017, "User not existed", HttpStatus.NOT_FOUND),
+    TIME_SLOT_NOT_EXISTS(1017, "Time slot not existed", HttpStatus.NOT_FOUND),
     UNCATEGORIZED_EXCEPTION(9999, "Uncategorized error", HttpStatus.INTERNAL_SERVER_ERROR)
     ;
     private int code;
