@@ -6,6 +6,8 @@ import com.group12.springboot.hoversprite.user.entity.User;
 public class UserAuthenticateDTO {
     private final Long id;
 
+    private final String fullName;
+
     private final String password;
 
     private final String phoneNumber;
@@ -16,6 +18,7 @@ public class UserAuthenticateDTO {
 
     public UserAuthenticateDTO(User user) {
         this.id = user.getId();
+        this.fullName = user.getFullName();
         this.password = user.getPassword();
         this.phoneNumber = user.getPhoneNumber();
         this.email = user.getEmail();
@@ -24,6 +27,10 @@ public class UserAuthenticateDTO {
 
     public Long getId() {
         return id;
+    }
+
+    public String getFullName() {
+        return fullName;
     }
 
     public String getPassword() {

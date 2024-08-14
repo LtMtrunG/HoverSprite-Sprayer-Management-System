@@ -6,6 +6,8 @@ import com.group12.springboot.hoversprite.common.ListResponse;
 
 public interface UserAPI {
 
+    public UserOAuth2DTO createOrUpdateUser(UserOAuth2DTO user);
+
     public UserResponse createFarmer(FarmerCreationRequest request);
 
     public UserResponse createReceptionist(ReceptionistCreationRequest request);
@@ -25,6 +27,10 @@ public interface UserAPI {
     public void deleteUser(Long userId);
 
     public FarmerDTO findFarmerById(Long farmerId);
+
+    public FarmerDTO findFarmerByEmail(String email);
+
+    public FarmerDTO findFarmerByPhoneNumber(String phoneNumber);
 
     public ReceptionistDTO findReceptionistById(Long receptionistId);
 

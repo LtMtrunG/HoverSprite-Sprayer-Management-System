@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.group12.springboot.hoversprite.user.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,15 +26,6 @@ import com.group12.springboot.hoversprite.common.Role;
 import com.group12.springboot.hoversprite.common.RoleRepository;
 import com.group12.springboot.hoversprite.exception.CustomException;
 import com.group12.springboot.hoversprite.exception.ErrorCode;
-import com.group12.springboot.hoversprite.user.FarmerCreationRequest;
-import com.group12.springboot.hoversprite.user.FarmerDTO;
-import com.group12.springboot.hoversprite.user.ReceptionistCreationRequest;
-import com.group12.springboot.hoversprite.user.ReceptionistDTO;
-import com.group12.springboot.hoversprite.user.SprayerCreationRequest;
-import com.group12.springboot.hoversprite.user.UserAPI;
-import com.group12.springboot.hoversprite.user.UserAuthenticateDTO;
-import com.group12.springboot.hoversprite.user.UserResponse;
-import com.group12.springboot.hoversprite.user.UserUpdateRequest;
 import com.group12.springboot.hoversprite.user.entity.User;
 import com.group12.springboot.hoversprite.user.enums.RoleType;
 import com.group12.springboot.hoversprite.user.repository.UserRepository;
@@ -46,6 +38,39 @@ public class UserService implements UserAPI {
 
     @Autowired
     private RoleRepository roleRepository;
+
+    @Override
+    @Transactional(readOnly = false)
+    public UserOAuth2DTO createOrUpdateUser(UserOAuth2DTO user) {
+        Optional<User> existingAccount = userRepository.findByEmail(user.getEmail());
+        if (existingAccount.isEmpty()) {
+            Role role = roleRepository.findByName(RoleType.FARMER.name())
+                    .orElseThrow(() -> new RuntimeException("User's Role Not Found."));
+            user.setRole(role);
+
+            PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
+
+            User trueUser = new User();
+            trueUser.setEmail(user.getEmail());
+            trueUser.setFullName(user.getFullName());
+            trueUser.setPhoneNumber(user.getPhoneNumber());
+            trueUser.setRole(user.getRole());
+            trueUser.setPassword(passwordEncoder.encode("Test!"));
+            System.out.println(user.getEmail());
+            System.out.println("save");
+            userRepository.save(trueUser);
+            System.out.println(user.getEmail());
+            return user;
+        }
+//        existingAccount.setEmail(user.getEmail());
+//        existingAccount.setFullName(user.getFullName());
+//        existingAccount.setPhoneNumber(user.getPhoneNumber());
+//        existingAccount.setRole(user.getRole());
+//        userRepository.save(existingAccount);
+
+        return existingAccount.map(UserOAuth2DTO::new)
+                .orElseThrow(() -> new CustomException(ErrorCode.PHONE_NUMBER_NOT_EXISTS));
+    }
 
     @Override
     public UserResponse createFarmer(FarmerCreationRequest request) {
@@ -201,6 +226,20 @@ public class UserService implements UserAPI {
     @Override
     public FarmerDTO findFarmerById(Long farmerId) {
         Optional<User> user = userRepository.findById(farmerId);
+        return user.map(FarmerDTO::new)
+                .orElseThrow(() -> new CustomException(ErrorCode.FARMER_NOT_EXIST));
+    }
+
+    @Override
+    public FarmerDTO findFarmerByEmail(String email) {
+        Optional<User> user = userRepository.findByEmail(email);
+        return user.map(FarmerDTO::new)
+                .orElseThrow(() -> new CustomException(ErrorCode.FARMER_NOT_EXIST));
+    }
+
+    @Override
+    public FarmerDTO findFarmerByPhoneNumber(String phoneNumber) {
+        Optional<User> user = userRepository.findByPhoneNumber(phoneNumber);
         return user.map(FarmerDTO::new)
                 .orElseThrow(() -> new CustomException(ErrorCode.FARMER_NOT_EXIST));
     }

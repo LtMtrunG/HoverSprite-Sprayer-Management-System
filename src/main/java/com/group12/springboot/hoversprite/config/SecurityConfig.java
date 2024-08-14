@@ -1,9 +1,11 @@
 package com.group12.springboot.hoversprite.config;
 
+import com.group12.springboot.hoversprite.authentication.handler.CustomAuthenticationSuccessHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -18,22 +20,37 @@ import com.group12.springboot.hoversprite.exception.CustomAuthenticationEntryPoi
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-    private final String[] PUBLIC_ENDPOINT = {"/register/farmer", "/auth/login", "/auth/introspect", "/auth/logout"};
+    private final String[] PUBLIC_ENDPOINT = {"/register/farmer", "/auth/login", "/auth/introspect", "/auth/logout", "/**", "/login/**", "/oauth2/**"};
+    private final String[] STATIC_RESOURCES = {"/assets/**", "/index.html"};
 
     @Autowired
     private CustomJWTDecoder customJWTDecoder;
     @Autowired
     private CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+
+    private final CustomAuthenticationSuccessHandler successHandler;
+
+    public SecurityConfig(CustomAuthenticationSuccessHandler successHandler) {
+        this.successHandler = successHandler;
+    }
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity.authorizeHttpRequests(request -> request.requestMatchers(HttpMethod.POST, PUBLIC_ENDPOINT).permitAll()
-//                                                            .requestMatchers(HttpMethod.GET, "/users").hasRole(Role.RECEPTIONIST.name())
-                                                            .anyRequest().authenticated());
+        httpSecurity.authorizeHttpRequests(request -> request.requestMatchers(PUBLIC_ENDPOINT).permitAll().requestMatchers(STATIC_RESOURCES).permitAll()
+                                                            .anyRequest().authenticated()).oauth2Login(oauth2 -> oauth2
+//                .successHandler()
+//                .userInfoEndpoint(userInfoEndpoint -> userInfoEndpoint.userService())
+                        .successHandler(successHandler)
+                .loginPage("/login.html") // Custom login page if needed
+//                .defaultSuccessUrl("/home.html", true) // Redirect after successful login
+//                .failureUrl("/login?error") // Redirect in case of failure
+        );
         httpSecurity.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfigurer -> jwtConfigurer.decoder(customJWTDecoder)
                                                                                             .jwtAuthenticationConverter(jwtAuthenticationConverter())));
         httpSecurity.exceptionHandling().authenticationEntryPoint(customAuthenticationEntryPoint);
-                                                                                            
+
         httpSecurity.csrf(AbstractHttpConfigurer::disable);
+
         return httpSecurity.build();
     }
 
