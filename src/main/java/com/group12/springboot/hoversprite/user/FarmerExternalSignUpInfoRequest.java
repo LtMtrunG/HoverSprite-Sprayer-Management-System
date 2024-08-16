@@ -9,7 +9,6 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class IdTokenRequest {
-
-    private String idToken;
+public class FarmerExternalSignUpInfoRequest {
+    private String jwtToken;
 }

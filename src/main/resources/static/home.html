@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -7,8 +8,9 @@
     <title>Home-Login</title>
     <link rel="stylesheet" href="assets/login.css">
 </head>
+
 <body>
-    <header class="header"> 
+    <header class="header">
         <div class="logo">
             <img class="header-logo" src="../image/logo.png" alt="Logo">
         </div>
@@ -19,9 +21,38 @@
             <a href="booking.html">Booking</a>
             <a href="login.html"> Login</a>
         </nav>
-
+        <h1>Welcome, <span id="userName">User</span></h1>
         <div class="button-group">
         </div>
+        <script>
+
+            function handleOAuth2Callback() {
+                fetch('/hoversprite/login/oauth2/code/google')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();  // Parse the JSON response
+                    })
+                    .then(data => {
+                        // 'data' contains the access token
+                        console.log("Access Token:", data.access_token);
+                        // Display the access token on the page
+                        document.getElementById("access-token-display").textContent = `Access Token: ${data.access_token}`;
+                    })
+                    .catch(error => {
+                        console.error('There was a problem with the fetch operation:', error);
+                    })
+            }
+
+            // Event listener for the Google Login button
+            // document.getElementById("google-login-btn").addEventListener("click", triggerGoogleLogin);
+
+            // Call this function when the user is redirected back after login
+            // You might call this in a specific part of your flow
+            handleOAuth2Callback();
+        </script>
     </header>
 </body>
+
 </html>

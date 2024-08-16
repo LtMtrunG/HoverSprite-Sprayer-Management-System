@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -7,80 +8,110 @@
     <title>Log in</title>
     <link rel="stylesheet" href="assets/login.css">
 </head>
+
 <body>
-<header class="header">
-    <div class="logo">
-        <img class="header-logo" src="../image/logo.png" alt="Logo">
-    </div>
+    <header class="header">
+        <div class="logo">
+            <img class="header-logo" src="../image/logo.png" alt="Logo">
+        </div>
 
-    <nav class="navbar">
-        <a href="home.html">Home</a>
-        <a href="about_us.html">About Us</a>
-        <a href="booking.html">Booking</a>
-        <a href="vehicle.html"> Vehicles</a>
-    </nav>
+        <nav class="navbar">
+            <a href="home.html">Home</a>
+            <a href="about_us.html">About Us</a>
+            <a href="booking.html">Booking</a>
+            <a href="vehicle.html"> Vehicles</a>
+        </nav>
 
-    <div class="button-group">
-    </div>
-</header>
+        <div class="button-group">
+        </div>
+    </header>
 
-<div class="container">
-    <div class="sign-up">
-        <form action="">
-            <h1>Create Account</h1>
+    <div class="container">
+        <div class="sign-up">
+            <form action="" method="get">
+                <h1>Create Account</h1>
+                <div class="message-container">
+                    <p class="success-message"></p>
+                    <p class="error-message"></p>
+                </div>
 
-            <div class="message-container">
-                <p class="success-message"></p>
-                <p class="error-message"></p>
-            </div>
+                <div class="infield">
+                    <input type="text" placeholder="Name" id="name" required pattern=".{1,}">
+                    <label></label>
+                </div>
+                <div class="infield">
+                    <input type="text" placeholder="Phone" id="phone" required pattern=".{1,}">
+                    <label></label>
+                </div>
+                <div class="infield">
+                    <input type="text" placeholder="Email" id="email" required pattern=".{1,}">
+                    <label></label>
+                </div>
+                <div class="infield">
+                    <input type="password" placeholder="Password" id="password" required pattern=".{1,}">
+                    <label></label>
+                </div>
+                <div class="infield">
+                    <input type="password" placeholder="Confirm Password" id="confirm-password" required
+                        pattern=".{1,}">
+                    <label></label>
+                </div>
 
-            <div class="infield">
-                <input type="text" placeholder="Name" id="name" required pattern=".{1,}">
-                <label></label>
-            </div>
-            <div class="infield">
-                <input type="text" placeholder="Phone" id="phone" required pattern=".{1,}">
-                <label></label>
-            </div>
-            <div class="infield">
-                <input type="text" placeholder="Email" id="email" required pattern=".{1,}">
-                <label></label>
-            </div>
-            <div class="infield">
-                <input type="password" placeholder="Password" id="password" required pattern=".{1,}">
-                <label></label>
-            </div>
-            <div class="infield">
-                <input type="password" placeholder="Confirm Password" id="confirm-password" required pattern=".{1,}">
-                <label></label>
-            </div>
-            <button>Sign Up</button>
-            <a href="/hoversprite/oauth2/authorization/google">Login with Google</a>
-        </form>
-    </div>
+                <button type="submit">Sign Up</button>
+                <button type="button" onclick="triggerGoogleLogin()">Login with Google</button>
+                <button type="button" onclick="triggerFacebookLogin()">Login with Facebook</button>
+            </form>
+        </div>
 
-    <div class="left">
-        <div class="left-panel">
-            <h1>Welcome Back!</h1>
-            <span>To keep connected with us please login with your email</span> <br>
-            <button onclick="window.location.href='signin.html'">Sign In</button>
+        <div class="left">
+            <div class="left-panel">
+                <h1>Welcome Back!</h1>
+                <span>To keep connected with us please login with your email</span> <br>
+                <button onclick="window.location.href='signin.html'">Sign In</button>
+            </div>
         </div>
     </div>
 
-</div>
+    <script>
+        // JavaScript functions defined here
 
-<script src="userScript.js"></script>
-<script>
-    let form = document.querySelector('form');
-    form.addEventListener('submit', (event) => { signUp(event) });
+        function triggerGoogleLogin() {
+            // Redirect the user to Google OAuth2 login
+            window.location.href = '/hoversprite/oauth2/authorization/google';
+            // window.local.href = '/hoversprite/oauth2/authorization/google';
+        }
 
-    const searchParams = new URLSearchParams(window.location.search);
-    const email = searchParams.get('email');
-    const emailInput = document.getElementById('email');
+        function triggerFacebookLogin() {
+            window.location.href = '/hoversprite/oauth2/authorization/facebook';
+        }
 
-    if (email) {
-        emailInput.value = email;
-    }
-</script>
+        // function handleOAuth2Callback() {
+        //     fetch('/hoversprite/login/oauth2/code/google')
+        //         .then(response => {
+        //             if (!response.ok) {
+        //                 throw new Error('Network response was not ok');
+        //             }
+        //             return response.json();  // Parse the JSON response
+        //         })
+        //         .then(data => {
+        //             // 'data' contains the access token
+        //             console.log("Access Token:", data.access_token);
+        //             // Display the access token on the page
+        //             document.getElementById("access-token-display").textContent = `Access Token: ${data.access_token}`;
+        //         })
+        //         .catch(error => {
+        //             console.error('There was a problem with the fetch operation:', error);
+        //         })
+        // }
+
+        // Event listener for the Google Login button
+        // document.getElementById("google-login-btn").addEventListener("click", triggerGoogleLogin);
+
+        // Call this function when the user is redirected back after login
+        // You might call this in a specific part of your flow
+        // handleOAuth2Callback();
+    </script>
+
 </body>
+
 </html>

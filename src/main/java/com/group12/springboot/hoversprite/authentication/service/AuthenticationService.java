@@ -1,25 +1,11 @@
 package com.group12.springboot.hoversprite.authentication.service;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Collections;
 import java.util.Date;
 import java.util.StringJoiner;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
-import com.group12.springboot.hoversprite.user.IdTokenRequest;
-import com.group12.springboot.hoversprite.user.UserOAuth2DTO;
-import com.group12.springboot.hoversprite.user.entity.User;
-import com.group12.springboot.hoversprite.user.enums.RoleType;
-import com.group12.springboot.hoversprite.user.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -50,23 +36,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.NonFinal;
 
 @Service
+@RequiredArgsConstructor
 public class AuthenticationService implements AuthenticationAPI {
     private final UserAPI userAPI;
 
-    private final GoogleIdTokenVerifier verifier;
-
     @NonFinal
     protected static final String SIGNER_KEY = "WN1p+NNBEUYPdgLAec9Glzja6hTei7ElFAk975/CDLEIy6dmlrwofb4fdNRKuouN";
-
-
-    public AuthenticationService(@Value("${app.googleClientId}") String clientId, UserAPI userAPI) {
-        this.userAPI = userAPI;
-        NetHttpTransport transport = new NetHttpTransport();
-        JsonFactory jsonFactory = new JacksonFactory();
-        verifier = new GoogleIdTokenVerifier.Builder(transport, jsonFactory)
-                .setAudience(Collections.singletonList(clientId))
-                .build();
-    }
 
     @Override
     public AuthenticationResponse authenticate(AuthenticationRequest request){
@@ -93,41 +68,6 @@ public class AuthenticationService implements AuthenticationAPI {
         authenticationResponse.setAuthenticated(true);
 
         return authenticationResponse;
-    }
-
-    @Override
-    public String loginOAuthGoogle(IdTokenRequest requestBody) {
-        UserOAuth2DTO user = verifyIDToken(requestBody.getIdToken());
-        if (user == null) {
-            throw new IllegalArgumentException();
-        }
-        user = userAPI.createOrUpdateUser(user);
-        UserAuthenticateDTO userAuthenticateDTO = userAPI.findUserByEmail(user.getEmail());
-
-        if (userAuthenticateDTO == null) {
-            throw new CustomException(ErrorCode.EMAIL_NOT_EXISTS);
-        }
-        return generateToken(userAuthenticateDTO);
-    }
-
-    private UserOAuth2DTO verifyIDToken(String idToken) {
-        try {
-            GoogleIdToken idTokenObj = verifier.verify(idToken);
-            if (idTokenObj == null) {
-                return null;
-            }
-            GoogleIdToken.Payload payload = idTokenObj.getPayload();
-            String fullName = (String) payload.get("name");
-            String email = payload.getEmail();
-            String pictureUrl = (String) payload.get("picture");
-
-            UserOAuth2DTO userOAuth2DTO = new UserOAuth2DTO();
-            userOAuth2DTO.setEmail(email);
-            userOAuth2DTO.setFullName(fullName);
-            return userOAuth2DTO;
-        } catch (GeneralSecurityException | IOException e) {
-            return null;
-        }
     }
 
     private String generateToken(UserAuthenticateDTO user){

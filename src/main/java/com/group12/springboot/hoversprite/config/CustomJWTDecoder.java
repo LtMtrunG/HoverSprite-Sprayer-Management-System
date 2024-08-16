@@ -34,7 +34,6 @@ public class CustomJWTDecoder implements JwtDecoder {
 
         try{
             var response = authenticationAPI.introspect(introspectTokenRequest);
-            System.out.println("Introspection Response: " + response.isValid());
             if (!response.isValid()) {
                 System.out.println("Token validation failed");
                 throw new JwtException("Token invalid");

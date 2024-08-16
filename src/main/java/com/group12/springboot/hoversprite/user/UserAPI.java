@@ -6,7 +6,7 @@ import com.group12.springboot.hoversprite.common.ListResponse;
 
 public interface UserAPI {
 
-    public UserOAuth2DTO createOrUpdateUser(UserOAuth2DTO user);
+    public FarmerExternalSignUpInfoResponse receiveFarmerGmailInfo(FarmerExternalSignUpInfoRequest request);
 
     public UserResponse createFarmer(FarmerCreationRequest request);
 
