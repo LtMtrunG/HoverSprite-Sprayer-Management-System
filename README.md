@@ -3,6 +3,7 @@
 - Report: https://docs.google.com/document/d/1pcEdsbHQtECjBNsVQAOgsapX4wVN4vaerdvZDpDLLAk/edit?usp=sharing
 - Figma UI design: https://www.figma.com/design/nP5yh73s01lMqOAgpcJpbw/Desktop-UI?node-id=1-4&t=6cwcEmDgVHf4gtOo-1
 - ERD: Use starUML to open mdj diagram files
+- API calls: https://docs.google.com/document/d/1SBlvZ8U_g2tdzG28CrXuK0K3NwMeseMgRRfps_qXtPk/edit
 
 ## OTHERS
 ### FIGMA SAMPLES

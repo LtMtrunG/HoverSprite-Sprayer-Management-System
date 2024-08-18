@@ -1,6 +1,9 @@
 package com.group12.springboot.hoversprite.exception;
 
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authorization.AuthorizationDeniedException;
@@ -13,7 +16,7 @@ import com.group12.springboot.hoversprite.common.ApiResponse;
 @ControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(value = Exception.class)
-    ResponseEntity<ApiResponse> handleRuntimeException(Exception exception){
+    ResponseEntity<ApiResponse> handleRuntimeException(Exception exception) {
         ApiResponse apiResponse = new ApiResponse();
         apiResponse.setCode(ErrorCode.UNCATEGORIZED_EXCEPTION.getCode());
         apiResponse.setMessage(ErrorCode.UNCATEGORIZED_EXCEPTION.getMessage());
@@ -21,7 +24,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(value = CustomException.class)
-    ResponseEntity<ApiResponse> handleCustomException(CustomException exception){
+    ResponseEntity<ApiResponse> handleCustomException(CustomException exception) {
         ApiResponse apiResponse = new ApiResponse();
         ErrorCode errorCode = exception.getErrorCode();
         apiResponse.setCode(errorCode.getCode());
@@ -30,21 +33,38 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
-    ResponseEntity<ApiResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException exception){
+    ResponseEntity<ApiResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException exception) {
         ApiResponse apiResponse = new ApiResponse();
-        String key = exception.getFieldError().getDefaultMessage();
-        ErrorCode errorCode = ErrorCode.INVALID_MESSAGE_KEY;
-        try{
-            errorCode = ErrorCode.valueOf(key);
-        }catch (IllegalArgumentException e){
-        }
-        apiResponse.setCode(errorCode.getCode());
-        apiResponse.setMessage(errorCode.getMessage());
-        return ResponseEntity.status(errorCode.getStatusCode()).body(apiResponse);
+        List<String> errorMessages = new ArrayList<>();
+
+        // Using AtomicReference to hold the ErrorCode
+        AtomicReference<ErrorCode> errorCode = new AtomicReference<>(ErrorCode.INVALID_MESSAGE_KEY);
+
+        // ErrorCode errorCode = ErrorCode.INVALID_MESSAGE_KEY;
+
+        exception.getBindingResult().getFieldErrors().forEach(fieldError -> {
+            String field = fieldError.getField();
+
+            switch (field) {
+                case "password", "email", "fullName", "phoneNumber":
+                    errorCode.set(ErrorCode.INVALID_SIGNUP_INFO);
+                    break;
+                default:
+                    errorCode.set(ErrorCode.INVALID_MESSAGE_KEY); // Default error code
+            }
+
+            // Add the error message for each field
+            errorMessages.add(fieldError.getDefaultMessage());
+        });
+
+        apiResponse.setCode(errorCode.get().getCode()); // A generic validation error code
+        apiResponse.setMessage(String.join("; ", errorMessages)); // Join all error messages into a single string
+
+        return ResponseEntity.status(errorCode.get().getStatusCode()).body(apiResponse);
     }
 
     @ExceptionHandler(value = ParseException.class)
-    ResponseEntity<ApiResponse> handleParseException(ParseException exception){
+    ResponseEntity<ApiResponse> handleParseException(ParseException exception) {
         ApiResponse apiResponse = new ApiResponse();
         apiResponse.setCode(ErrorCode.UNAUTHENTICATED.getCode());
         apiResponse.setMessage(ErrorCode.UNAUTHENTICATED.getMessage());

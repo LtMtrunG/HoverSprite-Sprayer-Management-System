@@ -8,11 +8,11 @@ import java.lang.annotation.Target;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
-@Constraint(validatedBy = PasswordValidator.class)
-@Target({ ElementType.METHOD, ElementType.FIELD, ElementType.ANNOTATION_TYPE, ElementType.PARAMETER })
+@Constraint(validatedBy = EmailValidator.class)
+@Target({ ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface PasswordConstraint {
-    String message() default "Password must contain at least one capital letter and one special character";
+public @interface EmailConstraint {
+    String message() default "Email must end with .com or .vn";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
 }

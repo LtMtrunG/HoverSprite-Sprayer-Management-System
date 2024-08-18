@@ -25,7 +25,6 @@ public class User {
     private Long id;
 
     @Column(name="password")
-    @PasswordConstraint
     private String password;
 
     @Column(name="full_name")
