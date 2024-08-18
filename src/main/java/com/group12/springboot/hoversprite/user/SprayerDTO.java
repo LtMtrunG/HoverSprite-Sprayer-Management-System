@@ -1,6 +1,7 @@
 package com.group12.springboot.hoversprite.user;
 
 import com.group12.springboot.hoversprite.user.entity.User;
+import com.group12.springboot.hoversprite.user.enums.Expertise;
 
 public class SprayerDTO {
 
@@ -12,11 +13,14 @@ public class SprayerDTO {
 
     private final String email;
 
+    private final Expertise expertise;
+
     public SprayerDTO(User sprayer) {
         this.id = sprayer.getId();
         this.fullName = sprayer.getFullName();
         this.phoneNumber = sprayer.getPhoneNumber();
         this.email = sprayer.getEmail();
+        this.expertise = sprayer.getExpertise();
     }
 
     public Long getId() {
@@ -33,5 +37,9 @@ public class SprayerDTO {
 
     public String getEmail() {
         return email;
+    }
+
+    public Expertise getExpertise() {
+        return expertise;
     }
 }

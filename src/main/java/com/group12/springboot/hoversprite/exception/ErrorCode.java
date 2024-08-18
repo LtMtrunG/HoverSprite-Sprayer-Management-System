@@ -21,7 +21,12 @@ public enum ErrorCode {
     SPRAYER_NOT_EXIST(1015, "SPRAYER not exist", HttpStatus.NOT_FOUND),
     PHONE_NUMBER_NOT_EXISTS(1016, "Phone number not existed", HttpStatus.NOT_FOUND),
     USER_NOT_EXISTS(1017, "User not existed", HttpStatus.NOT_FOUND),
-    TIME_SLOT_NOT_EXISTS(1017, "Time slot not existed", HttpStatus.NOT_FOUND),
+    TIME_SLOT_NOT_EXISTS(1018, "Time slot not existed", HttpStatus.NOT_FOUND),
+    SPRAYER_EMPTY(1019, "Sprayers cannot be empty", HttpStatus.BAD_REQUEST),
+    SPRAYER_NOT_AVAILABLE(1020, "Sprayer(s) is not available at that time", HttpStatus.BAD_REQUEST),
+    SPRAYER_EXPERTISE_NOT_MEET_REQUIREMENTS(1021, "Sprayer(s) expertises not meet requirements", HttpStatus.BAD_REQUEST),
+    SPRAYER_EXCEED(1022, "Cannot assign more than 2 sprayers for 1 booking", HttpStatus.BAD_REQUEST),
+    SPRAYER_DUPLICATE(1023, "Cannot assign a sprayer twice for a booking", HttpStatus.BAD_REQUEST),
     UNCATEGORIZED_EXCEPTION(9999, "Uncategorized error", HttpStatus.INTERNAL_SERVER_ERROR)
     ;
     private int code;

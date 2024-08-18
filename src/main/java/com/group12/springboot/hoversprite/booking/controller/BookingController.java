@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.group12.springboot.hoversprite.booking.AvailableSprayersRequest;
+import com.group12.springboot.hoversprite.booking.AvailableSprayersResponse;
+import com.group12.springboot.hoversprite.booking.BookingAssignRequest;
 import com.group12.springboot.hoversprite.booking.BookingCancelRequest;
 import com.group12.springboot.hoversprite.booking.BookingCompleteRequest;
 import com.group12.springboot.hoversprite.booking.BookingConfirmationRequest;
@@ -93,9 +96,29 @@ public class BookingController {
 
     @GetMapping("/myBookings")
     ApiResponse<ListResponse<BookingResponse>> getMyBookings(@RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
-                                                           @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize){
+                                                             @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize){
         ApiResponse<ListResponse<BookingResponse>> apiResponse = new ApiResponse<>();
         apiResponse.setResult(bookingService.getMyBookings(pageNo, pageSize));
+        return apiResponse;
+    }
+
+    @GetMapping("/sprayers/available")
+    ApiResponse<ListResponse<AvailableSprayersResponse>> getAvailableSprayers(
+            @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+            @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
+            @RequestBody @Valid AvailableSprayersRequest request) {
+        ApiResponse<ListResponse<AvailableSprayersResponse>> apiResponse = new ApiResponse<>();
+        apiResponse.setResult(bookingService.getAvailableSprayersByTimeSlot(pageNo, pageSize, request));
+        return apiResponse;
+    }
+
+    @PostMapping("/assign")
+    ApiResponse<BookingResponse> assignSprayers(
+            @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+            @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
+            @RequestBody @Valid BookingAssignRequest request) {
+        ApiResponse<BookingResponse> apiResponse = new ApiResponse<>();
+        apiResponse.setResult(bookingService.assignSprayers(request));
         return apiResponse;
     }
 

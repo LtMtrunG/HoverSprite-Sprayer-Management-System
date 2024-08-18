@@ -16,12 +16,15 @@ import jakarta.validation.Valid;
 
 import java.text.ParseException;
 
+import lombok.RequiredArgsConstructor;
+
 @RestController
 @RequestMapping("/auth")
+@RequiredArgsConstructor
 public class AuthenticationController {
     @Autowired
     private AuthenticationService authenticationService;
-
+    private static final String CLIENT_ID = "407408718192.apps.googleusercontent.com";
     @PostMapping("/login")
     ApiResponse<AuthenticationResponse> authenticate(@RequestBody @Valid AuthenticationRequest request){
         ApiResponse<AuthenticationResponse> apiResponse = new ApiResponse<>();

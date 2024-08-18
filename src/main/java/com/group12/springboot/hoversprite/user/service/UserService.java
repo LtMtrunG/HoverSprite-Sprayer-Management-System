@@ -5,8 +5,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import javax.crypto.spec.SecretKeySpec;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PostAuthorize;
@@ -15,7 +18,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtException;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,9 +33,12 @@ import com.group12.springboot.hoversprite.exception.CustomException;
 import com.group12.springboot.hoversprite.exception.ErrorCode;
 import com.group12.springboot.hoversprite.user.FarmerCreationRequest;
 import com.group12.springboot.hoversprite.user.FarmerDTO;
+import com.group12.springboot.hoversprite.user.FarmerExternalSignUpInfoRequest;
+import com.group12.springboot.hoversprite.user.FarmerExternalSignUpInfoResponse;
 import com.group12.springboot.hoversprite.user.ReceptionistCreationRequest;
 import com.group12.springboot.hoversprite.user.ReceptionistDTO;
 import com.group12.springboot.hoversprite.user.SprayerCreationRequest;
+import com.group12.springboot.hoversprite.user.SprayerDTO;
 import com.group12.springboot.hoversprite.user.UserAPI;
 import com.group12.springboot.hoversprite.user.UserAuthenticateDTO;
 import com.group12.springboot.hoversprite.user.UserResponse;
@@ -46,6 +55,38 @@ public class UserService implements UserAPI {
 
     @Autowired
     private RoleRepository roleRepository;
+
+    @Override
+    public FarmerExternalSignUpInfoResponse receiveFarmerGmailInfo(FarmerExternalSignUpInfoRequest request) {
+
+        String token = request.getJwtToken();
+
+        if (token != null && token.contains("#")) {
+            token = token.split("#")[0]; // Remove the fragment part if present
+        }
+
+        try {
+            // Initialize the JWT decoder with your signing key
+            SecretKeySpec secretKeySpec = new SecretKeySpec(
+                    "WN1p+NNBEUYPdgLAec9Glzja6hTei7ElFAk975/CDLEIy6dmlrwofb4fdNRKuouN".getBytes(), "HMACSHA512");
+            NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder.withSecretKey(secretKeySpec)
+                    .macAlgorithm(MacAlgorithm.HS512)
+                    .build();
+
+            // Decode the token
+            Jwt jwt = jwtDecoder.decode(token);
+
+            // Extract claims from the JWT
+            String name = jwt.getClaimAsString("name");
+            String email = jwt.getClaimAsString("email");
+
+            // Return the response with the extracted information
+            return new FarmerExternalSignUpInfoResponse(name, email);
+        } catch (JwtException e) {
+            // Handle the case where the token is invalid
+            throw new CustomException(ErrorCode.INVALID_TOKEN);
+        }
+    }
 
     @Override
     public UserResponse createFarmer(FarmerCreationRequest request) {
@@ -162,7 +203,13 @@ public class UserService implements UserAPI {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         JwtAuthenticationToken jwtAuthToken = (JwtAuthenticationToken) authentication;
         Jwt jwt = (Jwt) jwtAuthToken.getPrincipal();
-        Long userId = Long.parseLong(jwt.getSubject());
+        Long userId;
+        try {
+            userId = Long.parseLong(jwt.getSubject());
+        } catch (NumberFormatException e) {
+            // Handle the error here, e.g., by throwing a custom exception
+            throw new CustomException(ErrorCode.USER_NOT_EXISTS);
+        }
         User user = userRepository.findById(userId).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_EXISTS));
         return new UserResponse(user);
     }
@@ -200,14 +247,28 @@ public class UserService implements UserAPI {
 
     @Override
     public FarmerDTO findFarmerById(Long farmerId) {
-        Optional<User> user = userRepository.findById(farmerId);
+        Optional<User> user = userRepository.findFarmerById(farmerId);
+        return user.map(FarmerDTO::new)
+                .orElseThrow(() -> new CustomException(ErrorCode.FARMER_NOT_EXIST));
+    }
+
+    @Override
+    public FarmerDTO findFarmerByEmail(String email) {
+        Optional<User> user = userRepository.findByEmail(email);
+        return user.map(FarmerDTO::new)
+                .orElseThrow(() -> new CustomException(ErrorCode.FARMER_NOT_EXIST));
+    }
+
+    @Override
+    public FarmerDTO findFarmerByPhoneNumber(String phoneNumber) {
+        Optional<User> user = userRepository.findByPhoneNumber(phoneNumber);
         return user.map(FarmerDTO::new)
                 .orElseThrow(() -> new CustomException(ErrorCode.FARMER_NOT_EXIST));
     }
 
     @Override
     public ReceptionistDTO findReceptionistById(Long receptionistId) {
-        Optional<User> user = userRepository.findById(receptionistId);
+        Optional<User> user = userRepository.findReceptionistById(receptionistId);
         return user.map(ReceptionistDTO::new)
                 .orElseThrow(() -> new CustomException(ErrorCode.RECEPTIONIST_NOT_EXIST));
     }
@@ -225,4 +286,38 @@ public class UserService implements UserAPI {
         return user.map(UserAuthenticateDTO::new)
                 .orElseThrow(() -> new CustomException(ErrorCode.PHONE_NUMBER_NOT_EXISTS));
     }
+
+    @Override
+    @PreAuthorize("hasRole('RECEPTIONIST')")
+    public Page<SprayerDTO> getAvailableSprayers(List<Long> bookedSprayersId, Pageable pageable) {
+        // Fetch the list of sprayers
+        List<SprayerDTO> sprayersId = userRepository.findAllSprayersExcludeByIds(bookedSprayersId, pageable)
+                .stream()
+                .map(user -> new SprayerDTO(user))
+                .collect(Collectors.toList());
+
+        // Manually create a Page object
+        return new PageImpl<>(sprayersId, pageable, sprayersId.size());
+    }
+
+    @Override
+    @PreAuthorize("hasRole('RECEPTIONIST')")
+    public List<SprayerDTO> getAvailableSprayers(List<Long> bookedSprayersId) {
+        // Fetch the list of SprayerDTO
+        List<SprayerDTO> sprayers = userRepository.findAllSprayersExcludeByIds(bookedSprayersId)
+                .stream()
+                .map(user -> new SprayerDTO(user))
+                .toList(); // Assuming the repository returns a stream
+
+        return sprayers;
+    }
+
+    @Override
+    @PreAuthorize("hasRole('RECEPTIONIST')")
+    public SprayerDTO findSprayerById(Long sprayerId) {
+        Optional<User> user = userRepository.findSprayerById(sprayerId);
+        return user.map(SprayerDTO::new)
+                .orElseThrow(() -> new CustomException(ErrorCode.SPRAYER_NOT_EXIST));
+    }
+
 }

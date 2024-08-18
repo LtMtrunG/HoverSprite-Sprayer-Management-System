@@ -11,7 +11,6 @@ public class AuthenticationRequest {
     @Email
     @EmailConstraint
     private String email;
-    @PhoneConstraint
     private String password;
 
     public String getEmail() {

@@ -46,15 +46,18 @@ public class TimeSlotService implements TimeSlotAPI {
     }
 
     @Override
+    @Transactional(readOnly = false) // Ensure this is not set to true for write operations
     @PreAuthorize("hasAuthority('APPROVE_BOOKING')")
     public TimeSlotCreateResponse createTimeSlot(TimeSlotCreateRequest request) {
-        Optional<TimeSlot> optionalTimeSlot = timeSlotRepository.findByDateAndStartTime(request.getDate(), request.getStartTime());
+        Optional<TimeSlot> optionalTimeSlot = timeSlotRepository.findByDateAndStartTime(request.getDate(),
+                request.getStartTime());
 
         if (optionalTimeSlot.isPresent()) {
             throw new IllegalArgumentException("TimeSlot already exists for the given date and start time.");
         }
 
-        TimeSlot newTimeSlot = new TimeSlot(request.getDate(), request.getStartTime(),  request.getStartTime().plusHours(1));
+        TimeSlot newTimeSlot = new TimeSlot(request.getDate(), request.getStartTime(),
+                request.getStartTime().plusHours(1));
         newTimeSlot = timeSlotRepository.save(newTimeSlot);
 
         return new TimeSlotCreateResponse(newTimeSlot);
@@ -83,8 +86,8 @@ public class TimeSlotService implements TimeSlotAPI {
         timeSlotByDateResponse.setTimeSlots(timeSlots);
         timeSlotByDateResponse.setTotalSessions(2 * timeSlotByDateResponse.getSize());
         timeSlotByDateResponse.setBookedSessions(timeSlots.stream()
-                                                        .mapToInt(TimeSlot::getBookedSessions)
-                                                        .sum());
+                .mapToInt(TimeSlot::getBookedSessions)
+                .sum());
         boolean isFull = (timeSlotByDateResponse.getBookedSessions() == timeSlotByDateResponse.getTotalSessions());
         timeSlotByDateResponse.setFull(isFull);
 
@@ -134,8 +137,8 @@ public class TimeSlotService implements TimeSlotAPI {
             timeSlotByDateResponse.setFull(isFull);
             timeSlotByDateResponse.setTotalSessions(2 * timeSlotByDateResponse.getSize());
             timeSlotByDateResponse.setBookedSessions(timeSlotByDateResponse.getTimeSlots().stream()
-                                                                        .mapToInt(TimeSlot::getBookedSessions)
-                                                                        .sum());
+                    .mapToInt(TimeSlot::getBookedSessions)
+                    .sum());
 
             responses.add(timeSlotByDateResponse);
         }
@@ -144,26 +147,28 @@ public class TimeSlotService implements TimeSlotAPI {
     }
 
     @Override
-    public TimeSlotDTO findByDateAndStartTime(LocalDate date, LocalTime startTime){
+    public Optional<TimeSlotDTO> findByDateAndStartTime(LocalDate date, LocalTime startTime) {
+        Optional<TimeSlot> optionalTimeSlot = timeSlotRepository.findByDateAndStartTime(date, startTime);
+        return optionalTimeSlot.map(this::convertToDTO); // Convert TimeSlot to TimeSlotDTO
+    }
 
-        Optional<TimeSlot> timeSlot = timeSlotRepository.findByDateAndStartTime(date, startTime);
-        return timeSlot.map(TimeSlotDTO::new)
-            .orElseThrow(() -> new CustomException(ErrorCode.TIME_SLOT_NOT_EXISTS));
+    private TimeSlotDTO convertToDTO(TimeSlot timeSlot) {
+        // Assuming you have a constructor in TimeSlotDTO that takes a TimeSlot
+        return new TimeSlotDTO(timeSlot);
     }
 
     @Override
-    public TimeSlotDTO findById(Long id){
+    public TimeSlotDTO findById(Long id) {
 
         Optional<TimeSlot> timeSlot = timeSlotRepository.findById(id);
         return timeSlot.map(TimeSlotDTO::new)
-            .orElseThrow(() -> new CustomException(ErrorCode.TIME_SLOT_NOT_EXISTS));
+                .orElseThrow(() -> new CustomException(ErrorCode.TIME_SLOT_NOT_EXISTS));
     }
 
     @Override
     public void saveTimeSlot(TimeSlotDTO timeSlotDTO) {
         timeSlotRepository.save(convertToEntity(timeSlotDTO));
     }
-
 
     public class WeekUtils {
         public static LocalDate getStartOfWeek(LocalDate date) {
@@ -196,16 +201,18 @@ public class TimeSlotService implements TimeSlotAPI {
     public void bookSession(TimeSlotDTO timeSlotDTO) {
         if (isAvailable(timeSlotDTO)) {
             TimeSlot timeSlot = convertToEntity(timeSlotDTO);
-            timeSlot.setBookedSessions(timeSlot.getBookedSessions()+1);
+            timeSlot.setBookedSessions(timeSlot.getBookedSessions() + 1);
             timeSlotRepository.save(timeSlot);
         } else {
             throw new RuntimeException("TimeSlot fully booked");
         }
     }
 
-    // public void cancelSession() {
-    //     if (bookedSessions > 0) {
-    //         bookedSessions--;
-    //     }
-    // }
+    @Override
+     public void cancelSession(Long timeSlotId) {
+
+        TimeSlot timeSlot = timeSlotRepository.findById(timeSlotId).orElseThrow(() -> new CustomException(ErrorCode.TIME_SLOT_NOT_EXISTS));
+
+        timeSlot.setBookedSessions(timeSlot.getBookedSessions()-1);
+     }
 }

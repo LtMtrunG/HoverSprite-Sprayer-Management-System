@@ -2,6 +2,8 @@ package com.group12.springboot.hoversprite.user.entity;
 
 import com.group12.springboot.hoversprite.common.Role;
 import com.group12.springboot.hoversprite.user.enums.Expertise;
+import com.group12.springboot.hoversprite.user.enums.Provider;
+import com.group12.springboot.hoversprite.validator.PasswordConstraint;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -12,9 +14,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name="TBL_USERS")
+@NoArgsConstructor
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
