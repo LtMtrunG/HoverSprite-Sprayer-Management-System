@@ -2,7 +2,6 @@ package com.group12.springboot.hoversprite.user.entity;
 
 import com.group12.springboot.hoversprite.common.Role;
 import com.group12.springboot.hoversprite.user.enums.Expertise;
-import com.group12.springboot.hoversprite.validator.PasswordConstraint;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -22,7 +21,6 @@ public class User {
     private Long id;
 
     @Column(name="password")
-    @PasswordConstraint
     private String password;
 
     @Column(name="full_name")

@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatusCode;
 public enum ErrorCode {
     INVALID_MESSAGE_KEY(1001, "Invalid Message Key", HttpStatus.BAD_REQUEST),
     EMAIL_USED(1002, "Email has already been used.", HttpStatus.BAD_REQUEST),
-    INVALID_PASSWORD(1003, "Password must contain at least one capital letter and one special character.", HttpStatus.BAD_REQUEST),
+    INVALID_SIGNUP_INFO(1003, "Field(s) does not meet requirements", HttpStatus.BAD_REQUEST),
     EMAIL_NOT_EXISTS(1004, "Email not existed", HttpStatus.NOT_FOUND),
     UNAUTHENTICATED(1005, "Unauthenticated", HttpStatus.UNAUTHORIZED),
     UNAUTHORIZED(1006, "You do not have permission", HttpStatus.FORBIDDEN),
