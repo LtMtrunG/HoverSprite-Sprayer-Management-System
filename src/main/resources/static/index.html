@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hover Sprite</title>
+    <title>Home-Guest</title>
     <link rel="stylesheet" href="assets/login.css">
 </head>
 <body>
@@ -17,69 +17,11 @@
             <a href="home.html">Home</a>
             <a href="about_us.html">About Us</a>
             <a href="booking.html">Booking</a>
-            <a href="vehicle.html"> Vehicles</a>
+            <a href="login.html"> Login</a>
         </nav>
 
         <div class="button-group">
         </div>
     </header>
-
-    <div class="container">
-        <div class="sign-up">
-            <form action="">
-                <h1>Create Account</h1>
-
-                <div class="message-container">
-                    <p class="success-message"></p>
-                    <p class="error-message"></p>
-                </div>
-
-                <div class="infield">
-                    <input type="text" placeholder="Name" id="name" required pattern=".{1,}">
-                    <label></label>
-                </div>
-                <div class="infield">
-                    <input type="text" placeholder="Phone" id="phone" required pattern=".{1,}">
-                    <label></label>
-                </div>
-                <div class="infield">
-                    <input type="text" placeholder="Email" id="email" required pattern=".{1,}">
-                    <label></label>
-                </div>
-                <div class="infield">
-                    <input type="password" placeholder="Password" id="password" required pattern=".{1,}">
-                    <label></label>
-                </div>
-                <div class="infield">
-                    <input type="password" placeholder="Confirm Password" id="confirm-password" required pattern=".{1,}">
-                    <label></label>
-                </div>
-                <button>Sign Up</button>
-            </form>
-        </div>
-
-        <div class="left">
-            <div class="left-panel">
-                <h1>Welcome Back!</h1>
-                <span>To keep connected with us please login with your email</span> <br>
-                <button onclick="window.location.href='signin.html'">Sign In</button>
-            </div>
-        </div>
-
-    </div>
-
-    <script src="userScript.js"></script>
-    <script>
-        let form = document.querySelector('form');
-        form.addEventListener('submit', (event) => { signUp(event) });
-
-        const searchParams = new URLSearchParams(window.location.search);
-        const email = searchParams.get('email');
-        const emailInput = document.getElementById('email');
-
-        if (email) {
-            emailInput.value = email;
-        }
-    </script>
 </body>
 </html>

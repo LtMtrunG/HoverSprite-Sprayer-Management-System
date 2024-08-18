@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import javax.crypto.spec.SecretKeySpec;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -15,7 +17,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtException;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +32,8 @@ import com.group12.springboot.hoversprite.exception.CustomException;
 import com.group12.springboot.hoversprite.exception.ErrorCode;
 import com.group12.springboot.hoversprite.user.FarmerCreationRequest;
 import com.group12.springboot.hoversprite.user.FarmerDTO;
+import com.group12.springboot.hoversprite.user.FarmerExternalSignUpInfoRequest;
+import com.group12.springboot.hoversprite.user.FarmerExternalSignUpInfoResponse;
 import com.group12.springboot.hoversprite.user.ReceptionistCreationRequest;
 import com.group12.springboot.hoversprite.user.ReceptionistDTO;
 import com.group12.springboot.hoversprite.user.SprayerCreationRequest;
@@ -46,6 +53,38 @@ public class UserService implements UserAPI {
 
     @Autowired
     private RoleRepository roleRepository;
+
+    @Override
+    public FarmerExternalSignUpInfoResponse receiveFarmerGmailInfo(FarmerExternalSignUpInfoRequest request) {
+
+        String token = request.getJwtToken();
+
+        if (token != null && token.contains("#")) {
+            token = token.split("#")[0]; // Remove the fragment part if present
+        }
+
+        try {
+            // Initialize the JWT decoder with your signing key
+            SecretKeySpec secretKeySpec = new SecretKeySpec(
+                    "WN1p+NNBEUYPdgLAec9Glzja6hTei7ElFAk975/CDLEIy6dmlrwofb4fdNRKuouN".getBytes(), "HMACSHA512");
+            NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder.withSecretKey(secretKeySpec)
+                    .macAlgorithm(MacAlgorithm.HS512)
+                    .build();
+
+            // Decode the token
+            Jwt jwt = jwtDecoder.decode(token);
+
+            // Extract claims from the JWT
+            String name = jwt.getClaimAsString("name");
+            String email = jwt.getClaimAsString("email");
+
+            // Return the response with the extracted information
+            return new FarmerExternalSignUpInfoResponse(name, email);
+        } catch (JwtException e) {
+            // Handle the case where the token is invalid
+            throw new CustomException(ErrorCode.INVALID_TOKEN);
+        }
+    }
 
     @Override
     public UserResponse createFarmer(FarmerCreationRequest request) {
@@ -162,7 +201,13 @@ public class UserService implements UserAPI {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         JwtAuthenticationToken jwtAuthToken = (JwtAuthenticationToken) authentication;
         Jwt jwt = (Jwt) jwtAuthToken.getPrincipal();
-        Long userId = Long.parseLong(jwt.getSubject());
+        Long userId;
+        try {
+            userId = Long.parseLong(jwt.getSubject());
+        } catch (NumberFormatException e) {
+            // Handle the error here, e.g., by throwing a custom exception
+            throw new CustomException(ErrorCode.USER_NOT_EXISTS);
+        }
         User user = userRepository.findById(userId).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_EXISTS));
         return new UserResponse(user);
     }
@@ -201,6 +246,20 @@ public class UserService implements UserAPI {
     @Override
     public FarmerDTO findFarmerById(Long farmerId) {
         Optional<User> user = userRepository.findById(farmerId);
+        return user.map(FarmerDTO::new)
+                .orElseThrow(() -> new CustomException(ErrorCode.FARMER_NOT_EXIST));
+    }
+
+    @Override
+    public FarmerDTO findFarmerByEmail(String email) {
+        Optional<User> user = userRepository.findByEmail(email);
+        return user.map(FarmerDTO::new)
+                .orElseThrow(() -> new CustomException(ErrorCode.FARMER_NOT_EXIST));
+    }
+
+    @Override
+    public FarmerDTO findFarmerByPhoneNumber(String phoneNumber) {
+        Optional<User> user = userRepository.findByPhoneNumber(phoneNumber);
         return user.map(FarmerDTO::new)
                 .orElseThrow(() -> new CustomException(ErrorCode.FARMER_NOT_EXIST));
     }
