@@ -4,8 +4,10 @@ import com.group12.springboot.hoversprite.user.enums.Expertise;
 import com.group12.springboot.hoversprite.validator.NameConstraint;
 import com.group12.springboot.hoversprite.validator.PasswordConstraint;
 import com.group12.springboot.hoversprite.validator.PhoneConstraint;
+import com.group12.springboot.hoversprite.validator.StaffEmailConstraint;
 
 public class SprayerCreationRequest {
+    @StaffEmailConstraint
     private String email;
     @PasswordConstraint
     private String password;

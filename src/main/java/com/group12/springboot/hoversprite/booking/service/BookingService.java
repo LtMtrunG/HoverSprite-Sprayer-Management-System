@@ -6,10 +6,12 @@ import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.group12.springboot.hoversprite.booking.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -19,15 +21,6 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.group12.springboot.hoversprite.booking.AvailableSprayersRequest;
-import com.group12.springboot.hoversprite.booking.AvailableSprayersResponse;
-import com.group12.springboot.hoversprite.booking.BookingAPI;
-import com.group12.springboot.hoversprite.booking.BookingAssignRequest;
-import com.group12.springboot.hoversprite.booking.BookingCancelRequest;
-import com.group12.springboot.hoversprite.booking.BookingCompleteRequest;
-import com.group12.springboot.hoversprite.booking.BookingConfirmationRequest;
-import com.group12.springboot.hoversprite.booking.BookingCreationRequest;
-import com.group12.springboot.hoversprite.booking.BookingResponse;
 import com.group12.springboot.hoversprite.booking.entity.Booking;
 import com.group12.springboot.hoversprite.booking.enums.BookingStatus;
 import com.group12.springboot.hoversprite.booking.repository.BookingRepository;
@@ -48,12 +41,12 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Transactional
 public class BookingService implements BookingAPI {
+    private final TimeSlotAPI timeSlotAPI;
+    private final UserAPI userAPI;
     @Autowired
     private BookingRepository bookingRepository;
     @Autowired
     private EmailService emailService;
-    private final TimeSlotAPI timeSlotAPI;
-    private final UserAPI userAPI;
 
     @Override
     @PreAuthorize("hasRole('FARMER')")
@@ -61,6 +54,9 @@ public class BookingService implements BookingAPI {
         TimeSlotDTO timeSlotDTO = checkOrCreateTimeSlot(request.getDate(), request.getStartTime());
 
         FarmerDTO farmerDTO = userAPI.findFarmerById(request.getFarmerId());
+        if (farmerDTO == null) {
+            throw new CustomException(ErrorCode.FARMER_NOT_EXIST);
+        }
 
         if (!timeSlotAPI.isAvailable(timeSlotDTO)) {
             throw new CustomException(ErrorCode.SESSION_NOT_AVAILABLE);
@@ -83,11 +79,16 @@ public class BookingService implements BookingAPI {
 
         FarmerDTO farmerDTO = userAPI.findFarmerById(request.getFarmerId());
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        JwtAuthenticationToken jwtAuthToken = (JwtAuthenticationToken) authentication;
-        Jwt jwt = (Jwt) jwtAuthToken.getPrincipal();
-        Long receptionistId = Long.parseLong(jwt.getSubject());
+        if (farmerDTO == null) {
+            throw new CustomException(ErrorCode.FARMER_NOT_EXIST);
+        }
+
+        Long receptionistId = getCurrentUserId();
         ReceptionistDTO receptionistDTO = userAPI.findReceptionistById(receptionistId);
+
+        if (receptionistDTO == null) {
+            throw new CustomException(ErrorCode.RECEPTIONIST_NOT_EXIST);
+        }
 
         if (!timeSlotAPI.isAvailable(timeSlotDTO)) {
             throw new CustomException(ErrorCode.SESSION_NOT_AVAILABLE);
@@ -130,11 +131,12 @@ public class BookingService implements BookingAPI {
         Booking booking = bookingRepository.findById(request.getId())
                 .orElseThrow(() -> new CustomException(ErrorCode.BOOKING_NOT_EXISTS));
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        JwtAuthenticationToken jwtAuthToken = (JwtAuthenticationToken) authentication;
-        Jwt jwt = (Jwt) jwtAuthToken.getPrincipal();
-        Long receptionistId = Long.parseLong(jwt.getSubject());
+        Long receptionistId = getCurrentUserId();
         ReceptionistDTO receptionistDTO = userAPI.findReceptionistById(receptionistId);
+
+        if (receptionistDTO == null) {
+            throw new CustomException(ErrorCode.RECEPTIONIST_NOT_EXIST);
+        }
 
         if (booking.getStatus() != BookingStatus.PENDING) {
             throw new CustomException(ErrorCode.INVALID_ACTION);
@@ -156,6 +158,11 @@ public class BookingService implements BookingAPI {
         Booking booking = bookingRepository.findById(request.getId())
                 .orElseThrow(() -> new CustomException(ErrorCode.BOOKING_NOT_EXISTS));
 
+        long receptionistId = getCurrentUserId();
+        if (receptionistId != booking.getReceptionistId()) {
+            throw new CustomException(ErrorCode.RECEPTIONIST_NOT_RESPONSIBLE);
+        }
+
         if (request.getSprayersId() == null) {
             throw new CustomException(ErrorCode.SPRAYER_EMPTY);
         }
@@ -175,6 +182,9 @@ public class BookingService implements BookingAPI {
 
                 // Check if the sprayer exists
                 SprayerDTO sprayerDTO = userAPI.findSprayerById(sprayerId);
+                if (sprayerDTO == null) {
+                    throw new CustomException(ErrorCode.SPRAYER_NOT_EXIST);
+                }
 
                 // Assuming the availability is already checked, add the sprayer to the list
                 sprayersList.add(sprayerDTO);
@@ -227,9 +237,9 @@ public class BookingService implements BookingAPI {
         int expert_lv = 0;
 
         for (SprayerDTO sprayer : sprayersList) {
-            if (sprayer.getExpertise().toString() == "APPRENTICE") {
+            if (sprayer.getExpertise().toString().equals("APPRENTICE")) {
                 apprentice_lv++;
-            } else if (sprayer.getExpertise().toString() == "ADEPT") {
+            } else if (sprayer.getExpertise().toString().equals("ADEPT")) {
                 adept_lv++;
             } else {
                 expert_lv++;
@@ -240,66 +250,82 @@ public class BookingService implements BookingAPI {
                 (apprentice_lv == 1 && expert_lv == 1) || (apprentice_lv == 1 && adept_lv == 1));
     }
 
-    // public BookingResponse inProgressBooking(BookingInProgressRequest request)
-    // throws AccessDeniedException {
-    // Booking booking = bookingRepository.findById(request.getId())
-    // .orElseThrow(() -> new CustomException(ErrorCode.BOOKING_NOT_EXISTS));
+    @Override
+    @PreAuthorize("hasRole('SPRAYER')")
+    public BookingResponse inProgressBooking(BookingInProgressRequest request) throws AccessDeniedException {
+        Booking booking = bookingRepository.findById(request.getId())
+                .orElseThrow(() -> new CustomException(ErrorCode.BOOKING_NOT_EXISTS));
 
-    // if (booking.getStatus() != BookingStatus.ASSIGNED) {
-    // throw new CustomException(ErrorCode.INVALID_ACTION);
-    // }
+        if (booking.getStatus() != BookingStatus.ASSIGNED) {
+            throw new CustomException(ErrorCode.INVALID_ACTION);
+        }
 
-    // Authentication authentication =
-    // SecurityContextHolder.getContext().getAuthentication();
-    // String currentUsername = authentication.getName();
-    // checkAuthorization(booking, authentication, currentUsername, "ROLE_SPRAYER");
+        Long sprayerId = getCurrentUserId();
 
-    // User currentUser = userService.findByEmail(currentUsername)
-    // .orElseThrow(() -> new CustomException(ErrorCode.EMAIL_NOT_EXISTS));
+        if (!booking.getSprayersId().contains(sprayerId)) {
+            throw new CustomException(ErrorCode.SPRAYER_NOT_ASSIGNED);
+        }
 
-    // booking.setStatus(BookingStatus.IN_PROGRESS);
-    // bookingRepository.save(booking);
+        SprayerDTO sprayerDTO = userAPI.findSprayerById(sprayerId);
+        if (sprayerDTO == null) {
+            throw new CustomException(ErrorCode.SPRAYER_NOT_EXIST);
+        }
 
-    // return new BookingResponse(booking);
-    // }
+        booking.setStatus(BookingStatus.IN_PROGRESS);
+        bookingRepository.save(booking);
 
-    // public BookingResponse completeBookingBySprayer(BookingCompleteRequest
-    // request) throws AccessDeniedException {
-    // Booking booking = bookingRepository.findById(request.getId())
-    // .orElseThrow(() -> new CustomException(ErrorCode.BOOKING_NOT_EXISTS));
+        emailService.sendEmail(booking);
 
-    // if (booking.getStatus() != BookingStatus.IN_PROGRESS) {
-    // throw new CustomException(ErrorCode.INVALID_ACTION);
-    // }
-
-    // Authentication authentication =
-    // SecurityContextHolder.getContext().getAuthentication();
-    // currentUsername = authentication.getName();
-    // checkAuthorization(booking, authentication, currentUsername, "ROLE_SPRAYER");
-
-    // User currentUser = userService.findByEmail(currentUsername)
-    // .orElseThrow(() -> new CustomException(ErrorCode.EMAIL_NOT_EXISTS));
-
-    // booking.setStatus(BookingStatus.COMPLETED_BY_SPRAYER);
-    // bookingRepository.save(booking);
-
-    // return new BookingResponse(booking);
-    // }
+        return new BookingResponse(booking);
+    }
 
     @Override
-    @PostAuthorize("booking.farmerId == T(java.lang.Long).parseLong(authentication.subject)")
+    @PreAuthorize("hasRole('FARMER')")
     public BookingResponse completeBookingByFarmer(BookingCompleteRequest request) {
         Booking booking = bookingRepository.findById(request.getId())
                 .orElseThrow(() -> new RuntimeException("Booking Not Found."));
 
-        if (booking.getStatus() != BookingStatus.COMPLETED_BY_SPRAYER) {
+        long farmerId = getCurrentUserId();
+        FarmerDTO farmerDTO = userAPI.findFarmerById(farmerId);
+        if (farmerDTO == null) {
+            throw new CustomException(ErrorCode.FARMER_NOT_EXIST);
+        }
+
+        if (booking.getFarmerId() != farmerId) {
+            throw new CustomException(ErrorCode.FARMER_NOT_OWNED);
+        }
+
+        if (booking.getStatus() != BookingStatus.IN_PROGRESS) {
             throw new CustomException(ErrorCode.INVALID_ACTION);
         }
 
-        // User farmer = getCurrentUser();
+        booking.setStatus(BookingStatus.COMPLETED_BY_FARMER);
+        bookingRepository.save(booking);
+
+        return new BookingResponse(booking);
+    }
+
+    @PreAuthorize("hasRole('SPRAYER')")
+    public BookingResponse completeBookingBySprayer(BookingCompleteRequest
+                                                            request) throws AccessDeniedException {
+        Booking booking = bookingRepository.findById(request.getId())
+                .orElseThrow(() -> new CustomException(ErrorCode.BOOKING_NOT_EXISTS));
+
+        Long sprayerId = getCurrentUserId();
+
+        if (!booking.getSprayersId().contains(sprayerId)) {
+            throw new CustomException(ErrorCode.SPRAYER_NOT_ASSIGNED);
+        }
+
+        SprayerDTO sprayerDTO = userAPI.findSprayerById(sprayerId);
+        if (sprayerDTO == null) {
+            throw new CustomException(ErrorCode.SPRAYER_NOT_EXIST);
+        }
 
         booking.setStatus(BookingStatus.COMPLETED);
         bookingRepository.save(booking);
+
+        emailService.sendEmail(booking);
 
         return new BookingResponse(booking);
     }
@@ -320,10 +346,7 @@ public class BookingService implements BookingAPI {
     @Override
     @PreAuthorize("hasRole('FARMER')")
     public ListResponse<BookingResponse> getMyBookings(int pageNo, int pageSize) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        JwtAuthenticationToken jwtAuthToken = (JwtAuthenticationToken) authentication;
-        Jwt jwt = (Jwt) jwtAuthToken.getPrincipal();
-        Long farmerId = Long.parseLong(jwt.getSubject());
+        Long farmerId = getCurrentUserId();
 
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         Page<Booking> bookingPage = bookingRepository.findByFarmerIdOrderByStatus(farmerId, pageable);
@@ -378,19 +401,6 @@ public class BookingService implements BookingAPI {
     private TimeSlotDTO checkOrCreateTimeSlot(LocalDate date, LocalTime startTime) {
         Optional<TimeSlotDTO> timeSlotDTO = timeSlotAPI.findByDateAndStartTime(date, startTime);
 
-        // if (optionalTimeSlot.isPresent()) {
-        // return optionalTimeSlot.get();
-        // } else {
-        // TimeSlotCreateRequest createRequest = new TimeSlotCreateRequest();
-        // createRequest.setDate(date);
-        // createRequest.setStartTime(startTime);
-
-        // timeSlotService.createTimeSlot(createRequest);
-
-        // return timeSlotService.findByDateAndStartTime(date, startTime)
-        // .orElseThrow(() -> new RuntimeException("Failed to create time slot"));
-        // }
-
         if (timeSlotDTO.isPresent()) {
             return timeSlotDTO.get();
         } else {
@@ -403,18 +413,13 @@ public class BookingService implements BookingAPI {
             return timeSlotAPI.findByDateAndStartTime(date, startTime)
                     .orElseThrow(() -> new RuntimeException("Failed to create time slot"));
         }
+    }
 
-        // if (timeSlotDTO == null) {
-        // TimeSlotCreateRequest createRequest = new TimeSlotCreateRequest();
-        // createRequest.setDate(date);
-        // createRequest.setStartTime(startTime);
-
-        // timeSlotAPI.createTimeSlot(createRequest);
-
-        // return timeSlotAPI.findByDateAndStartTime(date, startTime);
-        // }
-        // return timeSlotDTO;
-        // .orElseThrow(() -> new RuntimeException("Failed to create time slot"));
+    private Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        JwtAuthenticationToken jwtAuthToken = (JwtAuthenticationToken) authentication;
+        Jwt jwt = (Jwt) jwtAuthToken.getPrincipal();
+        return Long.parseLong(jwt.getSubject());
     }
 
     private Booking createBookingWithStatus(BookingStatus status, BookingCreationRequest request, Long timeslotId,
@@ -451,20 +456,6 @@ public class BookingService implements BookingAPI {
     // authentication;
     // Jwt jwt = (Jwt) jwtAuthToken.getPrincipal();
     // return jwt.getSubject();
-    // }
-
-    // private void checkAuthorization(Booking booking, Authentication
-    // authentication, String currentUsername, String role)
-    // throws AccessDeniedException {
-    // boolean isAuthorized = booking.getUser().getEmail().equals(currentUsername)
-    // ||
-    // authentication.getAuthorities().stream()
-    // .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals(role));
-
-    // if (!isAuthorized) {
-    // throw new AccessDeniedException("You do not have permission to perform this
-    // action.");
-    // }
     // }
 
     private ListResponse<BookingResponse> createListResponse(Page<Booking> bookingPage,

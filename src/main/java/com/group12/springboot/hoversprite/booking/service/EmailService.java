@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.group12.springboot.hoversprite.exception.CustomException;
+import com.group12.springboot.hoversprite.exception.ErrorCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -39,6 +41,10 @@ public class EmailService {
         String body = generateEmailBody(booking);
 
         FarmerDTO farmerDTO = userAPI.findFarmerById(booking.getFarmerId());
+        if (farmerDTO == null) {
+            throw new CustomException(ErrorCode.FARMER_NOT_EXIST);
+        }
+
         message.setTo(farmerDTO.getEmail());
         message.setFrom("s3927071@rmit.edu.vn");
         message.setSubject(subject);
@@ -61,12 +67,17 @@ public class EmailService {
         for (Long sprayerId : booking.getSprayersId()) {
             // Check if the sprayer exists and is available
             SprayerDTO sprayerDTO = userAPI.findSprayerById(sprayerId);
-
+            if (sprayerDTO == null) {
+                throw new CustomException(ErrorCode.SPRAYER_NOT_EXIST);
+            }
             // Assuming the availability is already checked, add the sprayer to the list
             sprayersList.add(sprayerDTO);
         }
 
         FarmerDTO farmerDTO = userAPI.findFarmerById(booking.getFarmerId());
+        if (farmerDTO == null) {
+            throw new CustomException(ErrorCode.FARMER_NOT_EXIST);
+        }
 
         for (SprayerDTO sprayerDTO : sprayersList) {
             String sprayerEmailBody = String.format(
@@ -118,7 +129,12 @@ public class EmailService {
         // DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd
         // HH:mm");
         TimeSlotDTO timeSlotDTO = timeSlotAPI.findById(booking.getTimeSlotId());
+
         FarmerDTO farmerDTO = userAPI.findFarmerById(booking.getFarmerId());
+        if (farmerDTO == null) {
+            throw new CustomException(ErrorCode.FARMER_NOT_EXIST);
+        }
+
         String gregorianDate = timeSlotDTO.getDate().toString();
 
         // Convert LocalDateto Chinese Lunar Date

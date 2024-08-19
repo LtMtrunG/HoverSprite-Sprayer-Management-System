@@ -96,6 +96,10 @@ public class UserService implements UserAPI {
             throw new CustomException(ErrorCode.EMAIL_USED);
         }
 
+        if (userRepository.existsByPhoneNumber(processPhoneNumber(request.getPhoneNumber()))) {
+            throw new CustomException(ErrorCode.PHONE_NUMBER_USED);
+        }
+
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         Role role = roleRepository.findByName(RoleType.FARMER.name())
                 .orElseThrow(() -> new RuntimeException("User's Role Not Found."));
@@ -103,7 +107,7 @@ public class UserService implements UserAPI {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setFullName(request.getFullName());
-        user.setPhoneNumber(request.getPhoneNumber());
+        user.setPhoneNumber(processPhoneNumber(request.getPhoneNumber()));
         user.setAddress(request.getAddress());
         user.setRole(role);
         userRepository.save(user);
@@ -120,6 +124,10 @@ public class UserService implements UserAPI {
             throw new CustomException(ErrorCode.EMAIL_USED);
         }
 
+        if (userRepository.existsByPhoneNumber(processPhoneNumber(request.getPhoneNumber()))) {
+            throw new CustomException(ErrorCode.PHONE_NUMBER_USED);
+        }
+
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         Role role = roleRepository.findByName(RoleType.RECEPTIONIST.name())
                 .orElseThrow(() -> new RuntimeException("User's Role Not Found."));
@@ -127,7 +135,7 @@ public class UserService implements UserAPI {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setFullName(request.getFullName());
-        user.setPhoneNumber(request.getPhoneNumber());
+        user.setPhoneNumber(processPhoneNumber(request.getPhoneNumber()));
         user.setAddress(request.getAddress());
         user.setRole(role);
         userRepository.save(user);
@@ -144,6 +152,10 @@ public class UserService implements UserAPI {
             throw new CustomException(ErrorCode.EMAIL_USED);
         }
 
+        if (userRepository.existsByPhoneNumber(processPhoneNumber(request.getPhoneNumber()))) {
+            throw new CustomException(ErrorCode.PHONE_NUMBER_USED);
+        }
+
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         Role role = roleRepository.findByName(RoleType.SPRAYER.name())
                 .orElseThrow(() -> new RuntimeException("User's Role Not Found."));
@@ -151,7 +163,7 @@ public class UserService implements UserAPI {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setFullName(request.getFullName());
-        user.setPhoneNumber(request.getPhoneNumber());
+        user.setPhoneNumber(processPhoneNumber(request.getPhoneNumber()));
         user.setAddress(request.getAddress());
         user.setRole(role);
         user.setExpertise(request.getExpertise());
@@ -229,9 +241,11 @@ public class UserService implements UserAPI {
             throw new AccessDeniedException("You do not have permission to update this user.");
         }
 
-        user.setPassword(request.getPassword());
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
+
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setFullName(request.getFullName());
-        user.setPhoneNumber(request.getPhoneNumber());
+        user.setPhoneNumber(processPhoneNumber(request.getPhoneNumber()));
         user.setAddress(request.getAddress());
 
         userRepository.save(user);
@@ -249,42 +263,42 @@ public class UserService implements UserAPI {
     public FarmerDTO findFarmerById(Long farmerId) {
         Optional<User> user = userRepository.findFarmerById(farmerId);
         return user.map(FarmerDTO::new)
-                .orElseThrow(() -> new CustomException(ErrorCode.FARMER_NOT_EXIST));
+                .orElse(null);
     }
 
     @Override
     public FarmerDTO findFarmerByEmail(String email) {
         Optional<User> user = userRepository.findByEmail(email);
         return user.map(FarmerDTO::new)
-                .orElseThrow(() -> new CustomException(ErrorCode.FARMER_NOT_EXIST));
+                .orElse(null);
     }
 
     @Override
     public FarmerDTO findFarmerByPhoneNumber(String phoneNumber) {
         Optional<User> user = userRepository.findByPhoneNumber(phoneNumber);
         return user.map(FarmerDTO::new)
-                .orElseThrow(() -> new CustomException(ErrorCode.FARMER_NOT_EXIST));
+                .orElse(null);
     }
 
     @Override
     public ReceptionistDTO findReceptionistById(Long receptionistId) {
         Optional<User> user = userRepository.findReceptionistById(receptionistId);
         return user.map(ReceptionistDTO::new)
-                .orElseThrow(() -> new CustomException(ErrorCode.RECEPTIONIST_NOT_EXIST));
+                .orElse(null);
     }
 
     @Override
     public UserAuthenticateDTO findUserByEmail(String email) {
         Optional<User> user = userRepository.findByEmail(email);
         return user.map(UserAuthenticateDTO::new)
-                .orElseThrow(() -> new CustomException(ErrorCode.EMAIL_NOT_EXISTS));
+                .orElse(null); // Return null if user is not found
     }
 
     @Override
     public UserAuthenticateDTO findUserByPhoneNumber(String phoneNumber) {
         Optional<User> user = userRepository.findByPhoneNumber(phoneNumber);
         return user.map(UserAuthenticateDTO::new)
-                .orElseThrow(() -> new CustomException(ErrorCode.PHONE_NUMBER_NOT_EXISTS));
+                .orElse(null); // Return null if user is not found
     }
 
     @Override
@@ -313,11 +327,21 @@ public class UserService implements UserAPI {
     }
 
     @Override
-    @PreAuthorize("hasRole('RECEPTIONIST')")
     public SprayerDTO findSprayerById(Long sprayerId) {
         Optional<User> user = userRepository.findSprayerById(sprayerId);
         return user.map(SprayerDTO::new)
-                .orElseThrow(() -> new CustomException(ErrorCode.SPRAYER_NOT_EXIST));
+                .orElse(null); // Return null if user is not found
     }
 
+    private String processPhoneNumber(String phoneNumber) {
+        // Remove all spaces from the phone number
+        phoneNumber = phoneNumber.replaceAll("\\s+", "");
+
+        // Replace the +84 with 0 if it starts with +84
+        if (phoneNumber.startsWith("+84")) {
+            phoneNumber = phoneNumber.replaceFirst("\\+84", "0");
+        }
+
+        return phoneNumber;
+    }
 }

@@ -1,6 +1,7 @@
 package com.group12.springboot.hoversprite.booking;
 
 import com.group12.springboot.hoversprite.common.ListResponse;
+import org.springframework.security.access.AccessDeniedException;
 
 public interface BookingAPI {
 
@@ -23,4 +24,6 @@ public interface BookingAPI {
     public ListResponse<AvailableSprayersResponse> getAvailableSprayersByTimeSlot(int pageNo, int pageSize, AvailableSprayersRequest request);
 
     public BookingResponse assignSprayers(BookingAssignRequest request);
+
+    public BookingResponse inProgressBooking(BookingInProgressRequest request) throws AccessDeniedException;
 }

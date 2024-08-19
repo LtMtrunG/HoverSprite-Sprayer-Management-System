@@ -5,7 +5,7 @@ import org.springframework.http.HttpStatusCode;
 
 public enum ErrorCode {
     INVALID_MESSAGE_KEY(1001, "Invalid Message Key", HttpStatus.BAD_REQUEST),
-    EMAIL_USED(1002, "Email has already been used.", HttpStatus.BAD_REQUEST),
+    EMAIL_USED(1002, "Email has already been used", HttpStatus.BAD_REQUEST),
     INVALID_SIGNUP_INFO(1003, "Field(s) does not meet requirements", HttpStatus.BAD_REQUEST),
     EMAIL_NOT_EXISTS(1004, "Email not existed", HttpStatus.NOT_FOUND),
     UNAUTHENTICATED(1005, "Unauthenticated", HttpStatus.UNAUTHORIZED),
@@ -27,6 +27,11 @@ public enum ErrorCode {
     SPRAYER_EXPERTISE_NOT_MEET_REQUIREMENTS(1021, "Sprayer(s) expertises not meet requirements", HttpStatus.BAD_REQUEST),
     SPRAYER_EXCEED(1022, "Cannot assign more than 2 sprayers for 1 booking", HttpStatus.BAD_REQUEST),
     SPRAYER_DUPLICATE(1023, "Cannot assign a sprayer twice for a booking", HttpStatus.BAD_REQUEST),
+    SPRAYER_NOT_ASSIGNED(1024, "This sprayer is not assigned to this booking", HttpStatus.BAD_REQUEST),
+    RECEPTIONIST_NOT_RESPONSIBLE(1024, "This receptionist is not responsible for this booking", HttpStatus.BAD_REQUEST),
+    PHONE_NUMBER_USED(1025, "Phone number has already been used", HttpStatus.BAD_REQUEST),
+    EMAIL_PHONE_NOT_EXISTS(1026, "Email and phone number not existed", HttpStatus.NOT_FOUND),
+    FARMER_NOT_OWNED(1024, "This farmer does not own this booking", HttpStatus.BAD_REQUEST),
     UNCATEGORIZED_EXCEPTION(9999, "Uncategorized error", HttpStatus.INTERNAL_SERVER_ERROR)
     ;
     private int code;

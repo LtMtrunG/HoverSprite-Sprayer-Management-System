@@ -6,6 +6,6 @@ public enum BookingStatus {
     CONFIRMED,
     ASSIGNED,
     IN_PROGRESS,
-    COMPLETED_BY_SPRAYER,
+    COMPLETED_BY_FARMER,
     COMPLETED
 }

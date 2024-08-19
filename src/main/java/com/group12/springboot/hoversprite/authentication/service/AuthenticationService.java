@@ -48,11 +48,15 @@ public class AuthenticationService implements AuthenticationAPI {
         UserAuthenticateDTO user = userAPI.findUserByEmail(request.getEmail());
 
         if (user == null) {
-            user = userAPI.findUserByPhoneNumber(request.getEmail());
+            System.out.println(processPhoneNumber(request.getEmail()));
+            user = userAPI.findUserByPhoneNumber(processPhoneNumber(request.getEmail()));
             if (user == null) {
-                throw new CustomException(ErrorCode.EMAIL_NOT_EXISTS);
+                throw new CustomException(ErrorCode.EMAIL_PHONE_NOT_EXISTS);
             }
+            System.out.println("AUTH");
         }
+
+        System.out.println("AUTH");
 
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         boolean authenticated =  passwordEncoder.matches(request.getPassword(), user.getPassword());
@@ -114,5 +118,17 @@ public class AuthenticationService implements AuthenticationAPI {
         }
 
         return stringJoiner.toString();
+    }
+
+    private String processPhoneNumber(String phoneNumber) {
+        // Remove all spaces from the phone number
+        phoneNumber = phoneNumber.replaceAll("\\s+", "");
+
+        // Replace the +84 with 0 if it starts with +84
+        if (phoneNumber.startsWith("+84")) {
+            phoneNumber = phoneNumber.replaceFirst("\\+84", "0");
+        }
+
+        return phoneNumber;
     }
 }

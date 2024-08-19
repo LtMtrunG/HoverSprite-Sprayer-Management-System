@@ -12,7 +12,6 @@ import com.group12.springboot.hoversprite.validator.StartTimeConstraint;
 public class BookingCreationRequest {
     private Long receptionistId;
     private Long farmerId;
-    private List<Long> sprayersId;
     private CropType cropType;
     private double farmlandArea;
     private LocalDateTime createdTime;
@@ -39,14 +38,6 @@ public class BookingCreationRequest {
 
     public void setFarmer(Long farmerId) {
         this.farmerId = farmerId;
-    }
-
-    public List<Long> getSprayersId() {
-        return sprayersId;
-    }
-
-    public void setSprayers(List<Long> sprayersId) {
-        this.sprayersId = sprayersId;
     }
 
     public void setCropType(CropType cropType) {

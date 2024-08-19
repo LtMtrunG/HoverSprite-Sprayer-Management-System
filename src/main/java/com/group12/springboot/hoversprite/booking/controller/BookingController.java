@@ -1,6 +1,8 @@
 package com.group12.springboot.hoversprite.booking.controller;
 
+import com.group12.springboot.hoversprite.booking.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -10,14 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.group12.springboot.hoversprite.booking.AvailableSprayersRequest;
-import com.group12.springboot.hoversprite.booking.AvailableSprayersResponse;
-import com.group12.springboot.hoversprite.booking.BookingAssignRequest;
-import com.group12.springboot.hoversprite.booking.BookingCancelRequest;
-import com.group12.springboot.hoversprite.booking.BookingCompleteRequest;
-import com.group12.springboot.hoversprite.booking.BookingConfirmationRequest;
-import com.group12.springboot.hoversprite.booking.BookingCreationRequest;
-import com.group12.springboot.hoversprite.booking.BookingResponse;
 import com.group12.springboot.hoversprite.booking.service.BookingService;
 import com.group12.springboot.hoversprite.common.ApiResponse;
 import com.group12.springboot.hoversprite.common.ListResponse;
@@ -62,21 +56,23 @@ public class BookingController {
         return apiResponse;
     }
 
-    // @PostMapping("/inProgress")
-    // ApiResponse<BookingResponse> inProgressBooking(@RequestBody BookingInProgressRequest request) throws AccessDeniedException {
-    //     ApiResponse<BookingResponse> apiResponse = new ApiResponse<>();
-    //     BookingResponse bookingResponse = bookingService.inProgressBooking(request);
-    //     apiResponse.setResult(bookingResponse);
-    //     return apiResponse;
-    // }
+     @PostMapping("/inProgress")
+     ApiResponse<BookingResponse> inProgressBooking(@RequestBody BookingInProgressRequest request) throws AccessDeniedException {
+         ApiResponse<BookingResponse> apiResponse = new ApiResponse<>();
+         BookingResponse bookingResponse = bookingService.inProgressBooking(request);
+         apiResponse.setResult(bookingResponse);
+         return apiResponse;
+     }
 
-    // @PostMapping("/completeBySprayer")
-    // ApiResponse<BookingResponse> completeBookingBySprayer(@RequestBody BookingCompleteRequest request) throws AccessDeniedException {
-    //     ApiResponse<BookingResponse> apiResponse = new ApiResponse<>();
-    //     BookingResponse bookingResponse = bookingService.completeBookingBySprayer(request);
-    //     apiResponse.setResult(bookingResponse);
-    //     return apiResponse;
-    // }
+    @PostMapping("/assign")
+    ApiResponse<BookingResponse> assignSprayers(
+            @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+            @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
+            @RequestBody @Valid BookingAssignRequest request) {
+        ApiResponse<BookingResponse> apiResponse = new ApiResponse<>();
+        apiResponse.setResult(bookingService.assignSprayers(request));
+        return apiResponse;
+    }
 
     @PostMapping("/completeByFarmer")
     ApiResponse<BookingResponse> completeBookingByFarmer(@RequestBody BookingCompleteRequest request) {
@@ -85,6 +81,14 @@ public class BookingController {
         apiResponse.setResult(bookingResponse);
         return apiResponse;
     }
+
+     @PostMapping("/completeBySprayer")
+     ApiResponse<BookingResponse> completeBookingBySprayer(@RequestBody BookingCompleteRequest request) throws AccessDeniedException {
+         ApiResponse<BookingResponse> apiResponse = new ApiResponse<>();
+         BookingResponse bookingResponse = bookingService.completeBookingBySprayer(request);
+         apiResponse.setResult(bookingResponse);
+         return apiResponse;
+     }
 
     @GetMapping()
     ApiResponse<ListResponse<BookingResponse>> getBookings(@RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
@@ -109,16 +113,6 @@ public class BookingController {
             @RequestBody @Valid AvailableSprayersRequest request) {
         ApiResponse<ListResponse<AvailableSprayersResponse>> apiResponse = new ApiResponse<>();
         apiResponse.setResult(bookingService.getAvailableSprayersByTimeSlot(pageNo, pageSize, request));
-        return apiResponse;
-    }
-
-    @PostMapping("/assign")
-    ApiResponse<BookingResponse> assignSprayers(
-            @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
-            @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
-            @RequestBody @Valid BookingAssignRequest request) {
-        ApiResponse<BookingResponse> apiResponse = new ApiResponse<>();
-        apiResponse.setResult(bookingService.assignSprayers(request));
         return apiResponse;
     }
 
