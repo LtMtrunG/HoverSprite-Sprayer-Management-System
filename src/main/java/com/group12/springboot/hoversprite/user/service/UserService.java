@@ -9,6 +9,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PostAuthorize;
@@ -37,6 +38,7 @@ import com.group12.springboot.hoversprite.user.FarmerExternalSignUpInfoResponse;
 import com.group12.springboot.hoversprite.user.ReceptionistCreationRequest;
 import com.group12.springboot.hoversprite.user.ReceptionistDTO;
 import com.group12.springboot.hoversprite.user.SprayerCreationRequest;
+import com.group12.springboot.hoversprite.user.SprayerDTO;
 import com.group12.springboot.hoversprite.user.UserAPI;
 import com.group12.springboot.hoversprite.user.UserAuthenticateDTO;
 import com.group12.springboot.hoversprite.user.UserResponse;
@@ -94,6 +96,10 @@ public class UserService implements UserAPI {
             throw new CustomException(ErrorCode.EMAIL_USED);
         }
 
+        if (userRepository.existsByPhoneNumber(processPhoneNumber(request.getPhoneNumber()))) {
+            throw new CustomException(ErrorCode.PHONE_NUMBER_USED);
+        }
+
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         Role role = roleRepository.findByName(RoleType.FARMER.name())
                 .orElseThrow(() -> new RuntimeException("User's Role Not Found."));
@@ -101,7 +107,7 @@ public class UserService implements UserAPI {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setFullName(request.getFullName());
-        user.setPhoneNumber(request.getPhoneNumber());
+        user.setPhoneNumber(processPhoneNumber(request.getPhoneNumber()));
         user.setAddress(request.getAddress());
         user.setRole(role);
         userRepository.save(user);
@@ -118,6 +124,10 @@ public class UserService implements UserAPI {
             throw new CustomException(ErrorCode.EMAIL_USED);
         }
 
+        if (userRepository.existsByPhoneNumber(processPhoneNumber(request.getPhoneNumber()))) {
+            throw new CustomException(ErrorCode.PHONE_NUMBER_USED);
+        }
+
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         Role role = roleRepository.findByName(RoleType.RECEPTIONIST.name())
                 .orElseThrow(() -> new RuntimeException("User's Role Not Found."));
@@ -125,7 +135,7 @@ public class UserService implements UserAPI {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setFullName(request.getFullName());
-        user.setPhoneNumber(request.getPhoneNumber());
+        user.setPhoneNumber(processPhoneNumber(request.getPhoneNumber()));
         user.setAddress(request.getAddress());
         user.setRole(role);
         userRepository.save(user);
@@ -142,6 +152,10 @@ public class UserService implements UserAPI {
             throw new CustomException(ErrorCode.EMAIL_USED);
         }
 
+        if (userRepository.existsByPhoneNumber(processPhoneNumber(request.getPhoneNumber()))) {
+            throw new CustomException(ErrorCode.PHONE_NUMBER_USED);
+        }
+
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         Role role = roleRepository.findByName(RoleType.SPRAYER.name())
                 .orElseThrow(() -> new RuntimeException("User's Role Not Found."));
@@ -149,7 +163,7 @@ public class UserService implements UserAPI {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setFullName(request.getFullName());
-        user.setPhoneNumber(request.getPhoneNumber());
+        user.setPhoneNumber(processPhoneNumber(request.getPhoneNumber()));
         user.setAddress(request.getAddress());
         user.setRole(role);
         user.setExpertise(request.getExpertise());
@@ -227,9 +241,11 @@ public class UserService implements UserAPI {
             throw new AccessDeniedException("You do not have permission to update this user.");
         }
 
-        user.setPassword(request.getPassword());
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
+
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setFullName(request.getFullName());
-        user.setPhoneNumber(request.getPhoneNumber());
+        user.setPhoneNumber(processPhoneNumber(request.getPhoneNumber()));
         user.setAddress(request.getAddress());
 
         userRepository.save(user);
@@ -245,43 +261,87 @@ public class UserService implements UserAPI {
 
     @Override
     public FarmerDTO findFarmerById(Long farmerId) {
-        Optional<User> user = userRepository.findById(farmerId);
+        Optional<User> user = userRepository.findFarmerById(farmerId);
         return user.map(FarmerDTO::new)
-                .orElseThrow(() -> new CustomException(ErrorCode.FARMER_NOT_EXIST));
+                .orElse(null);
     }
 
     @Override
     public FarmerDTO findFarmerByEmail(String email) {
         Optional<User> user = userRepository.findByEmail(email);
         return user.map(FarmerDTO::new)
-                .orElseThrow(() -> new CustomException(ErrorCode.FARMER_NOT_EXIST));
+                .orElse(null);
     }
 
     @Override
     public FarmerDTO findFarmerByPhoneNumber(String phoneNumber) {
         Optional<User> user = userRepository.findByPhoneNumber(phoneNumber);
         return user.map(FarmerDTO::new)
-                .orElseThrow(() -> new CustomException(ErrorCode.FARMER_NOT_EXIST));
+                .orElse(null);
     }
 
     @Override
     public ReceptionistDTO findReceptionistById(Long receptionistId) {
-        Optional<User> user = userRepository.findById(receptionistId);
+        Optional<User> user = userRepository.findReceptionistById(receptionistId);
         return user.map(ReceptionistDTO::new)
-                .orElseThrow(() -> new CustomException(ErrorCode.RECEPTIONIST_NOT_EXIST));
+                .orElse(null);
     }
 
     @Override
     public UserAuthenticateDTO findUserByEmail(String email) {
         Optional<User> user = userRepository.findByEmail(email);
         return user.map(UserAuthenticateDTO::new)
-                .orElseThrow(() -> new CustomException(ErrorCode.EMAIL_NOT_EXISTS));
+                .orElse(null); // Return null if user is not found
     }
 
     @Override
     public UserAuthenticateDTO findUserByPhoneNumber(String phoneNumber) {
         Optional<User> user = userRepository.findByPhoneNumber(phoneNumber);
         return user.map(UserAuthenticateDTO::new)
-                .orElseThrow(() -> new CustomException(ErrorCode.PHONE_NUMBER_NOT_EXISTS));
+                .orElse(null); // Return null if user is not found
+    }
+
+    @Override
+    @PreAuthorize("hasRole('RECEPTIONIST')")
+    public Page<SprayerDTO> getAvailableSprayers(List<Long> bookedSprayersId, Pageable pageable) {
+        // Fetch the list of sprayers
+        List<SprayerDTO> sprayersId = userRepository.findAllSprayersExcludeByIds(bookedSprayersId, pageable)
+                .stream()
+                .map(user -> new SprayerDTO(user))
+                .collect(Collectors.toList());
+
+        // Manually create a Page object
+        return new PageImpl<>(sprayersId, pageable, sprayersId.size());
+    }
+
+    @Override
+    @PreAuthorize("hasRole('RECEPTIONIST')")
+    public List<SprayerDTO> getAvailableSprayers(List<Long> bookedSprayersId) {
+        // Fetch the list of SprayerDTO
+        List<SprayerDTO> sprayers = userRepository.findAllSprayersExcludeByIds(bookedSprayersId)
+                .stream()
+                .map(user -> new SprayerDTO(user))
+                .toList(); // Assuming the repository returns a stream
+
+        return sprayers;
+    }
+
+    @Override
+    public SprayerDTO findSprayerById(Long sprayerId) {
+        Optional<User> user = userRepository.findSprayerById(sprayerId);
+        return user.map(SprayerDTO::new)
+                .orElse(null); // Return null if user is not found
+    }
+
+    private String processPhoneNumber(String phoneNumber) {
+        // Remove all spaces from the phone number
+        phoneNumber = phoneNumber.replaceAll("\\s+", "");
+
+        // Replace the +84 with 0 if it starts with +84
+        if (phoneNumber.startsWith("+84")) {
+            phoneNumber = phoneNumber.replaceFirst("\\+84", "0");
+        }
+
+        return phoneNumber;
     }
 }

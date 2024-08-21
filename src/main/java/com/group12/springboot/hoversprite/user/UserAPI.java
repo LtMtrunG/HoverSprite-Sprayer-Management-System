@@ -1,9 +1,12 @@
 package com.group12.springboot.hoversprite.user;
 
 import java.nio.file.AccessDeniedException;
+import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import com.group12.springboot.hoversprite.common.ListResponse;
-
 public interface UserAPI {
 
     public FarmerExternalSignUpInfoResponse receiveFarmerGmailInfo(FarmerExternalSignUpInfoRequest request);
@@ -34,7 +37,13 @@ public interface UserAPI {
 
     public ReceptionistDTO findReceptionistById(Long receptionistId);
 
+    public SprayerDTO findSprayerById(Long sprayerId);
+
     public UserAuthenticateDTO findUserByEmail(String email);
 
     public UserAuthenticateDTO findUserByPhoneNumber(String phoneNumber);
+
+    public Page<SprayerDTO> getAvailableSprayers(List<Long> bookedSprayersId, Pageable pageable);
+
+    public List<SprayerDTO> getAvailableSprayers(List<Long> bookedSprayersId);
 }

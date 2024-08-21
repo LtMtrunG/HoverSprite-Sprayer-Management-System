@@ -3,6 +3,8 @@ package com.group12.springboot.hoversprite.timeslot;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
+
 
 public interface TimeSlotAPI {
     public TimeSlotCreateResponse createTimeSlot(TimeSlotCreateRequest request);
@@ -11,7 +13,7 @@ public interface TimeSlotAPI {
 
     public List<TimeSlotByDateResponse> getTimeSlotByWeek(TimeSlotByDateRequest request);
 
-    public TimeSlotDTO findByDateAndStartTime(LocalDate date, LocalTime startTime);
+    public Optional<TimeSlotDTO> findByDateAndStartTime(LocalDate date, LocalTime startTime);
 
     public TimeSlotDTO findById(Long id);
 
@@ -20,4 +22,6 @@ public interface TimeSlotAPI {
     public boolean isAvailable(TimeSlotDTO timeSlotDTO);
 
     public void bookSession(TimeSlotDTO timeSlotDTO);
+
+    public void cancelSession(Long timeSlotId);
 }
