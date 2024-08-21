@@ -5,7 +5,9 @@ public enum BookingStatus {
     CANCELLED,
     CONFIRMED,
     ASSIGNED,
-    IN_PROGRESS,
+    IN_PROGRESS_1_1,
+    IN_PROGRESS_1_2,
+    IN_PROGRESS_2_2,
     COMPLETED_BY_FARMER,
     COMPLETED
 }

@@ -256,7 +256,7 @@ public class BookingService implements BookingAPI {
         Booking booking = bookingRepository.findById(request.getId())
                 .orElseThrow(() -> new CustomException(ErrorCode.BOOKING_NOT_EXISTS));
 
-        if (booking.getStatus() != BookingStatus.ASSIGNED) {
+        if (booking.getStatus() != BookingStatus.ASSIGNED && booking.getStatus() != BookingStatus.IN_PROGRESS_1_2) {
             throw new CustomException(ErrorCode.INVALID_ACTION);
         }
 
@@ -271,10 +271,30 @@ public class BookingService implements BookingAPI {
             throw new CustomException(ErrorCode.SPRAYER_NOT_EXIST);
         }
 
-        booking.setStatus(BookingStatus.IN_PROGRESS);
-        bookingRepository.save(booking);
+        // Add the sprayer to the list of those who have confirmed in progress
+        if (booking.getInProgressSprayerIds() == null) {
+            booking.setInProgressSprayerIds(new ArrayList<>());
+        }
 
-        emailService.sendEmail(booking);
+        if (!booking.getInProgressSprayerIds().contains(sprayerId)) {
+            booking.getInProgressSprayerIds().add(sprayerId);
+        } else {
+            throw new CustomException(ErrorCode.SPRAYER_ALREADY_IN_PROGRESS);
+        }
+
+        // Check if all sprayers have confirmed in progress
+        if (booking.getInProgressSprayerIds().size() == booking.getSprayersId().size()) {
+            if (booking.getSprayersId().size() == 1) {
+                booking.setStatus(BookingStatus.IN_PROGRESS_1_1);
+            } else {
+                booking.setStatus(BookingStatus.IN_PROGRESS_2_2);
+            }
+            emailService.sendEmail(booking);
+        } else {
+            booking.setStatus(BookingStatus.IN_PROGRESS_1_2);
+        }
+
+        bookingRepository.save(booking);
 
         return new BookingResponse(booking);
     }
@@ -295,7 +315,7 @@ public class BookingService implements BookingAPI {
             throw new CustomException(ErrorCode.FARMER_NOT_OWNED);
         }
 
-        if (booking.getStatus() != BookingStatus.IN_PROGRESS) {
+        if (booking.getStatus() != BookingStatus.IN_PROGRESS_2_2 && booking.getStatus() != BookingStatus.IN_PROGRESS_1_1) {
             throw new CustomException(ErrorCode.INVALID_ACTION);
         }
 

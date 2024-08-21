@@ -31,7 +31,8 @@ public enum ErrorCode {
     RECEPTIONIST_NOT_RESPONSIBLE(1024, "This receptionist is not responsible for this booking", HttpStatus.BAD_REQUEST),
     PHONE_NUMBER_USED(1025, "Phone number has already been used", HttpStatus.BAD_REQUEST),
     EMAIL_PHONE_NOT_EXISTS(1026, "Email and phone number not existed", HttpStatus.NOT_FOUND),
-    FARMER_NOT_OWNED(1024, "This farmer does not own this booking", HttpStatus.BAD_REQUEST),
+    FARMER_NOT_OWNED(1027, "This farmer does not own this booking", HttpStatus.BAD_REQUEST),
+    SPRAYER_ALREADY_IN_PROGRESS(1028, "This sprayer already started working on the booking", HttpStatus.BAD_REQUEST),
     UNCATEGORIZED_EXCEPTION(9999, "Uncategorized error", HttpStatus.INTERNAL_SERVER_ERROR)
     ;
     private int code;

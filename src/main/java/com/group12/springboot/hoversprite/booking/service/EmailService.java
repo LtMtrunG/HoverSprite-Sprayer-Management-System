@@ -118,7 +118,7 @@ public class EmailService {
             return "Booking Assignment: HoverSprite Service - Booking ID " + booking.getId();
         }
 
-        if (booking.getStatus() == BookingStatus.IN_PROGRESS) {
+        if (booking.getStatus() == BookingStatus.IN_PROGRESS_1_1 || booking.getStatus() == BookingStatus.IN_PROGRESS_2_2) {
             return "Booking In Progress: HoverSprite Service - Booking ID " + booking.getId();
         }
 
@@ -250,7 +250,7 @@ public class EmailService {
                     booking.getTotalCost());
         }
 
-        if (booking.getStatus() == BookingStatus.IN_PROGRESS) {
+        if (booking.getStatus() == BookingStatus.IN_PROGRESS_1_1 || booking.getStatus() == BookingStatus.IN_PROGRESS_2_2) {
             return String.format(
                     "Dear %s,\n\n" +
                             "We are currently processing your booking with HoverSprite Service. Our team is on-site and the service is in progress.\n\n"
