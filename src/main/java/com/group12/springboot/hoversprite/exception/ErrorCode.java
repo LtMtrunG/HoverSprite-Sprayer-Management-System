@@ -28,11 +28,15 @@ public enum ErrorCode {
     SPRAYER_EXCEED(1022, "Cannot assign more than 2 sprayers for 1 booking", HttpStatus.BAD_REQUEST),
     SPRAYER_DUPLICATE(1023, "Cannot assign a sprayer twice for a booking", HttpStatus.BAD_REQUEST),
     SPRAYER_NOT_ASSIGNED(1024, "This sprayer is not assigned to this booking", HttpStatus.BAD_REQUEST),
-    RECEPTIONIST_NOT_RESPONSIBLE(1024, "This receptionist is not responsible for this booking", HttpStatus.BAD_REQUEST),
-    PHONE_NUMBER_USED(1025, "Phone number has already been used", HttpStatus.BAD_REQUEST),
-    EMAIL_PHONE_NOT_EXISTS(1026, "Email and phone number not existed", HttpStatus.NOT_FOUND),
-    FARMER_NOT_OWNED(1027, "This farmer does not own this booking", HttpStatus.BAD_REQUEST),
-    SPRAYER_ALREADY_IN_PROGRESS(1028, "This sprayer already started working on the booking", HttpStatus.BAD_REQUEST),
+    RECEPTIONIST_NOT_RESPONSIBLE(1025, "This receptionist is not responsible for this booking", HttpStatus.BAD_REQUEST),
+    PHONE_NUMBER_USED(1026, "Phone number has already been used", HttpStatus.BAD_REQUEST),
+    EMAIL_PHONE_NOT_EXISTS(1027, "Email and phone number not existed", HttpStatus.NOT_FOUND),
+    FARMER_NOT_OWNED(1028, "This farmer does not own this booking", HttpStatus.BAD_REQUEST),
+    SPRAYER_ALREADY_IN_PROGRESS(1029, "This sprayer already started working on the booking", HttpStatus.BAD_REQUEST),
+    FEEDBACK_NOT_EXISTS(1030, "Feedback not existed", HttpStatus.NOT_FOUND),
+    RATING_NOT_VALID(1031, "Rating can only be 1 to 5", HttpStatus.BAD_REQUEST),
+    FEEDBACK_GIVEN(1032, "This booking already has feedback", HttpStatus.BAD_REQUEST),
+    IMAGES_EXCEED(1033, "Cannot upload more than 5 images", HttpStatus.BAD_REQUEST),
     UNCATEGORIZED_EXCEPTION(9999, "Uncategorized error", HttpStatus.INTERNAL_SERVER_ERROR)
     ;
     private int code;
