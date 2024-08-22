@@ -59,6 +59,9 @@ public class Booking {
     @Column(name="total_cost")
     private double totalCost;
 
+    @Column(name="feedback_id")
+    private Long feedbackId;
+
     public Booking(){};
 
     public Booking(Booking booking) {
@@ -72,5 +75,6 @@ public class Booking {
         this.createdTime = booking.createdTime;
         this.timeSlotId = booking.timeSlotId;
         this.totalCost = booking.totalCost;
+        this.feedbackId = booking.feedbackId;
     }
 }

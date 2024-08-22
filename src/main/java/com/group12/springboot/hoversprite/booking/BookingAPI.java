@@ -26,4 +26,14 @@ public interface BookingAPI {
     public BookingResponse assignSprayers(BookingAssignRequest request);
 
     public BookingResponse inProgressBooking(BookingInProgressRequest request) throws AccessDeniedException;
+
+    public boolean isBookingExist(Long bookingId);
+
+    public boolean doesFarmerOwnBooking(Long bookingId, Long farmerId);
+
+    public boolean doesBookingHaveFeedback(Long bookingId);
+
+    public boolean hasPermissionOrNot(Long feedbackId);
+
+    public void saveFeedbackToBooking(Long bookingId, Long feedbackId);
 }

@@ -1,6 +1,5 @@
 package com.group12.springboot.hoversprite.booking.service;
 
-import java.sql.Time;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.*;
@@ -12,7 +11,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -530,4 +528,59 @@ public class BookingService implements BookingAPI {
 
         return listResponse;
     }
+
+    @Override
+    public boolean isBookingExist(Long bookingId) {
+        return bookingRepository.existsById(bookingId);
+    }
+
+    @Override
+    public boolean doesFarmerOwnBooking(Long bookingId, Long farmerId) {
+        Booking booking = bookingRepository.findById(bookingId).orElse(null);
+
+        if (booking == null) {
+            return false;  // If the booking does not exist, return false
+        }
+
+        return booking.getFarmerId().equals(farmerId);  // Check if the booking's farmer matches the given farmerId
+    }
+
+    @Override
+    public void saveFeedbackToBooking(Long bookingId, Long feedbackId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new CustomException(ErrorCode.BOOKING_NOT_EXISTS));
+
+        booking.setFeedbackId(feedbackId);
+        bookingRepository.save(booking);
+    }
+
+    @Override
+    public boolean doesBookingHaveFeedback(Long bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new CustomException(ErrorCode.BOOKING_NOT_EXISTS));
+
+        return (booking.getFeedbackId() != null);
+    }
+
+    @Override
+    public boolean hasPermissionOrNot(Long feedbackId) {
+        Booking booking = bookingRepository.findByFeedbackId(feedbackId)
+                .orElseThrow(() -> new CustomException(ErrorCode.BOOKING_NOT_EXISTS));
+
+        long userId = getCurrentUserId();
+
+        if (booking.getFarmerId() == userId) {
+            return true;
+        } else {
+            if (booking.getSprayersId().contains(userId)) {
+                return true;
+            } else {
+                ReceptionistDTO receptionistDTO = userAPI.findReceptionistById(userId);
+                return receptionistDTO != null;
+            }
+        }
+    }
+
+
+
 }

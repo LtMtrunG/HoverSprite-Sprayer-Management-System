@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -85,5 +86,13 @@ public class GlobalExceptionHandler {
         apiResponse.setCode(ErrorCode.DAILY_SCHEDULE_CREATED.getCode());
         apiResponse.setMessage(ErrorCode.DAILY_SCHEDULE_CREATED.getMessage());
         return ResponseEntity.status(ErrorCode.DAILY_SCHEDULE_CREATED.getStatusCode()).body(apiResponse);
+    }
+
+    @ExceptionHandler(value = ConstraintViolationException.class)
+    ResponseEntity<ApiResponse> handlingConstraintViolationException(ConstraintViolationException exception) {
+        ApiResponse apiResponse = new ApiResponse();
+        apiResponse.setCode(ErrorCode.RATING_NOT_VALID.getCode());
+        apiResponse.setMessage(ErrorCode.RATING_NOT_VALID.getMessage());
+        return ResponseEntity.status(ErrorCode.RATING_NOT_VALID.getStatusCode()).body(apiResponse);
     }
 }

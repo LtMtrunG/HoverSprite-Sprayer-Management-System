@@ -15,7 +15,9 @@ import com.group12.springboot.hoversprite.booking.entity.Booking;
 public interface BookingRepository extends JpaRepository<Booking, Long> {
     // List<Booking> findByUser(User user);
     Optional<Booking> findById(Long id);
+    Optional<Booking> findByFeedbackId(Long feedbackId);
     List<Booking> findByTimeSlotId(Long timeSlotId);
+    boolean existsById(Long id);
     //    @Query("SELECT b FROM Booking b WHERE b.user.email = :email")
 //    Page<Booking> findByUserEmail(@Param("email") String email, Pageable pageable);
     @Query("SELECT b FROM Booking b ORDER BY CASE WHEN b.status = 'COMPLETED' THEN 1 ELSE 0 END, b.createdTime DESC")
