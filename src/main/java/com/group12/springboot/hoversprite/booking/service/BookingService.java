@@ -6,6 +6,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import com.group12.springboot.hoversprite.booking.*;
+import com.group12.springboot.hoversprite.user.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,10 +29,6 @@ import com.group12.springboot.hoversprite.exception.ErrorCode;
 import com.group12.springboot.hoversprite.timeslot.TimeSlotAPI;
 import com.group12.springboot.hoversprite.timeslot.TimeSlotCreateRequest;
 import com.group12.springboot.hoversprite.timeslot.TimeSlotDTO;
-import com.group12.springboot.hoversprite.user.FarmerDTO;
-import com.group12.springboot.hoversprite.user.ReceptionistDTO;
-import com.group12.springboot.hoversprite.user.SprayerDTO;
-import com.group12.springboot.hoversprite.user.UserAPI;
 
 import lombok.RequiredArgsConstructor;
 
@@ -51,7 +48,8 @@ public class BookingService implements BookingAPI {
     public BookingResponse createPendingBooking(BookingCreationRequest request) {
         TimeSlotDTO timeSlotDTO = checkOrCreateTimeSlot(request.getDate(), request.getStartTime());
 
-        FarmerDTO farmerDTO = userAPI.findFarmerById(request.getFarmerId());
+        Long farmerId = getCurrentUserId();
+        FarmerDTO farmerDTO = userAPI.findFarmerById(farmerId);
         if (farmerDTO == null) {
             throw new CustomException(ErrorCode.FARMER_NOT_EXIST);
         }
@@ -63,7 +61,7 @@ public class BookingService implements BookingAPI {
         timeSlotAPI.bookSession(timeSlotDTO);
 
         Booking booking = createBookingWithStatus(BookingStatus.PENDING, request, timeSlotDTO.getId(),
-                farmerDTO.getId(), null, Collections.EMPTY_LIST);
+                farmerDTO.getId(), null, Collections.emptyList());
         bookingRepository.save(booking);
 
         return new BookingResponse(booking);
@@ -96,9 +94,13 @@ public class BookingService implements BookingAPI {
 
         Booking booking = createBookingWithStatus(BookingStatus.CONFIRMED, request, timeSlotDTO.getId(),
                 farmerDTO.getId(), receptionistDTO.getId(),
-                Collections.EMPTY_LIST);
+                Collections.emptyList());
+
+        emailService.sendEmail(booking);
 
         bookingRepository.save(booking);
+
+        autoAssignToAllUnAssignedBooking();
 
         return new BookingResponse(booking);
     }
@@ -129,6 +131,11 @@ public class BookingService implements BookingAPI {
         Booking booking = bookingRepository.findById(request.getId())
                 .orElseThrow(() -> new CustomException(ErrorCode.BOOKING_NOT_EXISTS));
 
+        TimeSlotDTO timeSlotDTO = timeSlotAPI.findById(booking.getTimeSlotId());
+        if (timeSlotDTO == null) {
+            throw new CustomException(ErrorCode.TIME_SLOT_NOT_EXISTS);
+        }
+
         Long receptionistId = getCurrentUserId();
         ReceptionistDTO receptionistDTO = userAPI.findReceptionistById(receptionistId);
 
@@ -145,6 +152,8 @@ public class BookingService implements BookingAPI {
         bookingRepository.save(booking);
 
         emailService.sendEmail(booking);
+
+        autoAssignToAllUnAssignedBooking();
 
         return new BookingResponse(booking);
     }
@@ -169,7 +178,7 @@ public class BookingService implements BookingAPI {
             throw new CustomException(ErrorCode.SPRAYER_EXCEED);
         }
 
-        List<SprayerDTO> sprayersList = new ArrayList<SprayerDTO>();
+        List<SprayerDTO> sprayersList = new ArrayList<>();
         Set<Long> seenSprayerIds = new HashSet<>();
 
         // Loop through the sprayer IDs in the request
@@ -204,10 +213,28 @@ public class BookingService implements BookingAPI {
             throw new CustomException(ErrorCode.INVALID_ACTION);
         }
 
+        TimeSlotDTO timeSlotDTO = timeSlotAPI.findById(booking.getTimeSlotId());
+        if (timeSlotDTO == null) {
+            throw new CustomException(ErrorCode.TIME_SLOT_NOT_EXISTS);
+        }
+
         booking.setSprayersId(request.getSprayersId());
 
         booking.setStatus(BookingStatus.ASSIGNED);
 
+        // Get the existing list of booked sprayer IDs
+        List<Long> bookedSprayersId = timeSlotDTO.getBookedSprayersId();
+
+        // Check if the list is null, and if so, initialize it
+        if (bookedSprayersId == null) {
+            bookedSprayersId = new ArrayList<>();
+        }
+
+        // Add the new sprayer IDs from the request to the list
+        bookedSprayersId.addAll(request.getSprayersId());
+
+        // Set the updated list back to timeSlotDTO
+        timeSlotAPI.setBookedSprayersId(timeSlotDTO.getId(),bookedSprayersId);
         bookingRepository.save(booking);
 
         emailService.sendEmail(booking);
@@ -216,11 +243,18 @@ public class BookingService implements BookingAPI {
     }
 
     private boolean checkSprayersAvailability(List<Long> sprayersId, Long timeSlotId) {
-        List<Long> bookedSprayersId = getSprayersIdFromBooking(timeSlotId);
+        TimeSlotDTO timeSlotDTO = timeSlotAPI.findById(timeSlotId);
+        if (timeSlotDTO == null) {
+            throw new CustomException(ErrorCode.TIME_SLOT_NOT_EXISTS);
+        }
+
+        if (timeSlotDTO.getBookedSprayersId() == null) {
+            return true;
+        }
 
         // Check if any sprayer ID from the input list is already booked
         for (Long sprayerId : sprayersId) {
-            if (bookedSprayersId.contains(sprayerId)) {
+            if (timeSlotDTO.getBookedSprayersId().contains(sprayerId)) {
                 return false; // If any sprayer is booked, return false
             }
         }
@@ -460,22 +494,6 @@ public class BookingService implements BookingAPI {
         return booking;
     }
 
-    // private User getCurrentUser() {
-    // String receptionEmail =
-    // SecurityContextHolder.getContext().getAuthentication().getName();
-    // return userService.findByEmail(receptionEmail)
-    // .orElseThrow(() -> new CustomException(ErrorCode.EMAIL_NOT_EXISTS));
-    // }
-
-    // private String getCurrentUserEmail() {
-    // Authentication authentication =
-    // SecurityContextHolder.getContext().getAuthentication();
-    // JwtAuthenticationToken jwtAuthToken = (JwtAuthenticationToken)
-    // authentication;
-    // Jwt jwt = (Jwt) jwtAuthToken.getPrincipal();
-    // return jwt.getSubject();
-    // }
-
     private ListResponse<BookingResponse> createListResponse(Page<Booking> bookingPage,
                                                              List<BookingResponse> bookingResponses) {
         ListResponse<BookingResponse> listResponse = new ListResponse<>();
@@ -509,9 +527,13 @@ public class BookingService implements BookingAPI {
     public ListResponse<AvailableSprayersResponse> getAvailableSprayersByTimeSlot(int pageNo, int pageSize,
                                                                                   AvailableSprayersRequest request) {
 
-        List<Long> bookedSprayersId = getSprayersIdFromBooking(request.getTimeSlotId());
+        TimeSlotDTO timeSlotDTO = timeSlotAPI.findById(request.getTimeSlotId());
+        if (timeSlotDTO == null) {
+            throw new CustomException(ErrorCode.TIME_SLOT_NOT_EXISTS);
+        }
+
         Pageable pageable = PageRequest.of(pageNo, pageSize);
-        Page<SprayerDTO> availableSprayersPage = userAPI.getAvailableSprayers(bookedSprayersId, pageable);
+        Page<SprayerDTO> availableSprayersPage = userAPI.getAvailableSprayers(timeSlotDTO.getBookedSprayersId(), pageable);
 
         // Convert SprayerDTO to AvailableSprayersResponse
         List<AvailableSprayersResponse> availableSprayerResponses = availableSprayersPage.getContent().stream()
@@ -581,6 +603,110 @@ public class BookingService implements BookingAPI {
         }
     }
 
+    public void autoAssignToAllUnAssignedBooking() {
+        List<Booking> unAssignedBooking = bookingRepository.findByStatus(BookingStatus.CONFIRMED);
+        if (unAssignedBooking == null) {
+            return;
+        }
+        for (Booking booking : unAssignedBooking) {
+            TimeSlotDTO timeSlotDTO = timeSlotAPI.findById(booking.getTimeSlotId());
+            if (timeSlotDTO == null) {
+                throw new RuntimeException();
+            }
+            autoAssign(booking, timeSlotDTO);
+        }
+    }
 
+    public void autoAssign(Booking booking, TimeSlotDTO timeSlotDTO) {
+        List<TimeSlotDTO> timeSlotDTOList = timeSlotAPI.getTimeSlotByWeek(timeSlotDTO.getDate());
+        List<SprayerWeeklyAssignDTO> weeklyAssignDTOs = calculateSprayerBooking(timeSlotDTOList);
+        if (timeSlotDTO.getBookedSprayersId() != null) {
+            for (Long sprayerId : timeSlotDTO.getBookedSprayersId()) {
+                // Remove the SprayerWeeklyAssignDTO with the matching id
+                weeklyAssignDTOs.removeIf(sprayer -> sprayer.getId().equals(sprayerId));
+            }
+        }
 
+        List<Long> selectedSprayerIds = new ArrayList<>();
+
+        selectedSprayerIds.add(weeklyAssignDTOs.getFirst().getId());
+
+        if (weeklyAssignDTOs.getFirst().getExpertise().toString().equals("APPRENTICE")) {
+            for (int i = 1; i < weeklyAssignDTOs.size(); i++) {
+                SprayerWeeklyAssignDTO sprayer = weeklyAssignDTOs.get(i);
+                if (sprayer.getExpertise().toString().equals("ADEPT") || sprayer.getExpertise().toString().equals("EXPERT")) {
+                    selectedSprayerIds.add(weeklyAssignDTOs.get(i).getId());
+                    break;
+                }
+            }
+        } else if (weeklyAssignDTOs.getFirst().getExpertise().toString().equals("ADEPT")) {
+            for (int i = 1; i < weeklyAssignDTOs.size(); i++) {
+                SprayerWeeklyAssignDTO sprayer = weeklyAssignDTOs.get(i);
+                if (sprayer.getExpertise().toString().equals("ADEPT") || sprayer.getExpertise().toString().equals("APPRENTICE")) {
+                    selectedSprayerIds.add(weeklyAssignDTOs.get(i).getId());
+                    break;
+                }
+            }
+        }
+
+//        System.out.println(weeklyAssignDTOs);
+
+        if ((selectedSprayerIds.size() == 1 && weeklyAssignDTOs.getFirst().getExpertise().toString().equals("EXPERT")) ||
+                selectedSprayerIds.size() == 2) {
+            booking.setSprayersId(selectedSprayerIds);
+            booking.setStatus(BookingStatus.ASSIGNED);
+            bookingRepository.save(booking);
+            timeSlotAPI.setBookedSprayersId(timeSlotDTO.getId(), selectedSprayerIds);
+            emailService.sendEmail(booking);
+        } else if (selectedSprayerIds.size() == 1 && weeklyAssignDTOs.get(1).getExpertise().toString().equals("EXPERT")) {
+            selectedSprayerIds.clear();
+            selectedSprayerIds.add(weeklyAssignDTOs.get(1).getId());
+            booking.setSprayersId(selectedSprayerIds);
+            booking.setStatus(BookingStatus.ASSIGNED);
+            bookingRepository.save(booking);
+            timeSlotAPI.setBookedSprayersId(timeSlotDTO.getId(), selectedSprayerIds);
+            emailService.sendEmail(booking);
+        }
+    }
+
+    private List<SprayerWeeklyAssignDTO> calculateSprayerBooking(List<TimeSlotDTO> timeSlotDTOList) {
+        // Map to store sprayer ID and their frequency
+        Map<Long, SprayerWeeklyAssignDTO> sprayerMap = new HashMap<>();
+
+        // Fetch all available sprayers
+        List<SprayerDTO> sprayerDTOList = userAPI.getAvailableSprayers(Collections.emptyList());
+
+        // Initialize the map with all sprayers and default booking_assign value of 0
+        for (SprayerDTO sprayerDTO : sprayerDTOList) {
+            sprayerMap.put(sprayerDTO.getId(), new SprayerWeeklyAssignDTO(
+                    sprayerDTO.getId(),
+                    sprayerDTO.getExpertise(),
+                    0 // Default booking_assign value
+            ));
+        }
+
+        // Iterate through each TimeSlotDTO
+        for (TimeSlotDTO timeSlot : timeSlotDTOList) {
+            List<Long> sprayersIdList = timeSlot.getBookedSprayersId();
+
+            // Iterate through each sprayer ID in the current TimeSlotDTO
+            if (sprayersIdList != null) {
+                for (Long sprayerId : sprayersIdList) {
+                    SprayerDTO sprayerDTO = userAPI.findSprayerById(sprayerId);
+                    if (sprayerDTO == null) {
+                        throw new RuntimeException();
+                    }
+                    SprayerWeeklyAssignDTO sprayer = sprayerMap.get(sprayerId);
+                    sprayerMap.put(sprayerId, new SprayerWeeklyAssignDTO(sprayerId, sprayerDTO.getExpertise(), sprayer.getBooking_assign() + 1));
+                }
+            }
+        }
+
+        return sprayerMap.values()
+                .stream()
+                .sorted(Comparator
+                        .comparingInt(SprayerWeeklyAssignDTO::getBooking_assign)               // First sort by frequency
+                        .thenComparing(SprayerWeeklyAssignDTO::getExpertise))             // Then sort by expertise
+                .collect(Collectors.toList());
+    }
 }

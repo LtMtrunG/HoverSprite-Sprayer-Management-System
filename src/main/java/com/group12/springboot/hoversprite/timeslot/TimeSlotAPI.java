@@ -13,6 +13,8 @@ public interface TimeSlotAPI {
 
     public List<TimeSlotByDateResponse> getTimeSlotByWeek(TimeSlotByDateRequest request);
 
+    public List<TimeSlotDTO> getTimeSlotByWeek(LocalDate bookingDate);
+
     public Optional<TimeSlotDTO> findByDateAndStartTime(LocalDate date, LocalTime startTime);
 
     public TimeSlotDTO findById(Long id);
@@ -24,4 +26,6 @@ public interface TimeSlotAPI {
     public void bookSession(TimeSlotDTO timeSlotDTO);
 
     public void cancelSession(Long timeSlotId);
+
+    public void setBookedSprayersId(Long timeSlotId, List<Long> bookedSprayersId);
 }

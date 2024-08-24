@@ -1,7 +1,9 @@
 package com.group12.springboot.hoversprite.user;
 
 import com.group12.springboot.hoversprite.user.entity.User;
+import lombok.Getter;
 
+@Getter
 public class FarmerDTO {
 
     private final Long id;
@@ -21,25 +23,4 @@ public class FarmerDTO {
         this.email = farmer.getEmail();
         this.address = farmer.getAddress();
     }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getFullName() {
-        return fullName;
-    }
-
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
 }
