@@ -2,7 +2,9 @@ package com.group12.springboot.hoversprite.user;
 
 import com.group12.springboot.hoversprite.user.entity.User;
 import com.group12.springboot.hoversprite.user.enums.Expertise;
+import lombok.Getter;
 
+@Getter
 public class SprayerDTO {
 
     private final Long id;
@@ -21,25 +23,5 @@ public class SprayerDTO {
         this.phoneNumber = sprayer.getPhoneNumber();
         this.email = sprayer.getEmail();
         this.expertise = sprayer.getExpertise();
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getFullName() {
-        return fullName;
-    }
-
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public Expertise getExpertise() {
-        return expertise;
     }
 }

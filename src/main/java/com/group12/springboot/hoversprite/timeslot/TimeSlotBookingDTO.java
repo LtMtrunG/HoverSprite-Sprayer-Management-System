@@ -7,7 +7,9 @@ import java.time.LocalTime;
 import com.group12.springboot.hoversprite.timeslot.entity.TimeSlot;
 import com.group12.springboot.hoversprite.validator.DateConstraint;
 import com.group12.springboot.hoversprite.validator.StartTimeConstraint;
+import lombok.Getter;
 
+@Getter
 public class TimeSlotBookingDTO {
     private final Long id;
 
@@ -27,25 +29,5 @@ public class TimeSlotBookingDTO {
         this.dayOfWeek = timeSlot.getDayOfWeek();
         this.startTime = timeSlot.getStartTime();
         this.endTime = timeSlot.getEndTime();
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public LocalDate getDate() {
-        return date;
-    }
-
-    public DayOfWeek getDayOfWeek() {
-        return dayOfWeek;
-    }
-
-    public LocalTime getStartTime() {
-        return startTime;
-    }
-
-    public LocalTime getEndTime() {
-        return endTime;
     }
 }

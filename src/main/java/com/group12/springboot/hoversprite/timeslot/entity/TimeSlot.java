@@ -3,6 +3,7 @@ package com.group12.springboot.hoversprite.timeslot.entity;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
 import com.group12.springboot.hoversprite.validator.DateConstraint;
 import com.group12.springboot.hoversprite.validator.StartTimeConstraint;
@@ -13,8 +14,12 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
+@Setter
+@Getter
 @Table(name="TBL_TIME_SLOTS")
 public class TimeSlot {
     @Id
@@ -41,6 +46,9 @@ public class TimeSlot {
     @Column(name = "booked_sessions")
     private int bookedSessions = 0;
 
+    @Column(name = "booked_sprayers_id")
+    private List<Long> bookedSprayersId;
+
     public TimeSlot() {}
 
     public TimeSlot(LocalDate date, LocalTime startTime, LocalTime endTime) {
@@ -48,61 +56,5 @@ public class TimeSlot {
         this.dayOfWeek = date.getDayOfWeek();
         this.startTime = startTime;
         this.endTime = endTime;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public LocalDate getDate() {
-        return date;
-    }
-
-    public void setDate(LocalDate date) {
-        this.date = date;
-    }
-
-    public DayOfWeek getDayOfWeek() {
-        return dayOfWeek;
-    }
-
-    public void setDayOfWeek(DayOfWeek dayOfWeek) {
-        this.dayOfWeek = dayOfWeek;
-    }
-
-    public LocalTime getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(LocalTime startTime) {
-        this.startTime = startTime;
-    }
-
-    public LocalTime getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(LocalTime endTime) {
-        this.endTime = endTime;
-    }
-
-    public int getMaxSessions() {
-        return maxSessions;
-    }
-
-    public void setMaxSessions(int maxSessions) {
-        this.maxSessions = maxSessions;
-    }
-
-    public int getBookedSessions() {
-        return bookedSessions;
-    }
-
-    public void setBookedSessions(int bookedSessions) {
-        this.bookedSessions = bookedSessions;
     }
 }

@@ -3,7 +3,6 @@ package com.group12.springboot.hoversprite.timeslot.service;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -147,6 +146,18 @@ public class TimeSlotService implements TimeSlotAPI {
     }
 
     @Override
+    public List<TimeSlotDTO> getTimeSlotByWeek(LocalDate bookingDate) {
+        LocalDate startDate = bookingDate.with(DayOfWeek.MONDAY);
+        LocalDate endDate = startDate.plusDays(6);
+
+        List<TimeSlot> allTimeSlots = timeSlotRepository.findAllByDateBetween(startDate, endDate);
+
+        return allTimeSlots.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public Optional<TimeSlotDTO> findByDateAndStartTime(LocalDate date, LocalTime startTime) {
         Optional<TimeSlot> optionalTimeSlot = timeSlotRepository.findByDateAndStartTime(date, startTime);
         return optionalTimeSlot.map(this::convertToDTO); // Convert TimeSlot to TimeSlotDTO
@@ -159,10 +170,9 @@ public class TimeSlotService implements TimeSlotAPI {
 
     @Override
     public TimeSlotDTO findById(Long id) {
-
         Optional<TimeSlot> timeSlot = timeSlotRepository.findById(id);
         return timeSlot.map(TimeSlotDTO::new)
-                .orElseThrow(() -> new CustomException(ErrorCode.TIME_SLOT_NOT_EXISTS));
+                .orElse(null);
     }
 
     @Override
@@ -170,25 +180,10 @@ public class TimeSlotService implements TimeSlotAPI {
         timeSlotRepository.save(convertToEntity(timeSlotDTO));
     }
 
-    public class WeekUtils {
-        public static LocalDate getStartOfWeek(LocalDate date) {
-            return date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-        }
-
-        public static LocalDate getEndOfWeek(LocalDate date) {
-            return date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
-        }
-    }
-
     private TimeSlot convertToEntity(TimeSlotDTO timeSlotDTO) {
-        TimeSlot timeSlot = new TimeSlot();
-        timeSlot.setId(timeSlotDTO.getId());
-        timeSlot.setDate(timeSlotDTO.getDate());
-        timeSlot.setDayOfWeek(timeSlotDTO.getDayOfWeek());
-        timeSlot.setStartTime(timeSlotDTO.getStartTime());
-        timeSlot.setEndTime(timeSlotDTO.getEndTime());
-        timeSlot.setBookedSessions(timeSlotDTO.getBookedSessions());
-        timeSlot.setMaxSessions(timeSlotDTO.getMaxSessions());
+        TimeSlot timeSlot = timeSlotRepository.findById(timeSlotDTO.getId())
+                .orElseThrow(() -> new CustomException(ErrorCode.TIME_SLOT_NOT_EXISTS));
+        timeSlot.setBookedSprayersId(timeSlotDTO.getBookedSprayersId());
         return timeSlot;
     }
 
@@ -214,5 +209,24 @@ public class TimeSlotService implements TimeSlotAPI {
         TimeSlot timeSlot = timeSlotRepository.findById(timeSlotId).orElseThrow(() -> new CustomException(ErrorCode.TIME_SLOT_NOT_EXISTS));
 
         timeSlot.setBookedSessions(timeSlot.getBookedSessions()-1);
+     }
+
+     @Override
+     public void setBookedSprayersId(Long timeSlotId, List<Long> bookedSprayersId) {
+         TimeSlot timeSlot = timeSlotRepository.findById(timeSlotId).orElseThrow(() -> new CustomException(ErrorCode.TIME_SLOT_NOT_EXISTS));
+         // Get the current list of booked sprayers IDs
+         List<Long> existingSprayers = timeSlot.getBookedSprayersId();
+
+         if (existingSprayers == null) {
+             // If the list is null, create a new one and add the provided IDs
+             existingSprayers = new ArrayList<>(bookedSprayersId);
+         } else {
+             // If the list is not null, append the provided IDs
+             existingSprayers.addAll(bookedSprayersId);
+         }
+
+         // Set the updated list back to the TimeSlot entity
+         timeSlot.setBookedSprayersId(existingSprayers);
+         timeSlotRepository.save(timeSlot);
      }
 }

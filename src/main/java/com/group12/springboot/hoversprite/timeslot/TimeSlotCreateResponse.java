@@ -5,8 +5,11 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 import com.group12.springboot.hoversprite.timeslot.entity.TimeSlot;
+import lombok.Getter;
+import lombok.Setter;
 
-
+@Getter
+@Setter
 public class TimeSlotCreateResponse {
     private LocalDate date;
     private DayOfWeek dayOfWeek;
@@ -24,49 +27,5 @@ public class TimeSlotCreateResponse {
         this.startTime = timeSlot.getStartTime();
         this.endTime = timeSlot.getEndTime();
         this.bookedSessions = timeSlot.getBookedSessions();
-    }
-
-    public LocalDate getDate() {
-        return date;
-    }
-
-    public void setDate(LocalDate date) {
-        this.date = date;
-    }
-
-    public DayOfWeek getDayOfWeek() {
-        return dayOfWeek;
-    }
-
-    public void setDayOfWeek(DayOfWeek dayOfWeek) {
-        this.dayOfWeek = dayOfWeek;
-    }
-
-    public LocalTime getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(LocalTime startTime) {
-        this.startTime = startTime;
-    }
-
-    public LocalTime getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(LocalTime endTime) {
-        this.endTime = endTime;
-    }
-
-    public int getMaxSessions() {
-        return maxSessions;
-    }
-
-    public int getBookedSessions() {
-        return bookedSessions;
-    }
-
-    public void setBookedSessions(int bookedSessions) {
-        this.bookedSessions = bookedSessions;
     }
 }
