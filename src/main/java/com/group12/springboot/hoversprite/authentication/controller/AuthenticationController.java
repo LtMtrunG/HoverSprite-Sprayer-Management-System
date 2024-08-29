@@ -7,6 +7,7 @@ import com.group12.springboot.hoversprite.authentication.IntrospectTokenResponse
 import com.group12.springboot.hoversprite.authentication.service.AuthenticationService;
 import com.group12.springboot.hoversprite.common.ApiResponse;
 import com.nimbusds.jose.JOSEException;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,9 +27,9 @@ public class AuthenticationController {
     private AuthenticationService authenticationService;
     private static final String CLIENT_ID = "407408718192.apps.googleusercontent.com";
     @PostMapping("/login")
-    ApiResponse<AuthenticationResponse> authenticate(@RequestBody @Valid AuthenticationRequest request){
+    ApiResponse<AuthenticationResponse> authenticate(@RequestBody @Valid AuthenticationRequest request, HttpServletResponse response){
         ApiResponse<AuthenticationResponse> apiResponse = new ApiResponse<>();
-        AuthenticationResponse authenticationResponse = authenticationService.authenticate(request);
+        AuthenticationResponse authenticationResponse = authenticationService.authenticate(request, response);
         apiResponse.setResult(authenticationResponse);
         return apiResponse;
     }

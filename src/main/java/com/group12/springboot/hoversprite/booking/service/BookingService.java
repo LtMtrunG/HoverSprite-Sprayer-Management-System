@@ -6,6 +6,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import com.group12.springboot.hoversprite.booking.*;
+import com.group12.springboot.hoversprite.config.CustomUserDetails;
 import com.group12.springboot.hoversprite.user.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -452,10 +453,12 @@ public class BookingService implements BookingAPI {
 
     private TimeSlotDTO checkOrCreateTimeSlot(LocalDate date, LocalTime startTime) {
         Optional<TimeSlotDTO> timeSlotDTO = timeSlotAPI.findByDateAndStartTime(date, startTime);
-
+        System.out.println("check");
         if (timeSlotDTO.isPresent()) {
+            System.out.println("present");
             return timeSlotDTO.get();
         } else {
+            System.out.println("create");
             TimeSlotCreateRequest createRequest = new TimeSlotCreateRequest();
             createRequest.setDate(date);
             createRequest.setStartTime(startTime);
@@ -469,10 +472,19 @@ public class BookingService implements BookingAPI {
 
     private Long getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        JwtAuthenticationToken jwtAuthToken = (JwtAuthenticationToken) authentication;
-        Jwt jwt = (Jwt) jwtAuthToken.getPrincipal();
-        return Long.parseLong(jwt.getSubject());
+
+        if (authentication != null && authentication.isAuthenticated()) {
+            Object principal = authentication.getPrincipal();
+
+            if (principal instanceof CustomUserDetails) {
+                // Assuming CustomUserDetails holds the User ID
+                return ((CustomUserDetails) principal).getId();
+            }
+        }
+
+        throw new IllegalStateException("User is not authenticated or principal is not a valid instance");
     }
+
 
     private Booking createBookingWithStatus(BookingStatus status, BookingCreationRequest request, Long timeslotId,
                                             Long farmerId, Long receptionistId, List<Long> sprayers) {

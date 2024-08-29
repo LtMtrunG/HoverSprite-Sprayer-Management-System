@@ -1,4 +1,4 @@
-package com.group12.springboot.hoversprite.config;
+package com.group12.springboot.hoversprite.jwt;
 
 import java.text.ParseException;
 import java.util.Objects;

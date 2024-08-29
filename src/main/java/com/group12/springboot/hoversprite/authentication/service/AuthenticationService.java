@@ -6,6 +6,9 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.StringJoiner;
 
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -44,7 +47,7 @@ public class AuthenticationService implements AuthenticationAPI {
     protected static final String SIGNER_KEY = "WN1p+NNBEUYPdgLAec9Glzja6hTei7ElFAk975/CDLEIy6dmlrwofb4fdNRKuouN";
 
     @Override
-    public AuthenticationResponse authenticate(AuthenticationRequest request){
+    public AuthenticationResponse authenticate(AuthenticationRequest request, HttpServletResponse response){
         UserAuthenticateDTO user = userAPI.findUserByEmail(request.getEmail());
 
         if (user == null) {
@@ -66,6 +69,16 @@ public class AuthenticationService implements AuthenticationAPI {
         }
 
         var token = generateToken(user);
+
+        ResponseCookie cookie = ResponseCookie.from("jwt", token)
+                .httpOnly(true)        // HTTP-only flag
+                .secure(true)          // Use secure flag if using HTTPS
+                .path("/")             // Cookie available to the entire domain
+                .maxAge(7 * 24 * 60 * 60) // Set cookie expiration (7 days here)
+                .sameSite("Strict")    // CSRF protection
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
         AuthenticationResponse authenticationResponse = new AuthenticationResponse();
         authenticationResponse.setToken(token);

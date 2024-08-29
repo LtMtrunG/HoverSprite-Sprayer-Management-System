@@ -287,6 +287,20 @@ public class UserService implements UserAPI {
                 .orElse(null);
     }
 
+    public UserAuthenticateDTO findUserById(Long id) {
+        Optional<User> user = userRepository.findById(id);
+        if (user.isPresent()) {
+            User foundUser = user.get();
+            System.out.println("Username from User entity: " + foundUser.getFullName());
+            System.out.println("true");
+        } else {
+            System.out.println("false");
+        }
+        return user.map(UserAuthenticateDTO::new)
+                .orElse(null); // Return null if user is not found
+    }
+
+
     @Override
     public UserAuthenticateDTO findUserByEmail(String email) {
         Optional<User> user = userRepository.findByEmail(email);

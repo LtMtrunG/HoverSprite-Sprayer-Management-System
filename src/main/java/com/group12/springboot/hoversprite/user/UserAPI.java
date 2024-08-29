@@ -39,6 +39,8 @@ public interface UserAPI {
 
     public SprayerDTO findSprayerById(Long sprayerId);
 
+    public UserAuthenticateDTO findUserById(Long id);
+
     public UserAuthenticateDTO findUserByEmail(String email);
 
     public UserAuthenticateDTO findUserByPhoneNumber(String phoneNumber);
