@@ -20,6 +20,9 @@ import org.springframework.security.web.SecurityFilterChain;
 
 import com.group12.springboot.hoversprite.authentication.CustomAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -41,20 +44,38 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity.authorizeHttpRequests(request -> request.requestMatchers(PUBLIC_ENDPOINT).permitAll()
-                .requestMatchers(STATIC_RESOURCES).permitAll()
-                .anyRequest().authenticated()).oauth2Login(oauth2 -> oauth2
-                        .successHandler(successHandler)
-                         .defaultSuccessUrl("/login.html", true) // Redirect after successful login
-                         .failureUrl("/login?error") // Redirect in case of failure
-                );
+//        httpSecurity
+//                .authorizeHttpRequests(request -> request.requestMatchers(PUBLIC_ENDPOINT).permitAll()
+//                .requestMatchers(STATIC_RESOURCES).permitAll()
+//                .anyRequest().authenticated()).oauth2Login(oauth2 -> oauth2
+//                        .successHandler(successHandler)
+//                );
+
+        httpSecurity
+                .cors(cors -> cors.configurationSource(request -> {
+                    CorsConfiguration config = new CorsConfiguration();
+                    config.setAllowCredentials(true);
+                    config.addAllowedOrigin("http://127.0.0.1:5500");
+                    config.addAllowedHeader("*");
+                    config.addAllowedMethod("*");
+                    return config;
+                }))
+                .authorizeHttpRequests(request -> request
+                        .requestMatchers(PUBLIC_ENDPOINT).permitAll()
+                        .requestMatchers(STATIC_RESOURCES).permitAll()
+                        .anyRequest().authenticated())
+                .oauth2Login(oauth2 -> oauth2
+                        .successHandler(successHandler))
+                .csrf(AbstractHttpConfigurer::disable)
+                .exceptionHandling()
+                .authenticationEntryPoint(customAuthenticationEntryPoint);
         // Register the JWT Token Filter
         httpSecurity.addFilterBefore(new JwtTokenFilter(customJWTDecoder, userDetailsService), UsernamePasswordAuthenticationFilter.class);
 //        httpSecurity.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfigurer -> jwtConfigurer.decoder(customJWTDecoder)
 //                .jwtAuthenticationConverter(jwtAuthenticationConverter())));
-        httpSecurity.exceptionHandling().authenticationEntryPoint(customAuthenticationEntryPoint);
-
-        httpSecurity.csrf(AbstractHttpConfigurer::disable);
+//        httpSecurity.exceptionHandling().authenticationEntryPoint(customAuthenticationEntryPoint);
+//
+//        httpSecurity.csrf(AbstractHttpConfigurer::disable);
 
         return httpSecurity.build();
     }

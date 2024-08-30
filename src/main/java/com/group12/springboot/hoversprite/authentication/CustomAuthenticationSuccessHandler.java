@@ -67,7 +67,7 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
 
                 String token = generateToken(email, name);
 
-                response.sendRedirect("/hoversprite/login.html?token=" + token);
+                response.sendRedirect("http://127.0.0.1:5500/SignUp/signup.html?token=" + token);
             } else {
                 response.sendRedirect("/login?error");
             }
@@ -86,7 +86,7 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
                 .issuer("hoversprite.com")
                 .issueTime(new Date())
                 .expirationTime(new Date(
-                        Instant.now().plus(6, ChronoUnit.HOURS).toEpochMilli()))
+                        Instant.now().plus(30, ChronoUnit.MINUTES).toEpochMilli()))
                 .claim("email", email) // Optionally store the email and name as claims
                 .claim("name", name)
                 .build();

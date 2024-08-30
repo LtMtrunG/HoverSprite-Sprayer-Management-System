@@ -31,9 +31,9 @@ public class UserController {
     private UserService userService;
 
     @GetMapping("/register/farmer/external")
-    ApiResponse<FarmerExternalSignUpInfoResponse> receiveFarmerGmailInfo(@RequestBody @Valid FarmerExternalSignUpInfoRequest request) {
+    ApiResponse<FarmerExternalSignUpInfoResponse> receiveFarmerGmailInfo(@RequestParam("token") String token) {
         ApiResponse<FarmerExternalSignUpInfoResponse> apiResponse = new ApiResponse<>();
-        apiResponse.setResult(userService.receiveFarmerGmailInfo(request));
+        apiResponse.setResult(userService.receiveFarmerGmailInfo(token));
         return apiResponse;
     }
 

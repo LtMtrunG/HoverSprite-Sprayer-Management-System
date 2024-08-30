@@ -9,7 +9,7 @@ import org.springframework.data.domain.Pageable;
 import com.group12.springboot.hoversprite.common.ListResponse;
 public interface UserAPI {
 
-    public FarmerExternalSignUpInfoResponse receiveFarmerGmailInfo(FarmerExternalSignUpInfoRequest request);
+    public FarmerExternalSignUpInfoResponse receiveFarmerGmailInfo(String token);
 
     public UserResponse createFarmer(FarmerCreationRequest request);
 

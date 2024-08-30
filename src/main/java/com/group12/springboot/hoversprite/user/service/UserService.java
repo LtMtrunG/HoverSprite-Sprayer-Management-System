@@ -57,9 +57,7 @@ public class UserService implements UserAPI {
     private RoleRepository roleRepository;
 
     @Override
-    public FarmerExternalSignUpInfoResponse receiveFarmerGmailInfo(FarmerExternalSignUpInfoRequest request) {
-
-        String token = request.getJwtToken();
+    public FarmerExternalSignUpInfoResponse receiveFarmerGmailInfo(String token) {
 
         if (token != null && token.contains("#")) {
             token = token.split("#")[0]; // Remove the fragment part if present
