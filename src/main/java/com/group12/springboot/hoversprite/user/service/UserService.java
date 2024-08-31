@@ -79,7 +79,7 @@ public class UserService implements UserAPI {
             String email = jwt.getClaimAsString("email");
 
             // Return the response with the extracted information
-            return new FarmerExternalSignUpInfoResponse(name, email);
+            return new FarmerExternalSignUpInfoResponse(email, name);
         } catch (JwtException e) {
             // Handle the case where the token is invalid
             throw new CustomException(ErrorCode.INVALID_TOKEN);

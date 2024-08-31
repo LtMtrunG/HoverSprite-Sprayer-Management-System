@@ -75,7 +75,7 @@ public class AuthenticationService implements AuthenticationAPI {
                 .secure(false)          // Use secure flag if using HTTPS
                 .path("/")             // Cookie available to the entire domain
                 .maxAge(7 * 24 * 60 * 60) // Set cookie expiration (7 days here)
-                .sameSite("Strict")    // CSRF protection
+                .sameSite("Lax")    // CSRF protection
                 .build();
 
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
