@@ -89,7 +89,7 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
                             .build();
 
                     response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-                    response.sendRedirect("http://localhost:5500/index.html");
+                    response.sendRedirect("http://localhost:5500/Dashboard/dashboard.html");
                 }
             } else {
                 response.sendRedirect("/login?error");

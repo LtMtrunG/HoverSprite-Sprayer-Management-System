@@ -1,6 +1,7 @@
 package com.group12.springboot.hoversprite.feedback.service;
 
 import com.group12.springboot.hoversprite.booking.BookingAPI;
+import com.group12.springboot.hoversprite.config.CustomUserDetails;
 import com.group12.springboot.hoversprite.exception.CustomException;
 import com.group12.springboot.hoversprite.exception.ErrorCode;
 import com.group12.springboot.hoversprite.feedback.FeedbackCreationRequest;
@@ -39,10 +40,8 @@ public class FeedbackService {
             throw new CustomException(ErrorCode.FEEDBACK_GIVEN);
         }
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        JwtAuthenticationToken jwtAuthToken = (JwtAuthenticationToken) authentication;
-        Jwt jwt = (Jwt) jwtAuthToken.getPrincipal();
-        if (!bookingAPI.doesFarmerOwnBooking(request.getBookingId(), Long.parseLong(jwt.getSubject()))) {
+        Long farmerId = getCurrentUserId();
+        if (!bookingAPI.doesFarmerOwnBooking(request.getBookingId(), farmerId)) {
             throw new CustomException(ErrorCode.FARMER_NOT_OWNED);
         }
 
@@ -65,6 +64,21 @@ public class FeedbackService {
         bookingAPI.saveFeedbackToBooking(request.getBookingId(), savedFeedback.getId());
 
         return new FeedbackCreationResponse(feedback);
+    }
+
+    private Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication != null && authentication.isAuthenticated()) {
+            Object principal = authentication.getPrincipal();
+
+            if (principal instanceof CustomUserDetails) {
+                // Assuming CustomUserDetails holds the User ID
+                return ((CustomUserDetails) principal).getId();
+            }
+        }
+
+        throw new CustomException(ErrorCode.USER_NOT_EXISTS);
     }
 
     public FeedbackResponse getFeedbackById(Long feedbackId) {

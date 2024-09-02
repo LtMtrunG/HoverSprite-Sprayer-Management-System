@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import javax.crypto.spec.SecretKeySpec;
 
+import com.group12.springboot.hoversprite.config.CustomUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -208,20 +209,27 @@ public class UserService implements UserAPI {
     }
 
     @Override
-    @PostAuthorize("returnObject.id == T(java.lang.Long).parseLong(principal.subject)")
     public UserResponse getMyInfo() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        JwtAuthenticationToken jwtAuthToken = (JwtAuthenticationToken) authentication;
-        Jwt jwt = (Jwt) jwtAuthToken.getPrincipal();
-        Long userId;
-        try {
-            userId = Long.parseLong(jwt.getSubject());
-        } catch (NumberFormatException e) {
-            // Handle the error here, e.g., by throwing a custom exception
-            throw new CustomException(ErrorCode.USER_NOT_EXISTS);
-        }
+        Long userId = getCurrentUserId();
+        System.out.println(userId);
         User user = userRepository.findById(userId).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_EXISTS));
         return new UserResponse(user);
+    }
+
+    private Long getCurrentUserId() {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication != null && authentication.isAuthenticated()) {
+            Object principal = authentication.getPrincipal();
+
+            if (principal instanceof CustomUserDetails) {
+                // Assuming CustomUserDetails holds the User ID
+                return ((CustomUserDetails) principal).getId();
+            }
+        }
+
+        throw new CustomException(ErrorCode.USER_NOT_EXISTS);
     }
 
     @Override

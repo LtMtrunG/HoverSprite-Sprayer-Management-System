@@ -39,7 +39,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
         // Extract JWT from cookies
         String jwt = getJwtFromCookies(request);
-
+        System.out.println(jwt);
         if (jwt != null) {
             try {
                 // Decode and validate JWT

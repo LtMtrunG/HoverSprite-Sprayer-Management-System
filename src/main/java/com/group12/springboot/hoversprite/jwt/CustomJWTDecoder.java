@@ -1,10 +1,15 @@
 package com.group12.springboot.hoversprite.jwt;
 
 import java.text.ParseException;
+import java.time.Instant;
 import java.util.Objects;
 
 import javax.crypto.spec.SecretKeySpec;
 
+import com.group12.springboot.hoversprite.exception.CustomException;
+import com.group12.springboot.hoversprite.exception.ErrorCode;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -36,11 +41,10 @@ public class CustomJWTDecoder implements JwtDecoder {
             var response = authenticationAPI.introspect(introspectTokenRequest);
             if (!response.isValid()) {
                 System.out.println("Token validation failed");
-                throw new JwtException("Token invalid");
+                throw new CustomException(ErrorCode.INVALID_TOKEN);
             }
         }catch (JOSEException | ParseException e){
             throw new JwtException(e.getMessage());
-            // throw new CustomException(ErrorCode.INVALID_TOKEN);
         }
 
         if (Objects.isNull(nimbusJwtDecoder)) {
@@ -50,6 +54,11 @@ public class CustomJWTDecoder implements JwtDecoder {
                     .build();
         }
 
-        return nimbusJwtDecoder.decode(token);
+        try {
+            return nimbusJwtDecoder.decode(token);
+        } catch (Exception e) {
+            throw new JwtException("Error decoding token: " + e.getMessage());
+        }
+
     }
 }
