@@ -7,12 +7,10 @@ import com.group12.springboot.hoversprite.authentication.IntrospectTokenResponse
 import com.group12.springboot.hoversprite.authentication.service.AuthenticationService;
 import com.group12.springboot.hoversprite.common.ApiResponse;
 import com.nimbusds.jose.JOSEException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
 import java.text.ParseException;
@@ -39,6 +37,14 @@ public class AuthenticationController {
         ApiResponse<IntrospectTokenResponse> apiResponse = new ApiResponse<>();
         IntrospectTokenResponse introspectTokenResponse = authenticationService.introspect(request);
         apiResponse.setResult(introspectTokenResponse);
+        return apiResponse;
+    }
+
+    @GetMapping("/logout")
+    ApiResponse<String> logout(HttpServletRequest request, HttpServletResponse response){
+        ApiResponse<String> apiResponse = new ApiResponse<>();
+        authenticationService.logout(request, response);
+        apiResponse.setResult("Logout successfully");
         return apiResponse;
     }
 }

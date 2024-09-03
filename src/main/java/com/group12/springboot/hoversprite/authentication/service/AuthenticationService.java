@@ -6,7 +6,9 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.StringJoiner;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -74,7 +76,7 @@ public class AuthenticationService implements AuthenticationAPI {
                 .httpOnly(true)        // HTTP-only flag
                 .secure(false)          // Use secure flag if using HTTPS
                 .path("/")             // Cookie available to the entire domain
-                .maxAge(7 * 24 * 60 * 60) // Set cookie expiration (7 days here)
+                .maxAge(6 * 60 * 60) // Set cookie expiration (7 days here)
                 .sameSite("Lax")    // CSRF protection
                 .build();
 
@@ -143,5 +145,30 @@ public class AuthenticationService implements AuthenticationAPI {
         }
 
         return phoneNumber;
+    }
+
+    public void logout(HttpServletRequest request, HttpServletResponse response) {
+//        Cookie cookie = new javax.servlet.http.Cookie("authToken", null);
+//        cookie.setHttpOnly(true);
+//        cookie.setPath("/"); // Ensure the path matches the one used for setting the cookie
+//        cookie.setMaxAge(0); // Set the cookie to expire immediately
+//        response.addCookie(cookie);
+
+        ResponseCookie cookie = ResponseCookie.from("jwt", null)
+                .httpOnly(true)        // HTTP-only flag
+                .secure(false)          // Use secure flag if using HTTPS
+                .path("/")             // Cookie available to the entire domain
+                .maxAge(0) // Set cookie expiration (7 days here)
+                .sameSite("Lax")    // CSRF protection
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+        // Invalidate Session
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+
     }
 }

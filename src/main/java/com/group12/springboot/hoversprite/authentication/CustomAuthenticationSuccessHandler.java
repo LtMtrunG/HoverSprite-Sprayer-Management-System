@@ -84,7 +84,7 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
                             .httpOnly(true)         // HTTP-only flag
                             .secure(false)          // Use secure flag if using HTTPS
                             .path("/")              // Cookie available to the entire domain
-                            .maxAge(7 * 24 * 60 * 60)        // Set cookie expiration (30 minutes here)
+                            .maxAge(6 * 60 * 60)        // Set cookie expiration (360 minutes here)
                             .sameSite("Lax")     // CSRF protection
                             .build();
 
