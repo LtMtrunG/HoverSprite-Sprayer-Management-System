@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import com.group12.springboot.hoversprite.booking.*;
 import com.group12.springboot.hoversprite.config.CustomUserDetails;
+import com.group12.springboot.hoversprite.email.EmailAPI;
 import com.group12.springboot.hoversprite.user.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -16,8 +17,6 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,10 +38,9 @@ import lombok.RequiredArgsConstructor;
 public class BookingService implements BookingAPI {
     private final TimeSlotAPI timeSlotAPI;
     private final UserAPI userAPI;
+    private final EmailAPI emailAPI;
     @Autowired
     private BookingRepository bookingRepository;
-    @Autowired
-    private EmailService emailService;
 
     @Override
     @PreAuthorize("hasRole('FARMER')")
@@ -97,7 +95,7 @@ public class BookingService implements BookingAPI {
                 farmerDTO.getId(), receptionistDTO.getId(),
                 Collections.emptyList());
 
-        emailService.sendEmail(booking);
+        emailAPI.sendBookingEmail(new BookingDTO(booking));
 
         bookingRepository.save(booking);
 
@@ -121,7 +119,7 @@ public class BookingService implements BookingAPI {
 
         timeSlotAPI.cancelSession(booking.getTimeSlotId());
 
-        emailService.sendEmail(booking);
+        emailAPI.sendBookingEmail(new BookingDTO(booking));
 
         return new BookingResponse(booking);
     }
@@ -152,7 +150,7 @@ public class BookingService implements BookingAPI {
         booking.setReceptionistId(receptionistDTO.getId());
         bookingRepository.save(booking);
 
-        emailService.sendEmail(booking);
+        emailAPI.sendBookingEmail(new BookingDTO(booking));
 
         autoAssignToAllUnAssignedBooking();
 
@@ -235,10 +233,10 @@ public class BookingService implements BookingAPI {
         bookedSprayersId.addAll(request.getSprayersId());
 
         // Set the updated list back to timeSlotDTO
-        timeSlotAPI.setBookedSprayersId(timeSlotDTO.getId(),bookedSprayersId);
+        timeSlotAPI.setBookedSprayersId(timeSlotDTO.getId(), bookedSprayersId);
         bookingRepository.save(booking);
 
-        emailService.sendEmail(booking);
+        emailAPI.sendBookingEmail(new BookingDTO(booking));
 
         return new BookingResponse(booking);
     }
@@ -322,7 +320,7 @@ public class BookingService implements BookingAPI {
             } else {
                 booking.setStatus(BookingStatus.IN_PROGRESS_2_2);
             }
-            emailService.sendEmail(booking);
+            emailAPI.sendBookingEmail(new BookingDTO(booking));
         } else {
             booking.setStatus(BookingStatus.IN_PROGRESS_1_2);
         }
@@ -378,7 +376,7 @@ public class BookingService implements BookingAPI {
         booking.setStatus(BookingStatus.COMPLETED);
         bookingRepository.save(booking);
 
-        emailService.sendEmail(booking);
+        emailAPI.sendBookingEmail(new BookingDTO(booking));
 
         return new BookingResponse(booking);
     }
@@ -411,19 +409,19 @@ public class BookingService implements BookingAPI {
         return createListResponse(bookingPage, bookingResponses);
     }
 
-    // public BookingResponse getBookingById(Long bookingId) throws
-    // AccessDeniedException {
-    // Booking booking = bookingRepository.findById(bookingId)
-    // .orElseThrow(() -> new RuntimeException("Booking Not Found."));
+    public BookingResponse getBookingById(Long bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new CustomException(ErrorCode.BOOKING_NOT_EXISTS));
 
-    // Authentication authentication =
-    // SecurityContextHolder.getContext().getAuthentication();
-    // String currentUsername = authentication.getName();
-    // checkAuthorization(booking, authentication, currentUsername,
-    // "ROLE_RECEPTIONIST");
+        long userId = getCurrentUserId();
 
-    // return new BookingResponse(booking);
-    // }
+        if (!((booking.getFarmerId() == userId) && (userAPI.findReceptionistById(userId) != null)
+            && (booking.getSprayersId().contains(userId)))) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED);
+        }
+
+        return new BookingResponse(booking);
+    }
 
     // public BookingResponse updateBooking(BookingUpdateRequest request) throws
     // AccessDeniedException {
@@ -661,15 +659,13 @@ public class BookingService implements BookingAPI {
             }
         }
 
-//        System.out.println(weeklyAssignDTOs);
-
         if ((selectedSprayerIds.size() == 1 && weeklyAssignDTOs.getFirst().getExpertise().toString().equals("EXPERT")) ||
                 selectedSprayerIds.size() == 2) {
             booking.setSprayersId(selectedSprayerIds);
             booking.setStatus(BookingStatus.ASSIGNED);
             bookingRepository.save(booking);
             timeSlotAPI.setBookedSprayersId(timeSlotDTO.getId(), selectedSprayerIds);
-            emailService.sendEmail(booking);
+            emailAPI.sendBookingEmail(new BookingDTO(booking));
         } else if (selectedSprayerIds.size() == 1 && weeklyAssignDTOs.get(1).getExpertise().toString().equals("EXPERT")) {
             selectedSprayerIds.clear();
             selectedSprayerIds.add(weeklyAssignDTOs.get(1).getId());
@@ -677,7 +673,7 @@ public class BookingService implements BookingAPI {
             booking.setStatus(BookingStatus.ASSIGNED);
             bookingRepository.save(booking);
             timeSlotAPI.setBookedSprayersId(timeSlotDTO.getId(), selectedSprayerIds);
-            emailService.sendEmail(booking);
+            emailAPI.sendBookingEmail(new BookingDTO(booking));
         }
     }
 

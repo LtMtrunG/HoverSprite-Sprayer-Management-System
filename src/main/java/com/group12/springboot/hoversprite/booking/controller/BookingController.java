@@ -116,12 +116,12 @@ public class BookingController {
         return apiResponse;
     }
 
-    // @GetMapping("/{bookingId}")
-    // ApiResponse<BookingResponse> getBookingById(@PathVariable("bookingId") Long bookingId) throws AccessDeniedException {
-    //     ApiResponse<BookingResponse> apiResponse = new ApiResponse<>();
-    //     apiResponse.setResult(bookingService.getBookingById(bookingId));
-    //     return apiResponse;
-    // }
+     @GetMapping("/{bookingId}")
+     ApiResponse<BookingResponse> getBookingById(@PathVariable("bookingId") Long bookingId) throws AccessDeniedException {
+         ApiResponse<BookingResponse> apiResponse = new ApiResponse<>();
+         apiResponse.setResult(bookingService.getBookingById(bookingId));
+         return apiResponse;
+     }
 
     // @PutMapping("/{bookingId}")
     // ApiResponse<BookingResponse> updateBooking(@RequestBody BookingUpdateRequest request) throws AccessDeniedException {

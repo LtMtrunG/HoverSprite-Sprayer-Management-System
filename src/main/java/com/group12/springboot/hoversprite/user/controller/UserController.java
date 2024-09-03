@@ -2,7 +2,9 @@ package com.group12.springboot.hoversprite.user.controller;
 
 import java.nio.file.AccessDeniedException;
 
+import com.group12.springboot.hoversprite.validator.EmailConstraint;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.group12.springboot.hoversprite.common.ApiResponse;
 import com.group12.springboot.hoversprite.common.ListResponse;
 import com.group12.springboot.hoversprite.user.FarmerCreationRequest;
-import com.group12.springboot.hoversprite.user.FarmerExternalSignUpInfoRequest;
 import com.group12.springboot.hoversprite.user.FarmerExternalSignUpInfoResponse;
 import com.group12.springboot.hoversprite.user.ReceptionistCreationRequest;
 import com.group12.springboot.hoversprite.user.SprayerCreationRequest;
@@ -25,6 +26,7 @@ import com.group12.springboot.hoversprite.user.service.UserService;
 
 import jakarta.validation.Valid;
 
+@Validated
 @RestController
 public class UserController {
     @Autowired
@@ -112,5 +114,13 @@ public class UserController {
         userService.deleteUser(userId);
         apiResponse.setResult("User is deleted");
         return apiResponse;
+    }
+
+    @PostMapping("/forgetPassword/{email}")
+    ApiResponse<String> forgetPassword(@PathVariable("email") @EmailConstraint String email) {
+        ApiResponse<String> apiResponse = new ApiResponse<>();
+        userService.forgetPassword(email);
+        apiResponse.setResult("Check your email");
+        return  apiResponse;
     }
 }
