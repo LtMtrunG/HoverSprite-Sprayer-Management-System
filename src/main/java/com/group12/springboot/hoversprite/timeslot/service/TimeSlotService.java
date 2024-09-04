@@ -64,8 +64,9 @@ public class TimeSlotService implements TimeSlotAPI {
 
     @Override
     @PreAuthorize("hasAuthority('APPROVE_BOOKING')")
-    public TimeSlotByDateResponse getTimeSlotByDate(TimeSlotByDateRequest request) {
-        List<TimeSlot> timeSlots = timeSlotRepository.findAllByDate(request.getDate());
+    public TimeSlotByDateResponse getTimeSlotByDate(String date) {
+        LocalDate localDate = LocalDate.parse(date);
+        List<TimeSlot> timeSlots = timeSlotRepository.findAllByDate(localDate);
 
         Set<LocalTime> existingStartTimes = timeSlots.stream()
                 .map(TimeSlot::getStartTime)
@@ -76,7 +77,7 @@ public class TimeSlotService implements TimeSlotAPI {
                 .collect(Collectors.toSet());
 
         for (LocalTime startTime : missingStartTimes) {
-            TimeSlot newTimeSlot = new TimeSlot(request.getDate(), startTime, startTime.plusHours(1));
+            TimeSlot newTimeSlot = new TimeSlot(localDate, startTime, startTime.plusHours(1));
             timeSlotRepository.save(newTimeSlot);
             timeSlots.add(newTimeSlot);
         }

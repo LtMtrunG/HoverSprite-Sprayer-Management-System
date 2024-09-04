@@ -116,8 +116,8 @@ public class UserController {
         return apiResponse;
     }
 
-    @PostMapping("/forgetPassword/{email}")
-    ApiResponse<String> forgetPassword(@PathVariable("email") @EmailConstraint String email) {
+    @PostMapping("/forgetPassword")
+    ApiResponse<String> forgetPassword(@RequestParam("email") @EmailConstraint String email) {
         ApiResponse<String> apiResponse = new ApiResponse<>();
         userService.forgetPassword(email);
         apiResponse.setResult("Check your email");
