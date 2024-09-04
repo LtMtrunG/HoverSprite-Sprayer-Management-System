@@ -3,12 +3,7 @@ package com.group12.springboot.hoversprite.timeslot.service;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,6 +76,10 @@ public class TimeSlotService implements TimeSlotAPI {
             timeSlotRepository.save(newTimeSlot);
             timeSlots.add(newTimeSlot);
         }
+
+        // Sort timeSlots based on startTime
+        timeSlots.sort(Comparator.comparing(TimeSlot::getStartTime));
+
         TimeSlotByDateResponse timeSlotByDateResponse = new TimeSlotByDateResponse();
         timeSlotByDateResponse.setSize(timeSlots.size());
         timeSlotByDateResponse.setTimeSlots(timeSlots);
