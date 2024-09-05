@@ -3,11 +3,7 @@ package com.group12.springboot.hoversprite.timeslot.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.group12.springboot.hoversprite.common.ApiResponse;
 import com.group12.springboot.hoversprite.timeslot.TimeSlotByDateRequest;
@@ -32,16 +28,16 @@ public class TimeSlotController {
     }
 
     @GetMapping("/byDate")
-    ApiResponse<TimeSlotByDateResponse> getTimeSlotByDate(@RequestBody TimeSlotByDateRequest request){
+    ApiResponse<TimeSlotByDateResponse> getTimeSlotByDate(@RequestParam("date") String date){
         ApiResponse<TimeSlotByDateResponse> apiResponse = new ApiResponse<>();
-        apiResponse.setResult(timeSlotService.getTimeSlotByDate(request));
+        apiResponse.setResult(timeSlotService.getTimeSlotByDate(date));
         return apiResponse;
     }
 
     @GetMapping("/byWeek")
-    ApiResponse<List<TimeSlotByDateResponse>> getTimeSlotByWeek(@RequestBody TimeSlotByDateRequest request){
+    ApiResponse<List<TimeSlotByDateResponse>> getTimeSlotByWeek(@RequestParam("date") String date){
         ApiResponse<List<TimeSlotByDateResponse>> apiResponse = new ApiResponse<>();
-        apiResponse.setResult(timeSlotService.getTimeSlotByWeek(request));
+        apiResponse.setResult(timeSlotService.getTimeSlotByWeek(date));
         return apiResponse;
     }
 }

@@ -5,7 +5,15 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Map;
+import java.util.StringJoiner;
 
+import com.group12.springboot.hoversprite.common.Role;
+import com.group12.springboot.hoversprite.user.FarmerDTO;
+import com.group12.springboot.hoversprite.user.UserAPI;
+import com.group12.springboot.hoversprite.user.UserAuthenticateDTO;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
@@ -24,18 +32,18 @@ import com.nimbusds.jwt.JWTClaimsSet;
 
 import jakarta.servlet.ServletException;
 import lombok.experimental.NonFinal;
+import org.springframework.util.CollectionUtils;
 
 @Component
+@RequiredArgsConstructor
 public class CustomAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
 
     private final OAuth2AuthorizedClientService authorizedClientService;
 
+    private final UserAPI userAPI;
+
     @NonFinal
     protected static final String SIGNER_KEY = "WN1p+NNBEUYPdgLAec9Glzja6hTei7ElFAk975/CDLEIy6dmlrwofb4fdNRKuouN";
-
-    public CustomAuthenticationSuccessHandler(OAuth2AuthorizedClientService authorizedClientService) {
-        this.authorizedClientService = authorizedClientService;
-    }
 
     @Override
     public void onAuthenticationSuccess(jakarta.servlet.http.HttpServletRequest request,
@@ -65,9 +73,24 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
                 System.out.println("Name: " + name);
                 System.out.println("Email: " + email);
 
-                String token = generateToken(email, name);
+                UserAuthenticateDTO user = userAPI.findUserByEmail(email);
+                if (user == null) {
+                    String token = generateToken(email, name);
+                    response.sendRedirect("http://localhost:5500/SignUp/signup.html?token=" + token);
+                } else if (user.getRole().getName().equals("FARMER")){
+                    String token = generateToken(user);
 
-                response.sendRedirect("/hoversprite/login.html?token=" + token);
+                    ResponseCookie cookie = ResponseCookie.from("jwt", token)
+                            .httpOnly(true)         // HTTP-only flag
+                            .secure(false)          // Use secure flag if using HTTPS
+                            .path("/")              // Cookie available to the entire domain
+                            .maxAge(6 * 60 * 60)        // Set cookie expiration (360 minutes here)
+                            .sameSite("Lax")     // CSRF protection
+                            .build();
+
+                    response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+                    response.sendRedirect("http://localhost:5500/Dashboard/dashboard.html");
+                }
             } else {
                 response.sendRedirect("/login?error");
             }
@@ -86,7 +109,7 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
                 .issuer("hoversprite.com")
                 .issueTime(new Date())
                 .expirationTime(new Date(
-                        Instant.now().plus(6, ChronoUnit.HOURS).toEpochMilli()))
+                        Instant.now().plus(30, ChronoUnit.MINUTES).toEpochMilli()))
                 .claim("email", email) // Optionally store the email and name as claims
                 .claim("name", name)
                 .build();
@@ -103,5 +126,41 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
         } catch (JOSEException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private String generateToken(UserAuthenticateDTO user){
+        System.out.println("token");
+        JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .subject(user.getId().toString())
+                .issuer("hoversprite.com")
+                .issueTime(new Date())
+                .expirationTime(new Date(
+                        Instant.now().plus(6, ChronoUnit.HOURS).toEpochMilli()
+                ))
+                .claim("scope", buildScope(user))
+                .build();
+        Payload payload = new Payload(claimsSet.toJSONObject());
+        JWSObject jwsObject = new JWSObject(header, payload);
+
+        try {
+            jwsObject.sign(new MACSigner(SIGNER_KEY.getBytes()));
+            return jwsObject.serialize();
+        } catch (JOSEException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private String buildScope(UserAuthenticateDTO user) {
+        System.out.println("Scope");
+        StringJoiner stringJoiner = new StringJoiner(" ");
+        Role role = user.getRole();
+        if (role != null) {
+            stringJoiner.add("ROLE_" + role.getName());
+            if (!CollectionUtils.isEmpty(role.getPermissions()))
+                role.getPermissions().forEach(permission -> stringJoiner.add(permission.getName()));
+        }
+
+        return stringJoiner.toString();
     }
 }

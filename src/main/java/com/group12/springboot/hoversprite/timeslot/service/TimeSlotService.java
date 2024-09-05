@@ -3,12 +3,7 @@ package com.group12.springboot.hoversprite.timeslot.service;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,8 +59,9 @@ public class TimeSlotService implements TimeSlotAPI {
 
     @Override
     @PreAuthorize("hasAuthority('APPROVE_BOOKING')")
-    public TimeSlotByDateResponse getTimeSlotByDate(TimeSlotByDateRequest request) {
-        List<TimeSlot> timeSlots = timeSlotRepository.findAllByDate(request.getDate());
+    public TimeSlotByDateResponse getTimeSlotByDate(String date) {
+        LocalDate localDate = LocalDate.parse(date);
+        List<TimeSlot> timeSlots = timeSlotRepository.findAllByDate(localDate);
 
         Set<LocalTime> existingStartTimes = timeSlots.stream()
                 .map(TimeSlot::getStartTime)
@@ -76,10 +72,14 @@ public class TimeSlotService implements TimeSlotAPI {
                 .collect(Collectors.toSet());
 
         for (LocalTime startTime : missingStartTimes) {
-            TimeSlot newTimeSlot = new TimeSlot(request.getDate(), startTime, startTime.plusHours(1));
+            TimeSlot newTimeSlot = new TimeSlot(localDate, startTime, startTime.plusHours(1));
             timeSlotRepository.save(newTimeSlot);
             timeSlots.add(newTimeSlot);
         }
+
+        // Sort timeSlots based on startTime
+        timeSlots.sort(Comparator.comparing(TimeSlot::getStartTime));
+
         TimeSlotByDateResponse timeSlotByDateResponse = new TimeSlotByDateResponse();
         timeSlotByDateResponse.setSize(timeSlots.size());
         timeSlotByDateResponse.setTimeSlots(timeSlots);
@@ -95,8 +95,9 @@ public class TimeSlotService implements TimeSlotAPI {
 
     @Override
     @PreAuthorize("hasAuthority('APPROVE_BOOKING')")
-    public List<TimeSlotByDateResponse> getTimeSlotByWeek(TimeSlotByDateRequest request) {
-        LocalDate startDate = request.getDate().with(DayOfWeek.MONDAY);
+    public List<TimeSlotByDateResponse> getTimeSlotByWeek(String date) {
+        LocalDate localDate = LocalDate.parse(date);
+        LocalDate startDate = localDate.with(DayOfWeek.MONDAY);
         LocalDate endDate = startDate.plusDays(6);
 
         List<TimeSlot> allTimeSlots = timeSlotRepository.findAllByDateBetween(startDate, endDate);
@@ -106,8 +107,8 @@ public class TimeSlotService implements TimeSlotAPI {
 
         List<TimeSlotByDateResponse> responses = new ArrayList<>();
 
-        for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
-            List<TimeSlot> timeSlotsForDate = timeSlotsByDate.getOrDefault(date, new ArrayList<>());
+        for (LocalDate dateInWeek = startDate; !dateInWeek.isAfter(endDate); dateInWeek = dateInWeek.plusDays(1)) {
+            List<TimeSlot> timeSlotsForDate = timeSlotsByDate.getOrDefault(dateInWeek, new ArrayList<>());
 
             Set<LocalTime> existingStartTimes = timeSlotsForDate.stream()
                     .map(TimeSlot::getStartTime)
@@ -118,10 +119,12 @@ public class TimeSlotService implements TimeSlotAPI {
                     .collect(Collectors.toSet());
 
             for (LocalTime startTime : missingStartTimes) {
-                TimeSlot newTimeSlot = new TimeSlot(date, startTime, startTime.plusHours(1));
+                TimeSlot newTimeSlot = new TimeSlot(dateInWeek, startTime, startTime.plusHours(1));
                 timeSlotRepository.save(newTimeSlot);
                 timeSlotsForDate.add(newTimeSlot);
             }
+
+            timeSlotsForDate.sort(Comparator.comparing(TimeSlot::getStartTime));
 
             int size = timeSlotsForDate.size();
             int totalSessions = 2 * size;

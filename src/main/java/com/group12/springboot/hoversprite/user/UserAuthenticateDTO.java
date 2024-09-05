@@ -3,6 +3,11 @@ package com.group12.springboot.hoversprite.user;
 import com.group12.springboot.hoversprite.common.Role;
 import com.group12.springboot.hoversprite.user.entity.User;
 import lombok.Getter;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.Collection;
+import java.util.Collections;
 
 @Getter
 public class UserAuthenticateDTO {
@@ -17,6 +22,8 @@ public class UserAuthenticateDTO {
     private final String email;
 
     private final Role role;
+
+    private boolean enabled;
 
     public UserAuthenticateDTO(User user) {
         this.id = user.getId();

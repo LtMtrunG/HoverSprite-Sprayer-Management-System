@@ -11,6 +11,7 @@ import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.http.HttpStatus; // <-- Make sure this import is present
 
 import com.group12.springboot.hoversprite.common.ApiResponse;
 
@@ -90,6 +91,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = ConstraintViolationException.class)
     ResponseEntity<ApiResponse> handlingConstraintViolationException(ConstraintViolationException exception) {
+        String errorMessage = exception.getConstraintViolations().iterator().next().getMessage();
+        System.out.println(errorMessage);
+        if (errorMessage.contains("Email")) {
+            ApiResponse apiResponse = new ApiResponse();
+            apiResponse.setCode(ErrorCode.INVALID_EMAIL_FORMAT.getCode());
+            apiResponse.setMessage(errorMessage);
+            return new ResponseEntity<>(apiResponse, HttpStatus.BAD_REQUEST);
+        }
         ApiResponse apiResponse = new ApiResponse();
         apiResponse.setCode(ErrorCode.RATING_NOT_VALID.getCode());
         apiResponse.setMessage(ErrorCode.RATING_NOT_VALID.getMessage());

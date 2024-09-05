@@ -6,6 +6,11 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.StringJoiner;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -44,7 +49,7 @@ public class AuthenticationService implements AuthenticationAPI {
     protected static final String SIGNER_KEY = "WN1p+NNBEUYPdgLAec9Glzja6hTei7ElFAk975/CDLEIy6dmlrwofb4fdNRKuouN";
 
     @Override
-    public AuthenticationResponse authenticate(AuthenticationRequest request){
+    public AuthenticationResponse authenticate(AuthenticationRequest request, HttpServletResponse response){
         UserAuthenticateDTO user = userAPI.findUserByEmail(request.getEmail());
 
         if (user == null) {
@@ -66,6 +71,16 @@ public class AuthenticationService implements AuthenticationAPI {
         }
 
         var token = generateToken(user);
+
+        ResponseCookie cookie = ResponseCookie.from("jwt", token)
+                .httpOnly(true)        // HTTP-only flag
+                .secure(false)          // Use secure flag if using HTTPS
+                .path("/")             // Cookie available to the entire domain
+                .maxAge(6 * 60 * 60) // Set cookie expiration (7 days here)
+                .sameSite("Lax")    // CSRF protection
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
         AuthenticationResponse authenticationResponse = new AuthenticationResponse();
         authenticationResponse.setToken(token);
@@ -130,5 +145,30 @@ public class AuthenticationService implements AuthenticationAPI {
         }
 
         return phoneNumber;
+    }
+
+    public void logout(HttpServletRequest request, HttpServletResponse response) {
+//        Cookie cookie = new javax.servlet.http.Cookie("authToken", null);
+//        cookie.setHttpOnly(true);
+//        cookie.setPath("/"); // Ensure the path matches the one used for setting the cookie
+//        cookie.setMaxAge(0); // Set the cookie to expire immediately
+//        response.addCookie(cookie);
+
+        ResponseCookie cookie = ResponseCookie.from("jwt", null)
+                .httpOnly(true)        // HTTP-only flag
+                .secure(false)          // Use secure flag if using HTTPS
+                .path("/")             // Cookie available to the entire domain
+                .maxAge(0) // Set cookie expiration (7 days here)
+                .sameSite("Lax")    // CSRF protection
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+        // Invalidate Session
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+
     }
 }

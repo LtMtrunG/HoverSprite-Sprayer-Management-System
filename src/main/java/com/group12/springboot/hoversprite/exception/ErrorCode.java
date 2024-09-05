@@ -1,8 +1,10 @@
 package com.group12.springboot.hoversprite.exception;
 
+import lombok.Getter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 
+@Getter
 public enum ErrorCode {
     INVALID_MESSAGE_KEY(1001, "Invalid Message Key", HttpStatus.BAD_REQUEST),
     EMAIL_USED(1002, "Email has already been used", HttpStatus.BAD_REQUEST),
@@ -37,7 +39,9 @@ public enum ErrorCode {
     RATING_NOT_VALID(1031, "Rating can only be 1 to 5", HttpStatus.BAD_REQUEST),
     FEEDBACK_GIVEN(1032, "This booking already has feedback", HttpStatus.BAD_REQUEST),
     IMAGES_EXCEED(1033, "Cannot upload more than 5 images", HttpStatus.BAD_REQUEST),
-    UNCATEGORIZED_EXCEPTION(9999, "Uncategorized error", HttpStatus.INTERNAL_SERVER_ERROR)
+    INVALID_EMAIL_FORMAT(1034, "Email must end with .com or .vn", HttpStatus.BAD_REQUEST),
+    UNSUPPORTED_COUNTRIES(1035, "Address must be within Vietnam", HttpStatus.BAD_REQUEST),
+    UNCATEGORIZED_EXCEPTION(9999, "Uncategorized error", HttpStatus.INTERNAL_SERVER_ERROR),
     ;
     private int code;
     private String message;
@@ -47,17 +51,5 @@ public enum ErrorCode {
         this.code = code;
         this.message = message;
         this.statusCode = statusCode;
-    }
-
-    public int getCode() {
-        return code;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public HttpStatusCode getStatusCode() {
-        return statusCode;
     }
 }

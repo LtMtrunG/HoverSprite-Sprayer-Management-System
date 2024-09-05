@@ -9,9 +9,9 @@ import java.util.Optional;
 public interface TimeSlotAPI {
     public TimeSlotCreateResponse createTimeSlot(TimeSlotCreateRequest request);
 
-    public TimeSlotByDateResponse getTimeSlotByDate(TimeSlotByDateRequest request);
+    public TimeSlotByDateResponse getTimeSlotByDate(String date);
 
-    public List<TimeSlotByDateResponse> getTimeSlotByWeek(TimeSlotByDateRequest request);
+    public List<TimeSlotByDateResponse> getTimeSlotByWeek(String date);
 
     public List<TimeSlotDTO> getTimeSlotByWeek(LocalDate bookingDate);
 

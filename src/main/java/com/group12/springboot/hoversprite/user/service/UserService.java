@@ -1,18 +1,21 @@
 package com.group12.springboot.hoversprite.user.service;
 
 import java.nio.file.AccessDeniedException;
+import java.security.SecureRandom;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.crypto.spec.SecretKeySpec;
 
+import com.group12.springboot.hoversprite.config.CustomUserDetails;
+import com.group12.springboot.hoversprite.email.EmailAPI;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,7 +25,6 @@ import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,7 +35,6 @@ import com.group12.springboot.hoversprite.exception.CustomException;
 import com.group12.springboot.hoversprite.exception.ErrorCode;
 import com.group12.springboot.hoversprite.user.FarmerCreationRequest;
 import com.group12.springboot.hoversprite.user.FarmerDTO;
-import com.group12.springboot.hoversprite.user.FarmerExternalSignUpInfoRequest;
 import com.group12.springboot.hoversprite.user.FarmerExternalSignUpInfoResponse;
 import com.group12.springboot.hoversprite.user.ReceptionistCreationRequest;
 import com.group12.springboot.hoversprite.user.ReceptionistDTO;
@@ -52,14 +53,15 @@ import com.group12.springboot.hoversprite.user.repository.UserRepository;
 public class UserService implements UserAPI {
     @Autowired
     private UserRepository userRepository;
-
     @Autowired
     private RoleRepository roleRepository;
+    private final EmailAPI emailAPI;
 
-    @Override
-    public FarmerExternalSignUpInfoResponse receiveFarmerGmailInfo(FarmerExternalSignUpInfoRequest request) {
+    public UserService(@Lazy EmailAPI emailAPI) {
+        this.emailAPI = emailAPI;
+    }
 
-        String token = request.getJwtToken();
+    public FarmerExternalSignUpInfoResponse receiveFarmerGmailInfo(String token) {
 
         if (token != null && token.contains("#")) {
             token = token.split("#")[0]; // Remove the fragment part if present
@@ -81,14 +83,13 @@ public class UserService implements UserAPI {
             String email = jwt.getClaimAsString("email");
 
             // Return the response with the extracted information
-            return new FarmerExternalSignUpInfoResponse(name, email);
+            return new FarmerExternalSignUpInfoResponse(email, name);
         } catch (JwtException e) {
             // Handle the case where the token is invalid
             throw new CustomException(ErrorCode.INVALID_TOKEN);
         }
     }
 
-    @Override
     public UserResponse createFarmer(FarmerCreationRequest request) {
         User user = new User();
 
@@ -98,6 +99,11 @@ public class UserService implements UserAPI {
 
         if (userRepository.existsByPhoneNumber(processPhoneNumber(request.getPhoneNumber()))) {
             throw new CustomException(ErrorCode.PHONE_NUMBER_USED);
+        }
+
+        if (!(request.getAddress().contains("Vietnam") || request.getAddress().contains("Viet Nam")
+            || request.getAddress().contains("Việt Nam"))) {
+            throw new CustomException(ErrorCode.UNSUPPORTED_COUNTRIES);
         }
 
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
@@ -115,7 +121,6 @@ public class UserService implements UserAPI {
         return new UserResponse(user);
     }
 
-    @Override
     @PreAuthorize("hasRole('RECEPTIONIST')")
     public UserResponse createReceptionist(ReceptionistCreationRequest request) {
         User user = new User();
@@ -143,7 +148,6 @@ public class UserService implements UserAPI {
         return new UserResponse(user);
     }
 
-    @Override
     @PreAuthorize("hasRole('RECEPTIONIST')")
     public UserResponse createSprayer(SprayerCreationRequest request) {
         User user = new User();
@@ -172,7 +176,6 @@ public class UserService implements UserAPI {
         return new UserResponse(user);
     }
 
-    @Override
     @PreAuthorize("hasRole('RECEPTIONIST')")
     public ListResponse<UserResponse> getUsersByRole(int pageNo, int pageSize, String role) {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
@@ -193,7 +196,6 @@ public class UserService implements UserAPI {
         return listResponse;
     }
 
-    @Override
     @PreAuthorize("hasRole('RECEPTIONIST')")
     public UserResponse getUserById(Long userId) {
         User user = userRepository.findById(userId)
@@ -201,7 +203,6 @@ public class UserService implements UserAPI {
         return new UserResponse(user);
     }
 
-    @Override
     @PreAuthorize("hasRole('RECEPTIONIST')")
     public UserResponse getUserByPhone(String phoneNumber) {
         User user = userRepository.findByPhoneNumber(phoneNumber)
@@ -209,27 +210,32 @@ public class UserService implements UserAPI {
         return new UserResponse(user);
     }
 
-    @Override
-    @PostAuthorize("returnObject.id == T(java.lang.Long).parseLong(principal.subject)")
     public UserResponse getMyInfo() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        JwtAuthenticationToken jwtAuthToken = (JwtAuthenticationToken) authentication;
-        Jwt jwt = (Jwt) jwtAuthToken.getPrincipal();
-        Long userId;
-        try {
-            userId = Long.parseLong(jwt.getSubject());
-        } catch (NumberFormatException e) {
-            // Handle the error here, e.g., by throwing a custom exception
-            throw new CustomException(ErrorCode.USER_NOT_EXISTS);
-        }
+        Long userId = getCurrentUserId();
+        System.out.println(userId);
         User user = userRepository.findById(userId).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_EXISTS));
         return new UserResponse(user);
     }
 
-    @Override
+    private Long getCurrentUserId() {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication != null && authentication.isAuthenticated()) {
+            Object principal = authentication.getPrincipal();
+
+            if (principal instanceof CustomUserDetails) {
+                // Assuming CustomUserDetails holds the User ID
+                return ((CustomUserDetails) principal).getId();
+            }
+        }
+
+        throw new CustomException(ErrorCode.USER_NOT_EXISTS);
+    }
+
     public UserResponse updateUser(Long userId, UserUpdateRequest request) throws AccessDeniedException {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User Not Found."));
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_EXISTS));
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
@@ -253,7 +259,6 @@ public class UserService implements UserAPI {
         return new UserResponse(user);
     }
 
-    @Override
     @PreAuthorize("hasRole('RECEPTIONIST')")
     public void deleteUser(Long userId) {
         userRepository.deleteById(userId);
@@ -286,6 +291,20 @@ public class UserService implements UserAPI {
         return user.map(ReceptionistDTO::new)
                 .orElse(null);
     }
+
+    public UserAuthenticateDTO findUserById(Long id) {
+        Optional<User> user = userRepository.findById(id);
+        if (user.isPresent()) {
+            User foundUser = user.get();
+            System.out.println("Username from User entity: " + foundUser.getFullName());
+            System.out.println("true");
+        } else {
+            System.out.println("false");
+        }
+        return user.map(UserAuthenticateDTO::new)
+                .orElse(null); // Return null if user is not found
+    }
+
 
     @Override
     public UserAuthenticateDTO findUserByEmail(String email) {
@@ -343,5 +362,38 @@ public class UserService implements UserAPI {
         }
 
         return phoneNumber;
+    }
+
+    public void forgetPassword(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new CustomException(ErrorCode.EMAIL_NOT_EXISTS));
+
+        if (!user.getRole().toString().equals("FARMER")) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED);
+        }
+
+        String newPassword = randomizePassword();
+
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        emailAPI.sendForgetPassword(email, newPassword);
+    }
+
+    private String randomizePassword() {
+
+        final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.~:/?#[email protected]$&'()*+,;=";
+        final int LENGTH = 12;
+        final SecureRandom RANDOM = new SecureRandom();
+
+        StringBuilder sb = new StringBuilder(LENGTH);
+        for (int i = 0; i < LENGTH; i++) {
+            int index = RANDOM.nextInt(CHARACTERS.length());
+            sb.append(CHARACTERS.charAt(index));
+        }
+
+        return sb.toString();
     }
 }
