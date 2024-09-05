@@ -11,7 +11,7 @@ public interface TimeSlotAPI {
 
     public TimeSlotByDateResponse getTimeSlotByDate(String date);
 
-    public List<TimeSlotByDateResponse> getTimeSlotByWeek(TimeSlotByDateRequest request);
+    public List<TimeSlotByDateResponse> getTimeSlotByWeek(String date);
 
     public List<TimeSlotDTO> getTimeSlotByWeek(LocalDate bookingDate);
 

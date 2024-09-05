@@ -35,9 +35,9 @@ public class TimeSlotController {
     }
 
     @GetMapping("/byWeek")
-    ApiResponse<List<TimeSlotByDateResponse>> getTimeSlotByWeek(@RequestBody TimeSlotByDateRequest request){
+    ApiResponse<List<TimeSlotByDateResponse>> getTimeSlotByWeek(@RequestParam("date") String date){
         ApiResponse<List<TimeSlotByDateResponse>> apiResponse = new ApiResponse<>();
-        apiResponse.setResult(timeSlotService.getTimeSlotByWeek(request));
+        apiResponse.setResult(timeSlotService.getTimeSlotByWeek(date));
         return apiResponse;
     }
 }

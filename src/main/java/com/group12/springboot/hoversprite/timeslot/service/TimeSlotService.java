@@ -95,8 +95,9 @@ public class TimeSlotService implements TimeSlotAPI {
 
     @Override
     @PreAuthorize("hasAuthority('APPROVE_BOOKING')")
-    public List<TimeSlotByDateResponse> getTimeSlotByWeek(TimeSlotByDateRequest request) {
-        LocalDate startDate = request.getDate().with(DayOfWeek.MONDAY);
+    public List<TimeSlotByDateResponse> getTimeSlotByWeek(String date) {
+        LocalDate localDate = LocalDate.parse(date);
+        LocalDate startDate = localDate.with(DayOfWeek.MONDAY);
         LocalDate endDate = startDate.plusDays(6);
 
         List<TimeSlot> allTimeSlots = timeSlotRepository.findAllByDateBetween(startDate, endDate);
@@ -106,8 +107,8 @@ public class TimeSlotService implements TimeSlotAPI {
 
         List<TimeSlotByDateResponse> responses = new ArrayList<>();
 
-        for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
-            List<TimeSlot> timeSlotsForDate = timeSlotsByDate.getOrDefault(date, new ArrayList<>());
+        for (LocalDate dateInWeek = startDate; !dateInWeek.isAfter(endDate); dateInWeek = dateInWeek.plusDays(1)) {
+            List<TimeSlot> timeSlotsForDate = timeSlotsByDate.getOrDefault(dateInWeek, new ArrayList<>());
 
             Set<LocalTime> existingStartTimes = timeSlotsForDate.stream()
                     .map(TimeSlot::getStartTime)
@@ -118,10 +119,12 @@ public class TimeSlotService implements TimeSlotAPI {
                     .collect(Collectors.toSet());
 
             for (LocalTime startTime : missingStartTimes) {
-                TimeSlot newTimeSlot = new TimeSlot(date, startTime, startTime.plusHours(1));
+                TimeSlot newTimeSlot = new TimeSlot(dateInWeek, startTime, startTime.plusHours(1));
                 timeSlotRepository.save(newTimeSlot);
                 timeSlotsForDate.add(newTimeSlot);
             }
+
+            timeSlotsForDate.sort(Comparator.comparing(TimeSlot::getStartTime));
 
             int size = timeSlotsForDate.size();
             int totalSessions = 2 * size;
