@@ -9,8 +9,12 @@ import java.util.stream.Collectors;
 
 import javax.crypto.spec.SecretKeySpec;
 
+import com.group12.springboot.hoversprite.user.*;
+import jakarta.servlet.http.HttpServletRequest;
+
 import com.group12.springboot.hoversprite.config.CustomUserDetails;
 import com.group12.springboot.hoversprite.email.EmailAPI;
+import com.group12.springboot.hoversprite.jwt.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
@@ -34,17 +38,6 @@ import com.group12.springboot.hoversprite.common.Role;
 import com.group12.springboot.hoversprite.common.RoleRepository;
 import com.group12.springboot.hoversprite.exception.CustomException;
 import com.group12.springboot.hoversprite.exception.ErrorCode;
-import com.group12.springboot.hoversprite.user.FarmerCreationRequest;
-import com.group12.springboot.hoversprite.user.FarmerDTO;
-import com.group12.springboot.hoversprite.user.FarmerExternalSignUpInfoResponse;
-import com.group12.springboot.hoversprite.user.ReceptionistCreationRequest;
-import com.group12.springboot.hoversprite.user.ReceptionistDTO;
-import com.group12.springboot.hoversprite.user.SprayerCreationRequest;
-import com.group12.springboot.hoversprite.user.SprayerDTO;
-import com.group12.springboot.hoversprite.user.UserAPI;
-import com.group12.springboot.hoversprite.user.UserAuthenticateDTO;
-import com.group12.springboot.hoversprite.user.UserResponse;
-import com.group12.springboot.hoversprite.user.UserUpdateRequest;
 import com.group12.springboot.hoversprite.user.entity.User;
 import com.group12.springboot.hoversprite.user.enums.RoleType;
 import com.group12.springboot.hoversprite.user.repository.UserRepository;
@@ -62,8 +55,9 @@ public class UserService implements UserAPI {
         this.emailAPI = emailAPI;
     }
 
-    public FarmerExternalSignUpInfoResponse receiveFarmerGmailInfo(String token) {
+    public FarmerExternalSignUpInfoResponse receiveFarmerExternalInfo(HttpServletRequest request) {
 
+        String token = JwtUtils.getJwtFromCookies(request);
         if (token != null && token.contains("#")) {
             token = token.split("#")[0]; // Remove the fragment part if present
         }
@@ -91,7 +85,7 @@ public class UserService implements UserAPI {
         }
     }
 
-    public UserResponse createFarmer(FarmerCreationRequest request) {
+    public UserResponse createFarmerExternal(FarmerExternalCreationRequest request) {
         User user = new User();
 
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -102,10 +96,29 @@ public class UserService implements UserAPI {
             throw new CustomException(ErrorCode.PHONE_NUMBER_USED);
         }
 
-//        if (!(request.getAddress().contains("Vietnam") || request.getAddress().contains("Viet Nam")
-//            || request.getAddress().contains("Việt Nam"))) {
-//            throw new CustomException(ErrorCode.UNSUPPORTED_COUNTRIES);
-//        }
+        Role role = roleRepository.findByName(RoleType.FARMER.name())
+                .orElseThrow(() -> new RuntimeException("User's Role Not Found."));
+
+        user.setEmail(request.getEmail());
+        user.setFullName(request.getFullName());
+        user.setPhoneNumber(processPhoneNumber(request.getPhoneNumber()));
+        user.setAddress(request.getAddress());
+        user.setRole(role);
+        userRepository.save(user);
+
+        return new UserResponse(user);
+    }
+
+    public UserResponse createFarmer(FarmerCreationRequest request) {
+        User user = new User();
+
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new CustomException(ErrorCode.EMAIL_USED);
+        }
+
+        if (userRepository.existsByPhoneNumber(processPhoneNumber(request.getPhoneNumber()))) {
+            throw new CustomException(ErrorCode.PHONE_NUMBER_USED);
+        }
 
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         Role role = roleRepository.findByName(RoleType.FARMER.name())

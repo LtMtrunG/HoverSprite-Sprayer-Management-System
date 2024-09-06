@@ -2,6 +2,7 @@ package com.group12.springboot.hoversprite.user.controller;
 
 import java.nio.file.AccessDeniedException;
 
+import com.group12.springboot.hoversprite.user.*;
 import com.group12.springboot.hoversprite.validator.EmailConstraint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -16,15 +17,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.group12.springboot.hoversprite.common.ApiResponse;
 import com.group12.springboot.hoversprite.common.ListResponse;
-import com.group12.springboot.hoversprite.user.FarmerCreationRequest;
-import com.group12.springboot.hoversprite.user.FarmerExternalSignUpInfoResponse;
-import com.group12.springboot.hoversprite.user.ReceptionistCreationRequest;
-import com.group12.springboot.hoversprite.user.SprayerCreationRequest;
-import com.group12.springboot.hoversprite.user.UserResponse;
-import com.group12.springboot.hoversprite.user.UserUpdateRequest;
 import com.group12.springboot.hoversprite.user.service.UserService;
 
 import jakarta.validation.Valid;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 @Validated
 @RestController
@@ -32,10 +29,17 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @GetMapping("/register/farmer/external")
-    ApiResponse<FarmerExternalSignUpInfoResponse> receiveFarmerGmailInfo(@RequestParam("token") String token) {
+    @GetMapping("/register/farmer/externalInfo")
+    ApiResponse<FarmerExternalSignUpInfoResponse> receiveFarmerGmailInfo(HttpServletRequest request) {
         ApiResponse<FarmerExternalSignUpInfoResponse> apiResponse = new ApiResponse<>();
-        apiResponse.setResult(userService.receiveFarmerGmailInfo(token));
+        apiResponse.setResult(userService.receiveFarmerExternalInfo(request));
+        return apiResponse;
+    }
+
+    @PostMapping("/register/farmer/external")
+    ApiResponse<UserResponse> createFarmerExternal(@RequestBody @Valid FarmerExternalCreationRequest request) {
+        ApiResponse<UserResponse> apiResponse = new ApiResponse<>();
+        apiResponse.setResult(userService.createFarmerExternal(request));
         return apiResponse;
     }
 
