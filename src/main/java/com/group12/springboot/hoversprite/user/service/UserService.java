@@ -3,6 +3,7 @@ package com.group12.springboot.hoversprite.user.service;
 import java.nio.file.AccessDeniedException;
 import java.security.SecureRandom;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -101,10 +102,10 @@ public class UserService implements UserAPI {
             throw new CustomException(ErrorCode.PHONE_NUMBER_USED);
         }
 
-        if (!(request.getAddress().contains("Vietnam") || request.getAddress().contains("Viet Nam")
-            || request.getAddress().contains("Việt Nam"))) {
-            throw new CustomException(ErrorCode.UNSUPPORTED_COUNTRIES);
-        }
+//        if (!(request.getAddress().contains("Vietnam") || request.getAddress().contains("Viet Nam")
+//            || request.getAddress().contains("Việt Nam"))) {
+//            throw new CustomException(ErrorCode.UNSUPPORTED_COUNTRIES);
+//        }
 
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         Role role = roleRepository.findByName(RoleType.FARMER.name())
@@ -217,22 +218,6 @@ public class UserService implements UserAPI {
         return new UserResponse(user);
     }
 
-    private Long getCurrentUserId() {
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication != null && authentication.isAuthenticated()) {
-            Object principal = authentication.getPrincipal();
-
-            if (principal instanceof CustomUserDetails) {
-                // Assuming CustomUserDetails holds the User ID
-                return ((CustomUserDetails) principal).getId();
-            }
-        }
-
-        throw new CustomException(ErrorCode.USER_NOT_EXISTS);
-    }
-
     public UserResponse updateUser(Long userId, UserUpdateRequest request) throws AccessDeniedException {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_EXISTS));
@@ -261,6 +246,8 @@ public class UserService implements UserAPI {
 
     @PreAuthorize("hasRole('RECEPTIONIST')")
     public void deleteUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.FARMER_NOT_EXIST));
         userRepository.deleteById(userId);
     }
 
@@ -395,5 +382,39 @@ public class UserService implements UserAPI {
         }
 
         return sb.toString();
+    }
+
+    @Override
+    public Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication != null && authentication.isAuthenticated()) {
+            Object principal = authentication.getPrincipal();
+
+            if (principal instanceof CustomUserDetails) {
+                // Assuming CustomUserDetails holds the User ID
+                return ((CustomUserDetails) principal).getId();
+            }
+        }
+
+        throw new CustomException(ErrorCode.USER_NOT_EXISTS);
+    }
+
+    @PreAuthorize("hasAuthority('APPROVE_CREATE_FIELD')")
+    public void addFieldToFarmer(Long farmerId, Long fieldId) {
+        User farmer = userRepository.findFarmerById(farmerId)
+                .orElseThrow(() -> new CustomException(ErrorCode.FARMER_NOT_EXIST));
+
+        // Ensure fieldsId is initialized
+        if (farmer.getFieldsId() == null) {
+            farmer.setFieldsId(new ArrayList<>());
+        }
+
+        if (farmer.getFieldsId().size() == 10) {
+            throw new CustomException(ErrorCode.FIELD_EXCEED);
+        }
+
+        farmer.getFieldsId().add(fieldId);
+        userRepository.save(farmer);
     }
 }

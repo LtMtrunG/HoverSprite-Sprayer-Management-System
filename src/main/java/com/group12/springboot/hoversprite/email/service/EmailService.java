@@ -10,6 +10,8 @@ import com.group12.springboot.hoversprite.booking.BookingDTO;
 import com.group12.springboot.hoversprite.email.EmailAPI;
 import com.group12.springboot.hoversprite.exception.CustomException;
 import com.group12.springboot.hoversprite.exception.ErrorCode;
+import com.group12.springboot.hoversprite.field.FieldAPI;
+import com.group12.springboot.hoversprite.field.FieldDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -31,8 +33,10 @@ public class EmailService implements EmailAPI {
 
     @Autowired
     private JavaMailSender mailSender;
+
     private final TimeSlotAPI timeSlotAPI;
     private final UserAPI userAPI;
+    private final FieldAPI fieldAPI;
 
     //    @Async
     @Override
@@ -140,6 +144,11 @@ public class EmailService implements EmailAPI {
             throw new CustomException(ErrorCode.FARMER_NOT_EXIST);
         }
 
+        FieldDTO fieldDTO = fieldAPI.findFieldById(booking.getFieldId());
+        if (fieldDTO == null) {
+            throw new CustomException(ErrorCode.FIELD_NOT_EXIST);
+        }
+
         String gregorianDate = timeSlotDTO.getDate().toString();
 
         // Convert LocalDateto Chinese Lunar Date
@@ -181,7 +190,7 @@ public class EmailService implements EmailAPI {
                     lunarDateString,
                     timeSlotDTO.getStartTime(),
                     farmerDTO.getAddress(),
-                    booking.getFarmlandArea(),
+                    fieldDTO.getFarmlandArea(),
                     booking.getTotalCost());
         }
 
@@ -213,7 +222,7 @@ public class EmailService implements EmailAPI {
                     lunarDateString,
                     timeSlotDTO.getStartTime(),
                     farmerDTO.getAddress(),
-                    booking.getFarmlandArea(),
+                    fieldDTO.getFarmlandArea(),
                     booking.getTotalCost());
         }
 
@@ -263,7 +272,7 @@ public class EmailService implements EmailAPI {
                     lunarDateString,
                     timeSlotDTO.getStartTime(),
                     farmerDTO.getAddress(),
-                    booking.getFarmlandArea(),
+                    fieldDTO.getFarmlandArea(),
                     booking.getTotalCost());
         }
 
@@ -295,7 +304,7 @@ public class EmailService implements EmailAPI {
                     lunarDateString,
                     timeSlotDTO.getStartTime(),
                     farmerDTO.getAddress(),
-                    booking.getFarmlandArea(),
+                    fieldDTO.getFarmlandArea(),
                     booking.getTotalCost());
         }
 
@@ -326,7 +335,7 @@ public class EmailService implements EmailAPI {
                 lunarDateString,
                 timeSlotDTO.getStartTime(),
                 farmerDTO.getAddress(),
-                booking.getFarmlandArea(),
+                fieldDTO.getFarmlandArea(),
                 booking.getTotalCost());
     }
 

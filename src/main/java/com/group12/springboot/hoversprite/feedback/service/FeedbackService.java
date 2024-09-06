@@ -9,6 +9,7 @@ import com.group12.springboot.hoversprite.feedback.FeedbackCreationResponse;
 import com.group12.springboot.hoversprite.feedback.repository.FeedbackRepository;
 import com.group12.springboot.hoversprite.feedback.FeedbackResponse;
 import com.group12.springboot.hoversprite.feedback.entity.Feedback;
+import com.group12.springboot.hoversprite.user.UserAPI;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;

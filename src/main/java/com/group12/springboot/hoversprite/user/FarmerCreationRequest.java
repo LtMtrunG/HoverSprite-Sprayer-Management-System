@@ -1,9 +1,6 @@
 package com.group12.springboot.hoversprite.user;
 
-import com.group12.springboot.hoversprite.validator.EmailConstraint;
-import com.group12.springboot.hoversprite.validator.NameConstraint;
-import com.group12.springboot.hoversprite.validator.PasswordConstraint;
-import com.group12.springboot.hoversprite.validator.PhoneConstraint;
+import com.group12.springboot.hoversprite.validator.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,5 +15,6 @@ public class FarmerCreationRequest {
     private String fullName;
     @PhoneConstraint
     private String phoneNumber;
+    @AddressConstraint
     private String address;
 }

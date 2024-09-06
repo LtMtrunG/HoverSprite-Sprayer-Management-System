@@ -16,6 +16,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Entity
 @Table(name="TBL_USERS")
 @NoArgsConstructor
@@ -44,6 +46,9 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(name="expertise")
     private Expertise expertise;
+
+    @Column(name="fields_id")
+    private List<Long> fieldsId;
 
     @ManyToOne
     private Role role;

@@ -26,4 +26,8 @@ public interface UserAPI {
     public Page<SprayerDTO> getAvailableSprayers(List<Long> bookedSprayersId, Pageable pageable);
 
     public List<SprayerDTO> getAvailableSprayers(List<Long> bookedSprayersId);
+
+    public Long getCurrentUserId();
+
+    public void addFieldToFarmer(Long farmerId, Long fieldId);
 }

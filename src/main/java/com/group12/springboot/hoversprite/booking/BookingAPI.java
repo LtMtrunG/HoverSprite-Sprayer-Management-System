@@ -3,6 +3,8 @@ package com.group12.springboot.hoversprite.booking;
 import com.group12.springboot.hoversprite.common.ListResponse;
 import org.springframework.security.access.AccessDeniedException;
 
+import java.util.List;
+
 public interface BookingAPI {
 
     public BookingResponse createPendingBooking(BookingCreationRequest request);
@@ -36,4 +38,6 @@ public interface BookingAPI {
     public boolean hasPermissionOrNot(Long feedbackId);
 
     public void saveFeedbackToBooking(Long bookingId, Long feedbackId);
+
+    public List<BookingDTO> findIncompleteBookingByFieldId(Long fieldId);
 }

@@ -5,7 +5,6 @@ import java.util.List;
 
 import com.group12.springboot.hoversprite.booking.entity.Booking;
 import com.group12.springboot.hoversprite.booking.enums.BookingStatus;
-import com.group12.springboot.hoversprite.booking.enums.CropType;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,9 +15,8 @@ public class BookingResponse {
     private Long receptionistId;
     private Long farmerId;
     private List<Long> sprayersId;
-    private CropType cropType;
+    private Long fieldId;
     private BookingStatus status;
-    private double farmlandArea;
     private LocalDateTime createdTime;
     private Long timeSlotId;
     private double totalCost;
@@ -28,9 +26,8 @@ public class BookingResponse {
         this.receptionistId = booking.getReceptionistId();
         this.farmerId = booking.getFarmerId();
         this.sprayersId = booking.getSprayersId();
-        this.cropType = booking.getCropType();
+        this.fieldId = booking.getFieldId();
         this.status = booking.getStatus();
-        this.farmlandArea = booking.getFarmlandArea();
         this.createdTime = booking.getCreatedTime();
         this.timeSlotId = booking.getTimeSlotId();
         this.totalCost = booking.getTotalCost();

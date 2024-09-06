@@ -18,6 +18,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     Optional<Booking> findById(Long id);
     Optional<Booking> findByFeedbackId(Long feedbackId);
     List<Booking> findByTimeSlotId(Long timeSlotId);
+    List<Booking> findByFieldId(Long fieldId);
+    List<Booking> findByFieldIdAndStatusNot(Long fieldId, BookingStatus status);
     boolean existsById(Long id);
     @Query("SELECT b FROM Booking b WHERE b.status = :status ORDER BY b.createdTime DESC")
     List<Booking> findByStatus(@Param("status") BookingStatus status);

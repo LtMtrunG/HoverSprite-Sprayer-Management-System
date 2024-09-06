@@ -6,8 +6,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import com.group12.springboot.hoversprite.booking.*;
-import com.group12.springboot.hoversprite.config.CustomUserDetails;
 import com.group12.springboot.hoversprite.email.EmailAPI;
+import com.group12.springboot.hoversprite.field.FieldAPI;
+import com.group12.springboot.hoversprite.field.FieldDTO;
 import com.group12.springboot.hoversprite.user.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -39,6 +40,7 @@ public class BookingService implements BookingAPI {
     private final TimeSlotAPI timeSlotAPI;
     private final UserAPI userAPI;
     private final EmailAPI emailAPI;
+    private final FieldAPI fieldAPI;
     @Autowired
     private BookingRepository bookingRepository;
 
@@ -47,10 +49,15 @@ public class BookingService implements BookingAPI {
     public BookingResponse createPendingBooking(BookingCreationRequest request) {
         TimeSlotDTO timeSlotDTO = checkOrCreateTimeSlot(request.getDate(), request.getStartTime());
 
-        Long farmerId = getCurrentUserId();
+        Long farmerId = userAPI.getCurrentUserId();
         FarmerDTO farmerDTO = userAPI.findFarmerById(farmerId);
         if (farmerDTO == null) {
             throw new CustomException(ErrorCode.FARMER_NOT_EXIST);
+        }
+
+        FieldDTO fieldDTO = fieldAPI.findFieldById(request.getFieldId());
+        if (fieldDTO == null) {
+            throw new CustomException(ErrorCode.FIELD_NOT_EXIST);
         }
 
         if (!timeSlotAPI.isAvailable(timeSlotDTO)) {
@@ -60,7 +67,7 @@ public class BookingService implements BookingAPI {
         timeSlotAPI.bookSession(timeSlotDTO);
 
         Booking booking = createBookingWithStatus(BookingStatus.PENDING, request, timeSlotDTO.getId(),
-                farmerDTO.getId(), null, Collections.emptyList());
+                farmerDTO.getId(), null, fieldDTO.getFarmlandArea(), Collections.emptyList());
         bookingRepository.save(booking);
 
         return new BookingResponse(booking);
@@ -73,16 +80,23 @@ public class BookingService implements BookingAPI {
         TimeSlotDTO timeSlotDTO = checkOrCreateTimeSlot(request.getDate(), request.getStartTime());
 
         FarmerDTO farmerDTO = userAPI.findFarmerById(request.getFarmerId());
-
         if (farmerDTO == null) {
             throw new CustomException(ErrorCode.FARMER_NOT_EXIST);
         }
 
-        Long receptionistId = getCurrentUserId();
+        Long receptionistId = userAPI.getCurrentUserId();
         ReceptionistDTO receptionistDTO = userAPI.findReceptionistById(receptionistId);
-
         if (receptionistDTO == null) {
             throw new CustomException(ErrorCode.RECEPTIONIST_NOT_EXIST);
+        }
+
+        FieldDTO fieldDTO = fieldAPI.findFieldById(request.getFieldId());
+        if (fieldDTO == null) {
+            throw new CustomException(ErrorCode.FIELD_NOT_EXIST);
+        }
+
+        if (!farmerDTO.getFieldsId().contains(request.getFieldId())) {
+            throw new CustomException(ErrorCode.FARMER_NOT_OWN_FIELD);
         }
 
         if (!timeSlotAPI.isAvailable(timeSlotDTO)) {
@@ -92,7 +106,7 @@ public class BookingService implements BookingAPI {
         timeSlotAPI.bookSession(timeSlotDTO);
 
         Booking booking = createBookingWithStatus(BookingStatus.CONFIRMED, request, timeSlotDTO.getId(),
-                farmerDTO.getId(), receptionistDTO.getId(),
+                farmerDTO.getId(), receptionistDTO.getId(), fieldDTO.getFarmlandArea(),
                 Collections.emptyList());
 
         emailAPI.sendBookingEmail(new BookingDTO(booking));
@@ -135,7 +149,7 @@ public class BookingService implements BookingAPI {
             throw new CustomException(ErrorCode.TIME_SLOT_NOT_EXISTS);
         }
 
-        Long receptionistId = getCurrentUserId();
+        Long receptionistId = userAPI.getCurrentUserId();
         ReceptionistDTO receptionistDTO = userAPI.findReceptionistById(receptionistId);
 
         if (receptionistDTO == null) {
@@ -164,7 +178,7 @@ public class BookingService implements BookingAPI {
         Booking booking = bookingRepository.findById(request.getId())
                 .orElseThrow(() -> new CustomException(ErrorCode.BOOKING_NOT_EXISTS));
 
-        long receptionistId = getCurrentUserId();
+        long receptionistId = userAPI.getCurrentUserId();
         if (receptionistId != booking.getReceptionistId()) {
             throw new CustomException(ErrorCode.RECEPTIONIST_NOT_RESPONSIBLE);
         }
@@ -291,7 +305,7 @@ public class BookingService implements BookingAPI {
             throw new CustomException(ErrorCode.INVALID_ACTION);
         }
 
-        Long sprayerId = getCurrentUserId();
+        Long sprayerId = userAPI.getCurrentUserId();
 
         if (!booking.getSprayersId().contains(sprayerId)) {
             throw new CustomException(ErrorCode.SPRAYER_NOT_ASSIGNED);
@@ -336,7 +350,7 @@ public class BookingService implements BookingAPI {
         Booking booking = bookingRepository.findById(request.getId())
                 .orElseThrow(() -> new RuntimeException("Booking Not Found."));
 
-        long farmerId = getCurrentUserId();
+        long farmerId = userAPI.getCurrentUserId();
         FarmerDTO farmerDTO = userAPI.findFarmerById(farmerId);
         if (farmerDTO == null) {
             throw new CustomException(ErrorCode.FARMER_NOT_EXIST);
@@ -362,7 +376,7 @@ public class BookingService implements BookingAPI {
         Booking booking = bookingRepository.findById(request.getId())
                 .orElseThrow(() -> new CustomException(ErrorCode.BOOKING_NOT_EXISTS));
 
-        Long sprayerId = getCurrentUserId();
+        Long sprayerId = userAPI.getCurrentUserId();
 
         if (!booking.getSprayersId().contains(sprayerId)) {
             throw new CustomException(ErrorCode.SPRAYER_NOT_ASSIGNED);
@@ -397,7 +411,7 @@ public class BookingService implements BookingAPI {
     @Override
     @PreAuthorize("hasRole('FARMER')")
     public ListResponse<BookingResponse> getMyBookings(int pageNo, int pageSize) {
-        Long farmerId = getCurrentUserId();
+        Long farmerId = userAPI.getCurrentUserId();
 
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         Page<Booking> bookingPage = bookingRepository.findByFarmerIdOrderByStatus(farmerId, pageable);
@@ -413,7 +427,7 @@ public class BookingService implements BookingAPI {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new CustomException(ErrorCode.BOOKING_NOT_EXISTS));
 
-        long userId = getCurrentUserId();
+        long userId = userAPI.getCurrentUserId();
 
         if (!((booking.getFarmerId() == userId) && (userAPI.findReceptionistById(userId) != null)
             && (booking.getSprayersId().contains(userId)))) {
@@ -468,32 +482,15 @@ public class BookingService implements BookingAPI {
         }
     }
 
-    private Long getCurrentUserId() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication != null && authentication.isAuthenticated()) {
-            Object principal = authentication.getPrincipal();
-
-            if (principal instanceof CustomUserDetails) {
-                // Assuming CustomUserDetails holds the User ID
-                return ((CustomUserDetails) principal).getId();
-            }
-        }
-
-        throw new IllegalStateException("User is not authenticated or principal is not a valid instance");
-    }
-
-
     private Booking createBookingWithStatus(BookingStatus status, BookingCreationRequest request, Long timeslotId,
-                                            Long farmerId, Long receptionistId, List<Long> sprayers) {
+                                            Long farmerId, Long receptionistId, double farmlandArea, List<Long> sprayers) {
         Booking booking = new Booking();
         booking.setFarmerId(farmerId);
-        booking.setCropType(request.getCropType());
+        booking.setFieldId(request.getFieldId());
         booking.setStatus(status);
-        booking.setFarmlandArea(request.getFarmlandArea());
         booking.setCreatedTime(request.getCreatedTime());
         booking.setTimeSlotId(timeslotId);
-        booking.setTotalCost(booking.getFarmlandArea() * 30000);
+        booking.setTotalCost(farmlandArea * 30000);
 
         if (status == BookingStatus.CONFIRMED & receptionistId != null) {
             booking.setReceptionistId(receptionistId);
@@ -599,7 +596,7 @@ public class BookingService implements BookingAPI {
         Booking booking = bookingRepository.findByFeedbackId(feedbackId)
                 .orElseThrow(() -> new CustomException(ErrorCode.BOOKING_NOT_EXISTS));
 
-        long userId = getCurrentUserId();
+        long userId = userAPI.getCurrentUserId();
 
         if (booking.getFarmerId() == userId) {
             return true;
@@ -715,6 +712,19 @@ public class BookingService implements BookingAPI {
                 .sorted(Comparator
                         .comparingInt(SprayerWeeklyAssignDTO::getBooking_assign)               // First sort by frequency
                         .thenComparing(SprayerWeeklyAssignDTO::getExpertise))             // Then sort by expertise
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<BookingDTO> findIncompleteBookingByFieldId(Long fieldId) {
+        List<Booking> bookingList = bookingRepository.findByFieldIdAndStatusNot(fieldId, BookingStatus.COMPLETED);
+
+        if (bookingList.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return bookingList.stream()
+                .map(BookingDTO::new) // Assuming there's a constructor in BookingDTO that takes Booking
                 .collect(Collectors.toList());
     }
 }
