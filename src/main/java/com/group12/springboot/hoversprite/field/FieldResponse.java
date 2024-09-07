@@ -12,6 +12,7 @@ import lombok.Setter;
 @Setter
 public class FieldResponse {
     private Long id;
+    private String name;
     private float longitude;
     private float latitude;
     private String address;

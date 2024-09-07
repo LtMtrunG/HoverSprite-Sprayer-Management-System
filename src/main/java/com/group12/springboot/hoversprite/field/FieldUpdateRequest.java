@@ -8,6 +8,7 @@ import lombok.Setter;
 @Getter
 public class FieldUpdateRequest {
     private Long fieldId;
+    private String name;
     private float longitude;
     private float latitude;
     private String address;

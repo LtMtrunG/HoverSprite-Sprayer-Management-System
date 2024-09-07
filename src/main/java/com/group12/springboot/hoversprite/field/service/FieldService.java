@@ -56,6 +56,7 @@ public class FieldService implements FieldAPI {
         }
 
         Field field = new Field();
+        field.setName(request.getName());
         field.setAddress(request.getAddress());
         field.setLatitude(request.getLatitude());
         field.setLongitude(request.getLongitude());
@@ -157,6 +158,7 @@ public class FieldService implements FieldAPI {
             }
         }
 
+        field.setName(request.getName());
         field.setAddress(request.getAddress());
         field.setLatitude(request.getLatitude());
         field.setLongitude(request.getLongitude());

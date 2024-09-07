@@ -18,6 +18,8 @@ import com.group12.springboot.hoversprite.common.ListResponse;
 
 import jakarta.validation.Valid;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/bookings")
 public class BookingController {
@@ -122,6 +124,14 @@ public class BookingController {
          apiResponse.setResult(bookingService.getBookingById(bookingId));
          return apiResponse;
      }
+
+    @GetMapping("/myBookings/byWeek")
+    ApiResponse<List<BookingResponse>> getMyBookingsByWeek(@RequestParam  String date){
+        ApiResponse<List<BookingResponse>> apiResponse = new ApiResponse<>();
+        apiResponse.setResult(bookingService.getMyBookingsByWeek(date));
+        return apiResponse;
+    }
+
 
     // @PutMapping("/{bookingId}")
     // ApiResponse<BookingResponse> updateBooking(@RequestBody BookingUpdateRequest request) throws AccessDeniedException {

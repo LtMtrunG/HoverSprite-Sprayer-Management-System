@@ -11,6 +11,7 @@ import lombok.Setter;
 @Getter
 public class FieldDTO {
     private final Long id;
+    private final String name;
     private final float longitude;
     private final float latitude;
     private final String address;
@@ -19,6 +20,7 @@ public class FieldDTO {
 
     public FieldDTO(Field field) {
         this.id = field.getId();
+        this.name = field.getName();
         this.longitude = field.getLongitude();
         this.latitude = field.getLatitude();
         this.address = field.getAddress();

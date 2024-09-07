@@ -9,6 +9,7 @@ import com.group12.springboot.hoversprite.booking.*;
 import com.group12.springboot.hoversprite.email.EmailAPI;
 import com.group12.springboot.hoversprite.field.FieldAPI;
 import com.group12.springboot.hoversprite.field.FieldDTO;
+import com.group12.springboot.hoversprite.jwt.JwtUtils;
 import com.group12.springboot.hoversprite.user.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -429,8 +430,8 @@ public class BookingService implements BookingAPI {
 
         long userId = userAPI.getCurrentUserId();
 
-        if (!((booking.getFarmerId() == userId) && (userAPI.findReceptionistById(userId) != null)
-            && (booking.getSprayersId().contains(userId)))) {
+        if (!((booking.getFarmerId() == userId) || (userAPI.findReceptionistById(userId) != null)
+            || (booking.getSprayersId().contains(userId)))) {
             throw new CustomException(ErrorCode.UNAUTHORIZED);
         }
 
@@ -726,5 +727,38 @@ public class BookingService implements BookingAPI {
         return bookingList.stream()
                 .map(BookingDTO::new) // Assuming there's a constructor in BookingDTO that takes Booking
                 .collect(Collectors.toList());
+    }
+
+    @PreAuthorize("hasRole('FARMER')")
+    public List<BookingResponse> getMyBookingsByWeek(String date) {
+        LocalDate localDate = LocalDate.parse(date);
+        List<TimeSlotDTO> timeSlotDTOList = timeSlotAPI.getTimeSlotByWeek(localDate);
+
+        Long currentUserId = userAPI.getCurrentUserId();
+        FarmerDTO farmerDTO = userAPI.findFarmerById(currentUserId);
+        if (farmerDTO == null) {
+            throw new CustomException(ErrorCode.FARMER_NOT_EXIST);
+        }
+
+        // Filter the bookings by the time slots and by the current user
+        List<Booking> userBookings = new ArrayList<>();
+        for (TimeSlotDTO timeSlotDTO : timeSlotDTOList) {
+            List<Booking> bookingsForTimeSlot = bookingRepository.findByTimeSlotId(timeSlotDTO.getId());
+            // Filter bookings that belong to the current user
+            for (Booking booking : bookingsForTimeSlot) {
+                if (Objects.equals(booking.getFarmerId(), farmerDTO.getId())) {
+                    userBookings.add(booking);
+                }
+            }
+        }
+
+        // Convert the filtered bookings to BookingResponse DTOs
+        List<BookingResponse> bookingResponses = userBookings.stream()
+                .map(BookingResponse::new)
+                .collect(Collectors.toList());
+
+        // Return the response as a ListResponse object
+        return bookingResponses;
+
     }
 }
