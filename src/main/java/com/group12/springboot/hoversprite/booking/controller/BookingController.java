@@ -126,7 +126,7 @@ public class BookingController {
      }
 
     @GetMapping("/myBookings/byWeek")
-    ApiResponse<List<BookingResponse>> getMyBookingsByWeek(@RequestParam  String date){
+    ApiResponse<List<BookingResponse>> getMyBookingsByWeek(@RequestParam("date")  String date){
         ApiResponse<List<BookingResponse>> apiResponse = new ApiResponse<>();
         apiResponse.setResult(bookingService.getMyBookingsByWeek(date));
         return apiResponse;

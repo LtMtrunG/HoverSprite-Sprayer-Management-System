@@ -9,17 +9,17 @@ import com.group12.springboot.hoversprite.field.*;
 import com.group12.springboot.hoversprite.field.entity.Field;
 import com.group12.springboot.hoversprite.field.repository.FieldRepository;
 import com.group12.springboot.hoversprite.user.FarmerDTO;
+import com.group12.springboot.hoversprite.user.ReceptionistDTO;
 import com.group12.springboot.hoversprite.user.UserAPI;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -42,10 +42,24 @@ public class FieldService implements FieldAPI {
 
     @PreAuthorize("hasAuthority('APPROVE_CREATE_FIELD')")
     public FieldResponse createField(FieldCreationRequest request) {
-        FarmerDTO farmerDTO = userAPI.findFarmerById(request.getFarmerId());
+        Long farmerId = request.getFarmerId();
 
-        if (farmerDTO == null) {
-            throw new CustomException(ErrorCode.USER_NOT_EXISTS);
+        if (farmerId == null) {
+            farmerId = userAPI.getCurrentUserId();
+            FarmerDTO farmerDTO = userAPI.findFarmerById(farmerId);
+            if (farmerDTO == null) {
+                throw new CustomException(ErrorCode.FARMER_NOT_EXIST);
+            }
+        } else {
+            FarmerDTO farmerDTO = userAPI.findFarmerById(farmerId);
+            if (farmerDTO == null) {
+                throw new CustomException(ErrorCode.FARMER_NOT_EXIST);
+            }
+            Long currentUserId = userAPI.getCurrentUserId();
+            ReceptionistDTO receptionistDTO = userAPI.findReceptionistById(currentUserId);
+            if (receptionistDTO == null) {
+                throw new CustomException(ErrorCode.UNAUTHORIZED);
+            }
         }
 
         if (request.getAddress() != null && !request.getAddress().trim().isEmpty()) {
@@ -65,7 +79,7 @@ public class FieldService implements FieldAPI {
 
         Field savedField = fieldRepository.save(field);
 
-        userAPI.addFieldToFarmer(request.getFarmerId(), savedField.getId());
+        userAPI.addFieldToFarmer(farmerId, savedField.getId());
 
         return new FieldResponse(field);
     }
@@ -102,21 +116,53 @@ public class FieldService implements FieldAPI {
 
 
     @PreAuthorize("hasAuthority('APPROVE_VIEW_FIELD')")
-    public ListResponse<FieldResponse> getFarmersFieldsPage(Long farmerId, int pageNo, int pageSize) {
-        FarmerDTO farmerDTO = userAPI.findFarmerById(farmerId);
-        if (farmerDTO == null) {
-            throw new CustomException(ErrorCode.USER_NOT_EXISTS);
+    public Page<FieldResponse> getFarmersFieldsPage(Long farmerId, int pageNo, int pageSize, String sortBy , String order) {
+        FarmerDTO farmerDTO;
+
+        if (farmerId == null) {
+            farmerId = userAPI.getCurrentUserId();
+            farmerDTO = userAPI.findFarmerById(farmerId);
+            if (farmerDTO == null) {
+                throw new CustomException(ErrorCode.FARMER_NOT_EXIST);
+            }
+        } else {
+            farmerDTO = userAPI.findFarmerById(farmerId);
+            if (farmerDTO == null) {
+                throw new CustomException(ErrorCode.FARMER_NOT_EXIST);
+            }
+            Long currentUserId = userAPI.getCurrentUserId();
+            ReceptionistDTO receptionistDTO = userAPI.findReceptionistById(currentUserId);
+            if (receptionistDTO == null) {
+                throw new CustomException(ErrorCode.UNAUTHORIZED);
+            }
         }
 
-        Pageable pageable = PageRequest.of(pageNo, pageSize);
-        Page<Field> fieldPage = fieldRepository.findFieldsOfFarmer(farmerDTO.getFieldsId(), pageable);
+        Pageable pageable;
+        if (sortBy.equals("id") || sortBy.equals("name") || sortBy.equals("lastSprayingDate")) {
+            if (order.equals("ascending")) {
+                pageable = PageRequest.of(pageNo, pageSize, Sort.by(sortBy).ascending());
+            }
+            else if (order.equals("descending")){
+                pageable = PageRequest.of(pageNo, pageSize, Sort.by(sortBy).ascending());
+            } else {
+                pageable = PageRequest.of(pageNo, pageSize);
+            }
+        } else {
+            pageable = PageRequest.of(pageNo, pageSize);
+        }
+        Page<Field> fieldsPage = fieldRepository.findByIdIn(farmerDTO.getFieldsId(), pageable);
 
-        List<FieldResponse> fieldResponses = fieldPage.getContent().stream()
-                .map(FieldResponse::new)
-                .toList();
+        // Map Page<Field> to Page<FieldResponse> using existing constructor
+        List<FieldResponse> fieldResponses = fieldsPage.stream()
+                .map(FieldResponse::new) // Use the constructor directly
+                .collect(Collectors.toList());
 
+        return new PageImpl<>(fieldResponses, pageable, fieldsPage.getTotalElements());
+    }
+
+    private ListResponse<FieldResponse> listToListResponse(List<FieldResponse> list, Page<Field> fieldPage) {
         ListResponse<FieldResponse> listResponse = new ListResponse<>();
-        listResponse.setContent(fieldResponses);
+        listResponse.setContent(list);
         listResponse.setPageNo(fieldPage.getNumber());
         listResponse.setPageSize(fieldPage.getSize());
         listResponse.setTotalPages(fieldPage.getTotalPages());
@@ -190,5 +236,13 @@ public class FieldService implements FieldAPI {
         fieldRepository.delete(field);
 
         return "Field deleted successfully";
+    }
+
+    @Override
+    public void updateLastSprayingDate(Long id) {
+        Field field = fieldRepository.findFieldById(id)
+                .orElseThrow(() -> new CustomException(ErrorCode.FIELD_NOT_EXIST));
+        LocalDate currentDate = LocalDate.now();
+        field.setLastSprayingDate(currentDate);
     }
 }

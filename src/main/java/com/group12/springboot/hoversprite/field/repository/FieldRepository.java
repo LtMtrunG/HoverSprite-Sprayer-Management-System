@@ -19,4 +19,6 @@ public interface FieldRepository extends JpaRepository<Field, Long> {
 
     @Query("SELECT f FROM Field f WHERE f.id IN :fieldIds")
     List<Field> findFieldsOfFarmer(@Param("fieldIds") List<Long> fieldIds);
+
+    Page<Field> findByIdIn(List<Long> fieldIds, Pageable pageable);
 }

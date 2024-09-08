@@ -8,15 +8,18 @@ import jakarta.persistence.Enumerated;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
+
 @Getter
 public class FieldDTO {
     private final Long id;
     private final String name;
-    private final float longitude;
-    private final float latitude;
+    private final double longitude;
+    private final double latitude;
     private final String address;
     private final CropType cropType;
     private final double farmlandArea;
+    private final LocalDate lastSprayingDate;
 
     public FieldDTO(Field field) {
         this.id = field.getId();
@@ -26,5 +29,6 @@ public class FieldDTO {
         this.address = field.getAddress();
         this.cropType = field.getCropType();
         this.farmlandArea = field.getFarmlandArea();
+        this.lastSprayingDate = field.getLastSprayingDate();
     }
 }

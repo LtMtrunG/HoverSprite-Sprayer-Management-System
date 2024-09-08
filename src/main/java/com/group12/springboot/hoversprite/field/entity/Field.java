@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
+
 @Entity
 @Table(name="TBL_FIELDS")
 @NoArgsConstructor
@@ -20,10 +22,10 @@ public class Field {
     private String name;
 
     @Column(name="longitude")
-    private float longitude;
+    private double longitude;
 
     @Column(name="latitude")
-    private float latitude;
+    private double latitude;
 
     @Column(name="address")
     private String address;
@@ -34,4 +36,7 @@ public class Field {
 
     @Column(name="farm_land_area")
     private double farmlandArea;
+
+    @Column(name="last_spraying_date")
+    private LocalDate lastSprayingDate;
 }

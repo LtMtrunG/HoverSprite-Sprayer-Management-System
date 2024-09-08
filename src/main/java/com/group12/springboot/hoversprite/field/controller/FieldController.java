@@ -7,13 +7,17 @@ import com.group12.springboot.hoversprite.field.FieldResponse;
 import com.group12.springboot.hoversprite.field.FieldUpdateRequest;
 import com.group12.springboot.hoversprite.field.service.FieldService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Null;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/field")
+@RequestMapping("/fields")
 public class FieldController {
 
     @Autowired
@@ -35,12 +39,14 @@ public class FieldController {
     }
 
     @GetMapping("/all/page")
-    ApiResponse<ListResponse<FieldResponse>> getFarmersFieldsPage(
-            @RequestParam("id") Long farmerId,
+    ApiResponse<Page<FieldResponse>> getFarmersFieldsPage(
+            @RequestParam(value = "id", required = false) Long farmerId,
             @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
-            @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize) {
-        ApiResponse<ListResponse<FieldResponse>> apiResponse = new ApiResponse<>();
-        apiResponse.setResult(fieldService.getFarmersFieldsPage(farmerId, pageNo, pageSize));
+            @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
+            @RequestParam("sortBy") String sortBy,
+            @RequestParam("order") String order) {
+        ApiResponse<Page<FieldResponse>> apiResponse = new ApiResponse<>();
+        apiResponse.setResult(fieldService.getFarmersFieldsPage(farmerId, pageNo, pageSize, sortBy, order));
         return apiResponse;
     }
 

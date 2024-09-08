@@ -390,6 +390,7 @@ public class BookingService implements BookingAPI {
 
         booking.setStatus(BookingStatus.COMPLETED);
         bookingRepository.save(booking);
+        fieldAPI.updateLastSprayingDate(booking.getFieldId());
 
         emailAPI.sendBookingEmail(new BookingDTO(booking));
 

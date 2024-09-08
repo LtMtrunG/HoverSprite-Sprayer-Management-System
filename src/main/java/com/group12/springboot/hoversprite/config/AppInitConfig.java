@@ -46,6 +46,7 @@ public class AppInitConfig {
                 Permission approveChangeStatus = permissionRepository.findById("APPROVE_CHANGE_STATUS").orElse(null);
                 Permission approveNotification = permissionRepository.findById("APPROVE_NOTIFICATION").orElse(null);
                 Permission approveCreateField = permissionRepository.findById("APPROVE_CREATE_FIELD").orElse(null);
+                Permission approveViewField = permissionRepository.findById("APPROVE_VIEW_FIELD").orElse(null);
 
                 if (approveBooking != null && approveChangeStatus != null && approveNotification != null) {
                     Role farmer = roleRepository.findById("FARMER").orElse(null);
@@ -57,6 +58,7 @@ public class AppInitConfig {
                         permissions.add(approveBooking);
                         permissions.add(approveNotification);
                         permissions.add(approveCreateField);
+                        permissions.add(approveViewField);
                         farmer.setPermissions(permissions);
                         roleRepository.save(farmer);
                     }
@@ -67,6 +69,7 @@ public class AppInitConfig {
                         permissions.add(approveChangeStatus);
                         permissions.add(approveNotification);
                         permissions.add(approveCreateField);
+                        permissions.add(approveViewField);
                         receptionist.setPermissions(permissions);
                         roleRepository.save(receptionist);
                     }
@@ -75,6 +78,7 @@ public class AppInitConfig {
                         Set<Permission> permissions = new HashSet<>();
                         permissions.add(approveChangeStatus);
                         permissions.add(approveNotification);
+                        permissions.add(approveViewField);
                         sprayer.setPermissions(permissions);
                         roleRepository.save(sprayer);
                     }

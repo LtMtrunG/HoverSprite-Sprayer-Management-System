@@ -44,13 +44,6 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
-//        httpSecurity
-//                .authorizeHttpRequests(request -> request.requestMatchers(PUBLIC_ENDPOINT).permitAll()
-//                .requestMatchers(STATIC_RESOURCES).permitAll()
-//                .anyRequest().authenticated()).oauth2Login(oauth2 -> oauth2
-//                        .successHandler(successHandler)
-//                );
-
         httpSecurity
                 .cors(cors -> cors.configurationSource(request -> {
                     CorsConfiguration config = new CorsConfiguration();
@@ -71,11 +64,6 @@ public class SecurityConfig {
                 .authenticationEntryPoint(customAuthenticationEntryPoint);
         // Register the JWT Token Filter
         httpSecurity.addFilterBefore(new JwtTokenFilter(customJWTDecoder, userDetailsService), UsernamePasswordAuthenticationFilter.class);
-//        httpSecurity.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfigurer -> jwtConfigurer.decoder(customJWTDecoder)
-//                .jwtAuthenticationConverter(jwtAuthenticationConverter())));
-//        httpSecurity.exceptionHandling().authenticationEntryPoint(customAuthenticationEntryPoint);
-//
-//        httpSecurity.csrf(AbstractHttpConfigurer::disable);
 
         return httpSecurity.build();
     }
