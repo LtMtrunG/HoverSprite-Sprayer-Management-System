@@ -7,6 +7,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -48,7 +49,7 @@ public class GlobalExceptionHandler {
             String field = fieldError.getField();
 
             switch (field) {
-                case "password", "email", "fullName", "phoneNumber":
+                case "password", "email", "fullName", "phoneNumber", "address":
                     errorCode.set(ErrorCode.INVALID_SIGNUP_INFO);
                     break;
                 default:
@@ -103,5 +104,14 @@ public class GlobalExceptionHandler {
         apiResponse.setCode(ErrorCode.RATING_NOT_VALID.getCode());
         apiResponse.setMessage(ErrorCode.RATING_NOT_VALID.getMessage());
         return ResponseEntity.status(ErrorCode.RATING_NOT_VALID.getStatusCode()).body(apiResponse);
+    }
+
+    // Add exception handler for HttpMessageNotReadableException
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException exception) {
+        ApiResponse apiResponse = new ApiResponse();
+        apiResponse.setCode(ErrorCode.INVALID_CROP_TYPE.getCode());
+        apiResponse.setMessage(ErrorCode.INVALID_CROP_TYPE.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiResponse);
     }
 }

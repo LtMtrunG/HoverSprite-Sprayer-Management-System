@@ -4,13 +4,11 @@ import com.group12.springboot.hoversprite.validator.*;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter
 @Setter
-public class FarmerCreationRequest {
+@Getter
+public class FarmerExternalCreationRequest {
     @EmailConstraint
     private String email;
-    @PasswordConstraint
-    private String password;
     @NameConstraint
     private String fullName;
     @PhoneConstraint

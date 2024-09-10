@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.group12.springboot.hoversprite.booking.enums.BookingStatus;
-import com.group12.springboot.hoversprite.booking.enums.CropType;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -40,21 +39,17 @@ public class Booking {
     private List<Long> inProgressSprayerIds;
 
     @Enumerated(EnumType.STRING)
-    @Column(name="crop_type")
-    private CropType cropType;
-
-    @Enumerated(EnumType.STRING)
     @Column(name="status")
     private BookingStatus status;
-
-    @Column(name="farm_land_area")
-    private double farmlandArea;
 
     @Column(name="created_time")
     private LocalDateTime createdTime;
 
     @Column(name="time_slot_id")
     private Long timeSlotId;
+
+    @Column(name="field_id")
+    private Long fieldId;
 
     @Column(name="total_cost")
     private double totalCost;
@@ -69,11 +64,10 @@ public class Booking {
         this.farmerId = booking.farmerId;
         this.sprayersId = new ArrayList<>(booking.sprayersId);
         this.inProgressSprayerIds = new ArrayList<>(booking.inProgressSprayerIds);
-        this.cropType = booking.cropType;
         this.status = booking.status;
-        this.farmlandArea = booking.farmlandArea;
         this.createdTime = booking.createdTime;
         this.timeSlotId = booking.timeSlotId;
+        this.fieldId = booking.fieldId;
         this.totalCost = booking.totalCost;
         this.feedbackId = booking.feedbackId;
     }

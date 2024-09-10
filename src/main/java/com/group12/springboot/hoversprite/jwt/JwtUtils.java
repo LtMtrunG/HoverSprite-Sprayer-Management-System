@@ -1,7 +1,7 @@
 package com.group12.springboot.hoversprite.jwt;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 
 public class JwtUtils {
 
@@ -10,7 +10,7 @@ public class JwtUtils {
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {
-                if ("jwtToken".equals(cookie.getName())) {
+                if ("jwt".equals(cookie.getName())) {
                     return cookie.getValue();
                 }
             }

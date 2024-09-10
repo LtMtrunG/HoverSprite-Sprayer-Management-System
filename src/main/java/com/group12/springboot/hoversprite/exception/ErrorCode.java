@@ -41,6 +41,11 @@ public enum ErrorCode {
     IMAGES_EXCEED(1033, "Cannot upload more than 5 images", HttpStatus.BAD_REQUEST),
     INVALID_EMAIL_FORMAT(1034, "Email must end with .com or .vn", HttpStatus.BAD_REQUEST),
     UNSUPPORTED_COUNTRIES(1035, "Address must be within Vietnam", HttpStatus.BAD_REQUEST),
+    FIELD_EXCEED(1036, "A farmer can only have maximum 10 fields", HttpStatus.BAD_REQUEST),
+    FIELD_NOT_EXIST(1037, "Field not exist", HttpStatus.NOT_FOUND),
+    FARMER_NOT_OWN_FIELD(1038, "The farmer does not own this field", HttpStatus.BAD_REQUEST),
+    FIELD_IN_BOOKING(1039, "The field is having a spraying section", HttpStatus.BAD_REQUEST),
+    INVALID_CROP_TYPE(1040, "The crop type is invalid", HttpStatus.NOT_ACCEPTABLE),
     UNCATEGORIZED_EXCEPTION(9999, "Uncategorized error", HttpStatus.INTERNAL_SERVER_ERROR),
     ;
     private int code;

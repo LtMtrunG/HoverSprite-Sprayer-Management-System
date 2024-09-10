@@ -3,13 +3,18 @@ package com.group12.springboot.hoversprite.user.service;
 import java.nio.file.AccessDeniedException;
 import java.security.SecureRandom;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.crypto.spec.SecretKeySpec;
 
+import com.group12.springboot.hoversprite.user.*;
+import jakarta.servlet.http.HttpServletRequest;
+
 import com.group12.springboot.hoversprite.config.CustomUserDetails;
 import com.group12.springboot.hoversprite.email.EmailAPI;
+import com.group12.springboot.hoversprite.jwt.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
@@ -33,17 +38,6 @@ import com.group12.springboot.hoversprite.common.Role;
 import com.group12.springboot.hoversprite.common.RoleRepository;
 import com.group12.springboot.hoversprite.exception.CustomException;
 import com.group12.springboot.hoversprite.exception.ErrorCode;
-import com.group12.springboot.hoversprite.user.FarmerCreationRequest;
-import com.group12.springboot.hoversprite.user.FarmerDTO;
-import com.group12.springboot.hoversprite.user.FarmerExternalSignUpInfoResponse;
-import com.group12.springboot.hoversprite.user.ReceptionistCreationRequest;
-import com.group12.springboot.hoversprite.user.ReceptionistDTO;
-import com.group12.springboot.hoversprite.user.SprayerCreationRequest;
-import com.group12.springboot.hoversprite.user.SprayerDTO;
-import com.group12.springboot.hoversprite.user.UserAPI;
-import com.group12.springboot.hoversprite.user.UserAuthenticateDTO;
-import com.group12.springboot.hoversprite.user.UserResponse;
-import com.group12.springboot.hoversprite.user.UserUpdateRequest;
 import com.group12.springboot.hoversprite.user.entity.User;
 import com.group12.springboot.hoversprite.user.enums.RoleType;
 import com.group12.springboot.hoversprite.user.repository.UserRepository;
@@ -61,8 +55,9 @@ public class UserService implements UserAPI {
         this.emailAPI = emailAPI;
     }
 
-    public FarmerExternalSignUpInfoResponse receiveFarmerGmailInfo(String token) {
+    public FarmerExternalSignUpInfoResponse receiveFarmerExternalInfo(HttpServletRequest request) {
 
+        String token = JwtUtils.getJwtFromCookies(request);
         if (token != null && token.contains("#")) {
             token = token.split("#")[0]; // Remove the fragment part if present
         }
@@ -90,7 +85,7 @@ public class UserService implements UserAPI {
         }
     }
 
-    public UserResponse createFarmer(FarmerCreationRequest request) {
+    public UserResponse createFarmerExternal(FarmerExternalCreationRequest request) {
         User user = new User();
 
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -101,9 +96,28 @@ public class UserService implements UserAPI {
             throw new CustomException(ErrorCode.PHONE_NUMBER_USED);
         }
 
-        if (!(request.getAddress().contains("Vietnam") || request.getAddress().contains("Viet Nam")
-            || request.getAddress().contains("Việt Nam"))) {
-            throw new CustomException(ErrorCode.UNSUPPORTED_COUNTRIES);
+        Role role = roleRepository.findByName(RoleType.FARMER.name())
+                .orElseThrow(() -> new RuntimeException("User's Role Not Found."));
+
+        user.setEmail(request.getEmail());
+        user.setFullName(request.getFullName());
+        user.setPhoneNumber(processPhoneNumber(request.getPhoneNumber()));
+        user.setAddress(request.getAddress());
+        user.setRole(role);
+        userRepository.save(user);
+
+        return new UserResponse(user);
+    }
+
+    public UserResponse createFarmer(FarmerCreationRequest request) {
+        User user = new User();
+
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new CustomException(ErrorCode.EMAIL_USED);
+        }
+
+        if (userRepository.existsByPhoneNumber(processPhoneNumber(request.getPhoneNumber()))) {
+            throw new CustomException(ErrorCode.PHONE_NUMBER_USED);
         }
 
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
@@ -217,22 +231,6 @@ public class UserService implements UserAPI {
         return new UserResponse(user);
     }
 
-    private Long getCurrentUserId() {
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication != null && authentication.isAuthenticated()) {
-            Object principal = authentication.getPrincipal();
-
-            if (principal instanceof CustomUserDetails) {
-                // Assuming CustomUserDetails holds the User ID
-                return ((CustomUserDetails) principal).getId();
-            }
-        }
-
-        throw new CustomException(ErrorCode.USER_NOT_EXISTS);
-    }
-
     public UserResponse updateUser(Long userId, UserUpdateRequest request) throws AccessDeniedException {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_EXISTS));
@@ -261,6 +259,8 @@ public class UserService implements UserAPI {
 
     @PreAuthorize("hasRole('RECEPTIONIST')")
     public void deleteUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.FARMER_NOT_EXIST));
         userRepository.deleteById(userId);
     }
 
@@ -395,5 +395,39 @@ public class UserService implements UserAPI {
         }
 
         return sb.toString();
+    }
+
+    @Override
+    public Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication != null && authentication.isAuthenticated()) {
+            Object principal = authentication.getPrincipal();
+
+            if (principal instanceof CustomUserDetails) {
+                // Assuming CustomUserDetails holds the User ID
+                return ((CustomUserDetails) principal).getId();
+            }
+        }
+
+        throw new CustomException(ErrorCode.USER_NOT_EXISTS);
+    }
+
+    @PreAuthorize("hasAuthority('APPROVE_CREATE_FIELD')")
+    public void addFieldToFarmer(Long farmerId, Long fieldId) {
+        User farmer = userRepository.findFarmerById(farmerId)
+                .orElseThrow(() -> new CustomException(ErrorCode.FARMER_NOT_EXIST));
+
+        // Ensure fieldsId is initialized
+        if (farmer.getFieldsId() == null) {
+            farmer.setFieldsId(new ArrayList<>());
+        }
+
+        if (farmer.getFieldsId().size() == 10) {
+            throw new CustomException(ErrorCode.FIELD_EXCEED);
+        }
+
+        farmer.getFieldsId().add(fieldId);
+        userRepository.save(farmer);
     }
 }
