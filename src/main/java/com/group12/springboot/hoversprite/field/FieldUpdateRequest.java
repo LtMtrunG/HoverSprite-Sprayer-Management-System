@@ -9,8 +9,8 @@ import lombok.Setter;
 public class FieldUpdateRequest {
     private Long fieldId;
     private String name;
-    private float longitude;
-    private float latitude;
+    private double longitude;
+    private double latitude;
     private String address;
     private CropType cropType;
     private double farmlandArea;
