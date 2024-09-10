@@ -12,6 +12,7 @@ import com.group12.springboot.hoversprite.exception.CustomException;
 import com.group12.springboot.hoversprite.exception.ErrorCode;
 import com.group12.springboot.hoversprite.field.FieldAPI;
 import com.group12.springboot.hoversprite.field.FieldDTO;
+import com.group12.springboot.hoversprite.notification.NotificationAPI;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -37,6 +38,7 @@ public class EmailService implements EmailAPI {
     private final TimeSlotAPI timeSlotAPI;
     private final UserAPI userAPI;
     private final FieldAPI fieldAPI;
+    private final NotificationAPI notificationAPI;
 
     //    @Async
     @Override
@@ -56,8 +58,7 @@ public class EmailService implements EmailAPI {
         message.setText(body);
 
         mailSender.send(message);
-
-        System.out.println("Send successfully");
+        notificationAPI.createNotification(farmerDTO.getId(), booking.getId(), booking.getStatus().toString());
 
         if (booking.getStatus() == BookingStatus.ASSIGNED) {
             sendEmailToSprayers(booking);
@@ -77,6 +78,7 @@ public class EmailService implements EmailAPI {
             }
             // Assuming the availability is already checked, add the sprayer to the list
             sprayersList.add(sprayerDTO);
+            notificationAPI.createNotification(sprayerDTO.getId(), booking.getId(), booking.getStatus().toString());
         }
 
         FarmerDTO farmerDTO = userAPI.findFarmerById(booking.getFarmerId());
@@ -115,6 +117,10 @@ public class EmailService implements EmailAPI {
     }
 
     private String generateEmailSubject(BookingDTO booking) {
+        if (booking.getStatus() == BookingStatus.PENDING) {
+            return "Booking Pending: HoverSprite Service - Booking ID " + booking.getId();
+        }
+
         if (booking.getStatus() == BookingStatus.CONFIRMED) {
             return "Booking Confirmation: HoverSprite Service - Booking ID " + booking.getId();
         }
@@ -161,6 +167,41 @@ public class EmailService implements EmailAPI {
         int lunarDay = chineseCalendar.get(ChineseCalendar.DAY_OF_MONTH);
 
         String lunarDateString = String.format("%d-%02d-%02d", lunarYear, lunarMonth, lunarDay);
+
+        if (booking.getStatus() == BookingStatus.PENDING) {
+            return String.format(
+                    """
+                    Dear %s,
+            
+                    Thank you for choosing HoverSprite Service. We are pleased to inform you that your booking has been successfully received and is currently being processed.
+            
+                    Here are the details of your booking:
+            
+                    Booking ID: %d
+                    Date (Gregorian): %s
+                    Date (Lunar): %s
+                    Time Slot: %s
+                    Location: %s
+                    Farmland Size: %.2f decares
+                    Total Cost: %.2f VND
+            
+                    We will notify you once the technicians have been assigned. If you have any questions or need further assistance, feel free to contact our support team at any time.
+            
+                    Thank you for trusting HoverSprite for your agricultural service needs.
+            
+                    Best regards,
+                    The HoverSprite Team
+                    """,
+                    farmerDTO.getFullName(),
+                    booking.getId(),
+                    gregorianDate,
+                    lunarDateString,
+                    timeSlotDTO.getStartTime(),
+                    farmerDTO.getAddress(),
+                    fieldDTO.getFarmlandArea(),
+                    booking.getTotalCost()
+            );
+        }
 
         if (booking.getStatus() == BookingStatus.CONFIRMED) {
             return String.format(

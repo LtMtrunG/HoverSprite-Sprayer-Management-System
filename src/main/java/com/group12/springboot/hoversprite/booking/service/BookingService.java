@@ -9,7 +9,6 @@ import com.group12.springboot.hoversprite.booking.*;
 import com.group12.springboot.hoversprite.email.EmailAPI;
 import com.group12.springboot.hoversprite.field.FieldAPI;
 import com.group12.springboot.hoversprite.field.FieldDTO;
-import com.group12.springboot.hoversprite.jwt.JwtUtils;
 import com.group12.springboot.hoversprite.user.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -17,8 +16,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,6 +68,8 @@ public class BookingService implements BookingAPI {
                 farmerDTO.getId(), null, fieldDTO.getFarmlandArea(), Collections.emptyList());
         bookingRepository.save(booking);
 
+        emailAPI.sendBookingEmail(new BookingDTO(booking));
+
         return new BookingResponse(booking);
     }
 
@@ -109,10 +108,9 @@ public class BookingService implements BookingAPI {
         Booking booking = createBookingWithStatus(BookingStatus.CONFIRMED, request, timeSlotDTO.getId(),
                 farmerDTO.getId(), receptionistDTO.getId(), fieldDTO.getFarmlandArea(),
                 Collections.emptyList());
+        bookingRepository.save(booking);
 
         emailAPI.sendBookingEmail(new BookingDTO(booking));
-
-        bookingRepository.save(booking);
 
         autoAssignToAllUnAssignedBooking();
 
