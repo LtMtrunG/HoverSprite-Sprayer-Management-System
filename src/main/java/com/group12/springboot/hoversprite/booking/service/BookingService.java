@@ -58,6 +58,10 @@ public class BookingService implements BookingAPI {
             throw new CustomException(ErrorCode.FIELD_NOT_EXIST);
         }
 
+        if (!farmerDTO.getFieldsId().contains(fieldDTO.getId())) {
+            throw new CustomException(ErrorCode.FARMER_NOT_OWN_FIELD);
+        }
+
         if (!timeSlotAPI.isAvailable(timeSlotDTO)) {
             throw new CustomException(ErrorCode.SESSION_NOT_AVAILABLE);
         }

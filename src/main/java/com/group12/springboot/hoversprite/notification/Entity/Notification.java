@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name="TBL_NOTIFICATIONS")
 @NoArgsConstructor
@@ -28,4 +30,7 @@ public class Notification {
 
     @Column(name="booking_id")
     private Long bookingId;
+
+    @Column(name = "created_time")
+    private LocalDateTime createdTime;
 }

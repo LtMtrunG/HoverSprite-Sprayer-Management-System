@@ -12,13 +12,11 @@ import com.group12.springboot.hoversprite.user.UserAuthenticateDTO;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -40,7 +38,7 @@ public class NotificationService implements NotificationAPI {
         // Use String.format to create the formatted title
         String formattedTitle = String.format("Booking %s - Booking ID %d", bookingStatus, bookingId);
         notification.setTitle(formattedTitle);
-        System.out.println("Save notification");
+        notification.setCreatedTime(LocalDateTime.now());
         notificationRepository.save(notification);
     }
 
@@ -52,7 +50,7 @@ public class NotificationService implements NotificationAPI {
             throw new CustomException(ErrorCode.USER_NOT_EXISTS);
         }
 
-        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by(Sort.Order.desc("createdTime")));
         Page<Notification> notificationsPage;
 
         if (status.equals("READ")) {
