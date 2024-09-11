@@ -213,14 +213,14 @@ public class UserService implements UserAPI {
     @PreAuthorize("hasRole('RECEPTIONIST')")
     public UserResponse getUserById(Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User Not Found."));
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_EXISTS));
         return new UserResponse(user);
     }
 
     @PreAuthorize("hasRole('RECEPTIONIST')")
     public UserResponse getUserByPhone(String phoneNumber) {
         User user = userRepository.findByPhoneNumber(phoneNumber)
-                .orElseThrow(() -> new RuntimeException("User Not Found."));
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_EXISTS));
         return new UserResponse(user);
     }
 
