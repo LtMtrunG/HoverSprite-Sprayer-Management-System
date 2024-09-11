@@ -1,7 +1,9 @@
 package com.group12.springboot.hoversprite.booking.service;
 
+import java.sql.Time;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -763,5 +765,52 @@ public class BookingService implements BookingAPI {
         // Return the response as a ListResponse object
         return bookingResponses;
 
+    }
+
+    @PreAuthorize("hasRole('SPRAYER')")
+    public List<double[]> getBookingRoute() {
+        // Fetch field IDs for bookings the sprayer performed on the given date
+
+        Long currentUserId = userAPI.getCurrentUserId();
+        SprayerDTO sprayerDTO = userAPI.findSprayerById(currentUserId);
+        if (sprayerDTO == null) {
+            throw new CustomException(ErrorCode.SPRAYER_NOT_EXIST);
+        }
+
+        // Get current date
+        LocalDate currentDate = LocalDate.now();
+
+        // Fetch longitude and latitude for these fields
+
+        List<TimeSlotDTO> timeSlotDTOList = timeSlotAPI.getTimeSlotByDate(currentDate);
+
+        List<Long> fieldIds = new ArrayList<>();
+
+        for (TimeSlotDTO timeSlotDTO: timeSlotDTOList) {
+            List<Booking> bookings = bookingRepository.findByTimeSlotId(timeSlotDTO.getId());
+
+            for (Booking booking : bookings) {
+                // Check if the current sprayer is part of the booking
+                if (booking.getSprayersId().contains(currentUserId)) {
+                    // Add the field ID associated with the booking
+                    fieldIds.add(booking.getFieldId());
+                }
+            }
+        }
+
+        System.out.println(fieldIds);
+
+        // Fetch coordinates (longitude and latitude) for the identified fields
+        List<Object[]> coordinates = fieldAPI.findFieldCoordinatesByIds(fieldIds);
+
+        // Convert the coordinates to List<double[]>
+        List<double[]> coordinateList = new ArrayList<>();
+        for (Object[] coordinate : coordinates) {
+            double longitude = (double) coordinate[0];
+            double latitude = (double) coordinate[1];
+            coordinateList.add(new double[]{longitude, latitude});
+        }
+
+        return coordinateList;
     }
 }

@@ -2,6 +2,7 @@ package com.group12.springboot.hoversprite.booking.controller;
 
 import com.group12.springboot.hoversprite.booking.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,6 +19,7 @@ import com.group12.springboot.hoversprite.common.ListResponse;
 
 import jakarta.validation.Valid;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -145,6 +147,13 @@ public class BookingController {
         ApiResponse<String> apiResponse = new ApiResponse<>();
         bookingService.deleteBooking(bookingId);
         apiResponse.setResult("Booking is deleted");
+        return apiResponse;
+    }
+
+    @GetMapping("/sprayer/route")
+    ApiResponse<List<double[]>> getBookingRoute() {
+        ApiResponse<List<double[]>> apiResponse = new ApiResponse<>();
+        apiResponse.setResult(bookingService.getBookingRoute());
         return apiResponse;
     }
 }

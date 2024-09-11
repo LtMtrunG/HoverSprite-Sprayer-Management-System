@@ -1,5 +1,6 @@
 package com.group12.springboot.hoversprite.booking.repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 

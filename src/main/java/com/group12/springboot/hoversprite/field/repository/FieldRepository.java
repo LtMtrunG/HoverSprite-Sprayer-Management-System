@@ -21,4 +21,7 @@ public interface FieldRepository extends JpaRepository<Field, Long> {
     List<Field> findFieldsOfFarmer(@Param("fieldIds") List<Long> fieldIds);
 
     Page<Field> findByIdIn(List<Long> fieldIds, Pageable pageable);
+
+    @Query("SELECT f.longitude, f.latitude FROM Field f WHERE f.id IN :fieldIds")
+    List<Object[]> findFieldCoordinatesByIds(@Param("fieldIds") List<Long> fieldIds);
 }
