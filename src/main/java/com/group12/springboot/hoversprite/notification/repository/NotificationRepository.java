@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
-    Page<Notification> findAllByReceiverIdAndNotificationStatus(Long receiverId, NotificationStatus status, Pageable pageable);
+    Page<Notification> findPagedByReceiverIdAndNotificationStatus(Long receiverId, NotificationStatus status, Pageable pageable);
     Page<Notification> findAllByReceiverId(Long receiverId, Pageable pageable);
     Optional<Notification> findById(Long id);
     List<Notification> findAllByReceiverIdAndNotificationStatus(Long receiverId, NotificationStatus status);

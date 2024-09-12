@@ -324,7 +324,7 @@ public class UserService implements UserAPI {
     @PreAuthorize("hasRole('RECEPTIONIST')")
     public Page<SprayerDTO> getAvailableSprayers(List<Long> bookedSprayersId, Pageable pageable) {
         // Fetch the list of sprayers
-        List<SprayerDTO> sprayersId = userRepository.findAllSprayersExcludeByIds(bookedSprayersId, pageable)
+        List<SprayerDTO> sprayersId = userRepository.findPagedSprayersExcludeByIds(bookedSprayersId, pageable)
                 .stream()
                 .map(user -> new SprayerDTO(user))
                 .collect(Collectors.toList());

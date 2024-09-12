@@ -14,8 +14,8 @@ import java.util.Optional;
 public interface FieldRepository extends JpaRepository<Field, Long> {
     Optional<Field> findFieldById(Long id);
 
-    @Query("SELECT f FROM Field f WHERE f.id IN :fieldIds")
-    Page<Field> findFieldsOfFarmer(@Param("fieldIds") List<Long> fieldIds, Pageable pageable);
+//    @Query("SELECT f FROM Field f WHERE f.id IN :fieldIds")
+//    Page<Field> findFieldsOfFarmer(@Param("fieldIds") List<Long> fieldIds, Pageable pageable);
 
     @Query("SELECT f FROM Field f WHERE f.id IN :fieldIds")
     List<Field> findFieldsOfFarmer(@Param("fieldIds") List<Long> fieldIds);

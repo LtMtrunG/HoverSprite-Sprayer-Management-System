@@ -54,9 +54,9 @@ public class NotificationService implements NotificationAPI {
         Page<Notification> notificationsPage;
 
         if (status.equals("READ")) {
-            notificationsPage = notificationRepository.findAllByReceiverIdAndNotificationStatus(currentUserId, NotificationStatus.READ, pageable);
+            notificationsPage = notificationRepository.findPagedByReceiverIdAndNotificationStatus(currentUserId, NotificationStatus.READ, pageable);
         } else if (status.equals("UNREAD")) {
-            notificationsPage = notificationRepository.findAllByReceiverIdAndNotificationStatus(currentUserId, NotificationStatus.UNREAD, pageable);
+            notificationsPage = notificationRepository.findPagedByReceiverIdAndNotificationStatus(currentUserId, NotificationStatus.UNREAD, pageable);
         } else {
             notificationsPage = notificationRepository.findAllByReceiverId(currentUserId, pageable);
         }

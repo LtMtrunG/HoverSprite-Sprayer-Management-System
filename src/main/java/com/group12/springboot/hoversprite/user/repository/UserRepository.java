@@ -36,7 +36,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Page<User> findAllByRoleName(@Param("roleName") String roleName, Pageable pageable);
 
     @Query("SELECT u FROM User u WHERE u.role.name = 'SPRAYER' AND u.id NOT IN :excludedIds")
-    Page<User> findAllSprayersExcludeByIds(
+    Page<User> findPagedSprayersExcludeByIds(
             @Param("excludedIds") List<Long> excludedIds,
             Pageable pageable);
 
