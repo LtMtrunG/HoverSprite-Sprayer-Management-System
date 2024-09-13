@@ -768,21 +768,19 @@ public class BookingService implements BookingAPI {
     }
 
     @PreAuthorize("hasRole('SPRAYER')")
-    public List<double[]> getBookingRoute() {
+    public List<double[]> getBookingRoute(String date) {
         // Fetch field IDs for bookings the sprayer performed on the given date
-
         Long currentUserId = userAPI.getCurrentUserId();
         SprayerDTO sprayerDTO = userAPI.findSprayerById(currentUserId);
         if (sprayerDTO == null) {
             throw new CustomException(ErrorCode.SPRAYER_NOT_EXIST);
         }
 
-        // Get current date
-        LocalDate currentDate = LocalDate.now();
-
         // Fetch longitude and latitude for these fields
 
-        List<TimeSlotDTO> timeSlotDTOList = timeSlotAPI.getTimeSlotByDate(currentDate);
+        LocalDate localDate = LocalDate.parse(date);
+        List<TimeSlotDTO> timeSlotDTOList = timeSlotAPI.getTimeSlotByDate(localDate);
+        timeSlotDTOList.sort(Comparator.comparing(TimeSlotDTO::getStartTime));
 
         List<Long> fieldIds = new ArrayList<>();
 
@@ -790,8 +788,10 @@ public class BookingService implements BookingAPI {
             List<Booking> bookings = bookingRepository.findByTimeSlotId(timeSlotDTO.getId());
 
             for (Booking booking : bookings) {
+                List<Long> sprayersId = booking.getSprayersId();
+
                 // Check if the current sprayer is part of the booking
-                if (booking.getSprayersId().contains(currentUserId)) {
+                if (sprayersId != null && sprayersId.contains(currentUserId)) {
                     // Add the field ID associated with the booking
                     fieldIds.add(booking.getFieldId());
                 }

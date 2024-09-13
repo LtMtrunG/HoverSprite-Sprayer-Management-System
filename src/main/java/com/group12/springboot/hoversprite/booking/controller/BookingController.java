@@ -151,9 +151,9 @@ public class BookingController {
     }
 
     @GetMapping("/sprayer/route")
-    ApiResponse<List<double[]>> getBookingRoute() {
+    ApiResponse<List<double[]>> getBookingRoute(@RequestParam("date") String date) {
         ApiResponse<List<double[]>> apiResponse = new ApiResponse<>();
-        apiResponse.setResult(bookingService.getBookingRoute());
+        apiResponse.setResult(bookingService.getBookingRoute(date));
         return apiResponse;
     }
 }
