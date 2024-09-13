@@ -4,6 +4,7 @@ import com.group12.springboot.hoversprite.common.ListResponse;
 import org.springframework.security.access.AccessDeniedException;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface BookingAPI {
 
@@ -40,4 +41,6 @@ public interface BookingAPI {
     public void saveFeedbackToBooking(Long bookingId, Long feedbackId);
 
     public List<BookingDTO> findIncompleteBookingByFieldId(Long fieldId);
+
+    public BookingDTO findBookingById(Long bookingId);
 }

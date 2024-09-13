@@ -1,9 +1,7 @@
 package com.group12.springboot.hoversprite.booking.service;
 
-import java.sql.Time;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -442,6 +440,14 @@ public class BookingService implements BookingAPI {
 
         return new BookingResponse(booking);
     }
+
+    @Override
+    public BookingDTO findBookingById(Long bookingId) {
+        Optional<Booking> booking = bookingRepository.findById(bookingId);
+        return booking.map(BookingDTO::new)
+                .orElse(null);
+    }
+
 
     // public BookingResponse updateBooking(BookingUpdateRequest request) throws
     // AccessDeniedException {

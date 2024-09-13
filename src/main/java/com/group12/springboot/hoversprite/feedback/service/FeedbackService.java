@@ -1,6 +1,7 @@
 package com.group12.springboot.hoversprite.feedback.service;
 
 import com.group12.springboot.hoversprite.booking.BookingAPI;
+import com.group12.springboot.hoversprite.booking.BookingDTO;
 import com.group12.springboot.hoversprite.config.CustomUserDetails;
 import com.group12.springboot.hoversprite.exception.CustomException;
 import com.group12.springboot.hoversprite.exception.ErrorCode;
@@ -20,7 +21,9 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -33,8 +36,14 @@ public class FeedbackService {
 
     @PreAuthorize("hasRole('FARMER')")
     public FeedbackCreationResponse createFeedBack(FeedbackCreationRequest request){
-        if (!bookingAPI.isBookingExist(request.getBookingId())) {
+
+        BookingDTO bookingDTO = bookingAPI.findBookingById(request.getBookingId());
+        if (bookingDTO == null) {
             throw new CustomException(ErrorCode.BOOKING_NOT_EXISTS);
+        }
+
+        if (!bookingDTO.getStatus().toString().equals("COMPLETED")) {
+            throw new CustomException(ErrorCode.BOOKING_NOT_COMPLETE);
         }
 
         if (bookingAPI.doesBookingHaveFeedback(request.getBookingId())) {
@@ -46,9 +55,11 @@ public class FeedbackService {
             throw new CustomException(ErrorCode.FARMER_NOT_OWNED);
         }
 
-        if (request.getImages().length > 5) {
+        if (request.getImages().size() > 5) {
             throw new CustomException(ErrorCode.IMAGES_EXCEED);
         }
+
+        System.out.println(request.getImages());
 
         Feedback feedback = new Feedback();
         feedback.setDescription(request.getDescription());
@@ -56,9 +67,13 @@ public class FeedbackService {
         feedback.setAttentiveRating(request.getAttentive_rating());
         feedback.setFriendlyRating(request.getFriendly_rating());
         feedback.setProfessionalRating(request.getProfessional_rating());
-        feedback.setImages(request.getImages());
-
-        System.out.println(Arrays.toString(feedback.getImages()));
+        // Ensure that the images list is correctly assigned
+        List<String> images = request.getImages();
+        if (images != null && !images.isEmpty()) {
+            feedback.setImages(new ArrayList<>(images));  // Ensure you're creating a new list to avoid overwrites
+        } else {
+            System.out.println("No images found in the request.");
+        }
 
         Feedback savedFeedback = feedbackRepository.save(feedback);
 
