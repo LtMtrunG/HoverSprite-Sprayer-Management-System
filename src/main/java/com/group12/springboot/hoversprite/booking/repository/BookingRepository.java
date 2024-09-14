@@ -21,6 +21,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByTimeSlotId(Long timeSlotId);
     List<Booking> findByFieldId(Long fieldId);
     List<Booking> findByFieldIdAndStatusNot(Long fieldId, BookingStatus status);
+    Page<Booking> findByFarmerIdAndStatus(Long farmerId, BookingStatus status, Pageable pageable);
     boolean existsById(Long id);
     @Query("SELECT b FROM Booking b WHERE b.status = :status ORDER BY b.createdTime DESC")
     List<Booking> findByStatus(@Param("status") BookingStatus status);
@@ -30,4 +31,59 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     Page<Booking> findAllOrderByStatus(Pageable pageable);
     @Query("SELECT b FROM Booking b WHERE b.farmerId = :farmerId ORDER BY CASE WHEN b.status = 'COMPLETED' THEN 1 ELSE 0 END, b.createdTime DESC")
     Page<Booking> findByFarmerIdOrderByStatus(@Param("farmerId") Long farmerId, Pageable pageable);
+    Page<Booking> findByFarmerIdAndStatusIn(Long farmerId, List<BookingStatus> bookingStatuses, Pageable pageable);
+
+    @Query("SELECT b FROM Booking b JOIN Field f ON b.fieldId = f.id " +
+            "WHERE b.farmerId = :farmerId " +
+            "AND CAST(f.cropType AS string) LIKE %:keyword% " +
+            "AND b.status IN :statuses")
+    Page<Booking> findByFarmerIdAndFieldCropTypeContainingKeywordAndStatusIn(
+            @Param("farmerId") Long farmerId,
+            @Param("keyword") String keyword,
+            @Param("statuses") List<BookingStatus> statuses,
+            Pageable pageable
+    );
+
+    @Query("SELECT b FROM Booking b JOIN Field f ON b.fieldId = f.id " +
+            "WHERE b.farmerId = :farmerId " +
+            "AND CAST(f.cropType AS string) LIKE %:keyword% ")
+    Page<Booking> findByFarmerIdAndFieldCropTypeContainingKeyword(
+            @Param("farmerId") Long farmerId,
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
+
+    @Query("SELECT b FROM Booking b JOIN Field f ON b.fieldId = f.id " +
+            "WHERE b.farmerId = :farmerId " +
+            "AND CAST(f.cropType AS string) LIKE %:keyword% " +
+            "AND b.status = :status")
+    Page<Booking> findByFarmerIdAndFieldCropTypeContainingKeywordAndStatus(
+            @Param("farmerId") Long farmerId,
+            @Param("keyword") String keyword,
+            @Param("status") BookingStatus status,
+            Pageable pageable
+    );
+
+    @Query("SELECT b FROM Booking b WHERE b.farmerId = :farmerId AND CAST(b.id AS string) LIKE %:id%")
+    Page<Booking> findByFarmerIdAndIdContaining(
+            @Param("farmerId") Long farmerId,
+            @Param("id") String id,
+            Pageable pageable
+    );
+
+    @Query("SELECT b FROM Booking b WHERE b.farmerId = :farmerId AND CAST(b.id AS string) LIKE %:keyword% AND b.status IN :statuses")
+    Page<Booking> findByFarmerIdAndIdContainingAndStatusIn(
+            @Param("farmerId") Long farmerId,
+            @Param("keyword") String keyword,
+            @Param("statuses") List<BookingStatus> statuses,
+            Pageable pageable
+    );
+
+    @Query("SELECT b FROM Booking b WHERE b.farmerId = :farmerId AND CAST(b.id AS string) LIKE %:keyword% AND b.status = :status")
+    Page<Booking> findByFarmerIdAndIdContainingAndStatus(
+            @Param("farmerId") Long farmerId,
+            @Param("keyword") String keyword,
+            @Param("status") BookingStatus status,
+            Pageable pageable
+    );
 }

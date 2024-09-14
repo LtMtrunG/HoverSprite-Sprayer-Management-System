@@ -11,11 +11,10 @@ import com.group12.springboot.hoversprite.field.FieldAPI;
 import com.group12.springboot.hoversprite.field.FieldDTO;
 import com.group12.springboot.hoversprite.user.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +29,8 @@ import com.group12.springboot.hoversprite.timeslot.TimeSlotCreateRequest;
 import com.group12.springboot.hoversprite.timeslot.TimeSlotDTO;
 
 import lombok.RequiredArgsConstructor;
+
+import static com.nimbusds.oauth2.sdk.util.StringUtils.isNumeric;
 
 @Service
 @RequiredArgsConstructor
@@ -74,7 +75,7 @@ public class BookingService implements BookingAPI {
 
         emailAPI.sendBookingEmail(new BookingDTO(booking));
 
-        return new BookingResponse(booking);
+        return generateBookingResponse(booking);
     }
 
     @Override
@@ -118,7 +119,7 @@ public class BookingService implements BookingAPI {
 
         autoAssignToAllUnAssignedBooking();
 
-        return new BookingResponse(booking);
+        return generateBookingResponse(booking);
     }
 
     @Override
@@ -138,7 +139,7 @@ public class BookingService implements BookingAPI {
 
         emailAPI.sendBookingEmail(new BookingDTO(booking));
 
-        return new BookingResponse(booking);
+        return generateBookingResponse(booking);
     }
 
     @Override
@@ -171,7 +172,7 @@ public class BookingService implements BookingAPI {
 
         autoAssignToAllUnAssignedBooking();
 
-        return new BookingResponse(booking);
+        return generateBookingResponse(booking);
     }
 
     @Override
@@ -255,7 +256,7 @@ public class BookingService implements BookingAPI {
 
         emailAPI.sendBookingEmail(new BookingDTO(booking));
 
-        return new BookingResponse(booking);
+        return generateBookingResponse(booking);
     }
 
     private boolean checkSprayersAvailability(List<Long> sprayersId, Long timeSlotId) {
@@ -298,10 +299,9 @@ public class BookingService implements BookingAPI {
                 (apprentice_lv == 1 && expert_lv == 1) || (apprentice_lv == 1 && adept_lv == 1));
     }
 
-    @Override
     @PreAuthorize("hasRole('SPRAYER')")
-    public BookingResponse inProgressBooking(BookingInProgressRequest request) throws AccessDeniedException {
-        Booking booking = bookingRepository.findById(request.getId())
+    public BookingResponse inProgressBooking(Long id) {
+        Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new CustomException(ErrorCode.BOOKING_NOT_EXISTS));
 
         if (booking.getStatus() != BookingStatus.ASSIGNED && booking.getStatus() != BookingStatus.IN_PROGRESS_1_2) {
@@ -344,7 +344,7 @@ public class BookingService implements BookingAPI {
 
         bookingRepository.save(booking);
 
-        return new BookingResponse(booking);
+        return generateBookingResponse(booking);
     }
 
     @Override
@@ -370,7 +370,7 @@ public class BookingService implements BookingAPI {
         booking.setStatus(BookingStatus.COMPLETED_BY_FARMER);
         bookingRepository.save(booking);
 
-        return new BookingResponse(booking);
+        return generateBookingResponse(booking);
     }
 
     @PreAuthorize("hasRole('SPRAYER')")
@@ -396,7 +396,7 @@ public class BookingService implements BookingAPI {
 
         emailAPI.sendBookingEmail(new BookingDTO(booking));
 
-        return new BookingResponse(booking);
+        return generateBookingResponse(booking);
     }
 
     @Override
@@ -406,25 +406,69 @@ public class BookingService implements BookingAPI {
         Page<Booking> bookingPage = bookingRepository.findAllOrderByStatus(pageable);
 
         List<BookingResponse> bookingResponses = bookingPage.getContent().stream()
-                .map(BookingResponse::new)
+                .map(this::generateBookingResponse)
                 .collect(Collectors.toList());
 
         return createListResponse(bookingPage, bookingResponses);
     }
 
-    @Override
     @PreAuthorize("hasRole('FARMER')")
-    public ListResponse<BookingResponse> getMyBookings(int pageNo, int pageSize) {
+    public Page<BookingResponse> getMyBookings(int pageNo, int pageSize, String status, String keyword) {
         Long farmerId = userAPI.getCurrentUserId();
+        Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
+        Page<Booking> bookingPage;
 
-        Pageable pageable = PageRequest.of(pageNo, pageSize);
-        Page<Booking> bookingPage = bookingRepository.findByFarmerIdOrderByStatus(farmerId, pageable);
+        // Normalize status to upper case
+        String normalizedStatus = status.toUpperCase();
+        keyword = keyword.toUpperCase();
+
+        // Check if the status is a valid BookingStatus, otherwise assign "ALL"
+        boolean isValidStatus = Arrays.stream(BookingStatus.values())
+                .anyMatch(s -> s.name().equals(normalizedStatus));
+
+        if (keyword.isEmpty()) {
+            if (normalizedStatus.equals("IN_PROGRESS")) {
+                List<BookingStatus> statuses = Arrays.asList(BookingStatus.IN_PROGRESS_1_2, BookingStatus.IN_PROGRESS_1_2, BookingStatus.IN_PROGRESS_2_2);
+                bookingPage = bookingRepository.findByFarmerIdAndStatusIn(farmerId, statuses, pageable);
+            } else if (!isValidStatus || normalizedStatus.equals("ALL")) {
+                // Fetch all bookings if status is "ALL" or invalid
+                bookingPage = bookingRepository.findByFarmerIdOrderByStatus(farmerId, pageable);
+            }else {
+                // Convert the status to BookingStatus enum and fetch bookings by the specified status
+                BookingStatus bookingStatus = BookingStatus.valueOf(normalizedStatus);
+                bookingPage = bookingRepository.findByFarmerIdAndStatus(farmerId, bookingStatus, pageable);
+            }
+        } if (isNumeric(keyword)) {
+            if (normalizedStatus.equals("IN_PROGRESS")) {
+                List<BookingStatus> statuses = Arrays.asList(BookingStatus.IN_PROGRESS_1_2, BookingStatus.IN_PROGRESS_1_2, BookingStatus.IN_PROGRESS_2_2);
+                bookingPage = bookingRepository.findByFarmerIdAndIdContainingAndStatusIn(farmerId, keyword, statuses, pageable);
+            } else if (!isValidStatus || normalizedStatus.equals("ALL")) {
+                // Fetch all bookings if status is "ALL" or invalid
+                bookingPage = bookingRepository.findByFarmerIdAndIdContaining(farmerId, keyword, pageable);
+            }else {
+                // Convert the status to BookingStatus enum and fetch bookings by the specified status
+                BookingStatus bookingStatus = BookingStatus.valueOf(normalizedStatus);
+                bookingPage = bookingRepository.findByFarmerIdAndIdContainingAndStatus(farmerId, keyword, bookingStatus, pageable);
+            }
+        } else {
+            if (normalizedStatus.equals("IN_PROGRESS")) {
+                List<BookingStatus> statuses = Arrays.asList(BookingStatus.IN_PROGRESS_1_2, BookingStatus.IN_PROGRESS_1_2, BookingStatus.IN_PROGRESS_2_2);
+                bookingPage = bookingRepository.findByFarmerIdAndFieldCropTypeContainingKeywordAndStatusIn(farmerId, keyword, statuses, pageable);
+            } else if (!isValidStatus || normalizedStatus.equals("ALL")) {
+                // Fetch all bookings if status is "ALL" or invalid
+                bookingPage = bookingRepository.findByFarmerIdAndFieldCropTypeContainingKeyword(farmerId, keyword, pageable);
+            }else {
+                // Convert the status to BookingStatus enum and fetch bookings by the specified status
+                BookingStatus bookingStatus = BookingStatus.valueOf(normalizedStatus);
+                bookingPage = bookingRepository.findByFarmerIdAndFieldCropTypeContainingKeywordAndStatus(farmerId, keyword, bookingStatus, pageable);
+            }
+        }
 
         List<BookingResponse> bookingResponses = bookingPage.getContent().stream()
-                .map(BookingResponse::new)
+                .map(this::generateBookingResponse)
                 .collect(Collectors.toList());
 
-        return createListResponse(bookingPage, bookingResponses);
+        return new PageImpl<>(bookingResponses, pageable, bookingPage.getTotalElements());
     }
 
     public BookingResponse getBookingById(Long bookingId) {
@@ -438,7 +482,7 @@ public class BookingService implements BookingAPI {
             throw new CustomException(ErrorCode.UNAUTHORIZED);
         }
 
-        return new BookingResponse(booking);
+        return generateBookingResponse(booking);
     }
 
     @Override
@@ -541,9 +585,8 @@ public class BookingService implements BookingAPI {
         return bookedSprayersId;
     }
 
-    @Override
     @PreAuthorize("hasRole('RECEPTIONIST')")
-    public ListResponse<AvailableSprayersResponse> getAvailableSprayersByTimeSlot(int pageNo, int pageSize,
+    public Page<AvailableSprayersResponse> getAvailableSprayersByTimeSlot(int pageNo, int pageSize,
                                                                                   AvailableSprayersRequest request) {
 
         TimeSlotDTO timeSlotDTO = timeSlotAPI.findById(request.getTimeSlotId());
@@ -559,15 +602,7 @@ public class BookingService implements BookingAPI {
                 .map(sprayer -> new AvailableSprayersResponse(sprayer))
                 .collect(Collectors.toList());
 
-        ListResponse<AvailableSprayersResponse> listResponse = new ListResponse<>();
-        listResponse.setContent(availableSprayerResponses);
-        listResponse.setPageNo(availableSprayersPage.getNumber());
-        listResponse.setPageSize(availableSprayersPage.getSize());
-        listResponse.setTotalPages(availableSprayersPage.getTotalPages());
-        listResponse.setTotalSize(availableSprayersPage.getTotalElements());
-        listResponse.setLast(availableSprayersPage.isLast());
-
-        return listResponse;
+        return new PageImpl<>(availableSprayerResponses, pageable, availableSprayersPage.getTotalElements());
     }
 
     @Override
@@ -765,7 +800,7 @@ public class BookingService implements BookingAPI {
 
         // Convert the filtered bookings to BookingResponse DTOs
         List<BookingResponse> bookingResponses = userBookings.stream()
-                .map(BookingResponse::new)
+                .map(this::generateBookingResponse)
                 .collect(Collectors.toList());
 
         // Return the response as a ListResponse object
@@ -818,5 +853,33 @@ public class BookingService implements BookingAPI {
         }
 
         return coordinateList;
+    }
+
+    private BookingResponse generateBookingResponse(Booking booking) {
+        TimeSlotDTO timeSlotDTO = timeSlotAPI.findById(booking.getTimeSlotId());
+        if (timeSlotDTO == null) {
+            throw new CustomException(ErrorCode.TIME_SLOT_NOT_EXISTS);
+        }
+
+        FieldDTO fieldDTO = fieldAPI.findFieldById(booking.getFieldId());
+        if (fieldDTO == null) {
+            throw new CustomException(ErrorCode.FIELD_NOT_EXIST);
+        }
+
+        List<String> sprayersName = new ArrayList<>();
+        List<Long> sprayersId = booking.getSprayersId(); // Potentially null
+
+        // Check if sprayersId is not null and not empty
+        if (sprayersId != null && !sprayersId.isEmpty()) {
+            for (Long sprayerId : sprayersId) {
+                SprayerDTO sprayerDTO = userAPI.findSprayerById(sprayerId);
+                if (sprayerDTO == null) {
+                    throw new CustomException(ErrorCode.SPRAYER_NOT_EXIST);
+                }
+                sprayersName.add(sprayerDTO.getFullName());
+            }
+        }
+
+        return new BookingResponse(booking, sprayersName, timeSlotDTO, fieldDTO);
     }
 }

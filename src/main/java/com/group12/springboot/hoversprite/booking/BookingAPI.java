@@ -20,15 +20,9 @@ public interface BookingAPI {
 
     public ListResponse<BookingResponse> getBookings(int pageNo, int pageSize);
 
-    public ListResponse<BookingResponse> getMyBookings(int pageNo, int pageSize);
-
     public void deleteBooking(Long bookingId);
 
-    public ListResponse<AvailableSprayersResponse> getAvailableSprayersByTimeSlot(int pageNo, int pageSize, AvailableSprayersRequest request);
-
     public BookingResponse assignSprayers(BookingAssignRequest request);
-
-    public BookingResponse inProgressBooking(BookingInProgressRequest request) throws AccessDeniedException;
 
     public boolean isBookingExist(Long bookingId);
 

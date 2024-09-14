@@ -12,6 +12,9 @@ class DocumentationTests {
     @Test
     void writeDocumentationSnippets() {
 
+//        new Documenter(modules)
+//                .writeModulesAsPlantUml(Documenter.DiagramOptions.defaults().withStyle(Documenter.DiagramOptions.DiagramStyle.UML))
+//                .writeIndividualModulesAsPlantUml(Documenter.DiagramOptions.defaults().withStyle(Documenter.DiagramOptions.DiagramStyle.UML));
         new Documenter(modules)
                 .writeModulesAsPlantUml()
                 .writeIndividualModulesAsPlantUml();
