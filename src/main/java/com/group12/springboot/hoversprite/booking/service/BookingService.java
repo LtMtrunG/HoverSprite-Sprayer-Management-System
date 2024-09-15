@@ -415,6 +415,11 @@ public class BookingService implements BookingAPI {
     @PreAuthorize("hasRole('FARMER')")
     public Page<BookingResponse> getMyBookings(int pageNo, int pageSize, String status, String keyword) {
         Long farmerId = userAPI.getCurrentUserId();
+        FarmerDTO farmerDTO = userAPI.findFarmerById(farmerId);
+        if (farmerDTO == null) {
+            throw new CustomException(ErrorCode.FARMER_NOT_EXIST);
+        }
+
         Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
         Page<Booking> bookingPage;
 
@@ -438,7 +443,7 @@ public class BookingService implements BookingAPI {
                 BookingStatus bookingStatus = BookingStatus.valueOf(normalizedStatus);
                 bookingPage = bookingRepository.findByFarmerIdAndStatus(farmerId, bookingStatus, pageable);
             }
-        } if (isNumeric(keyword)) {
+        } else if (isNumeric(keyword)) {
             if (normalizedStatus.equals("IN_PROGRESS")) {
                 List<BookingStatus> statuses = Arrays.asList(BookingStatus.IN_PROGRESS_1_2, BookingStatus.IN_PROGRESS_1_2, BookingStatus.IN_PROGRESS_2_2);
                 bookingPage = bookingRepository.findByFarmerIdAndIdContainingAndStatusIn(farmerId, keyword, statuses, pageable);
@@ -461,6 +466,71 @@ public class BookingService implements BookingAPI {
                 // Convert the status to BookingStatus enum and fetch bookings by the specified status
                 BookingStatus bookingStatus = BookingStatus.valueOf(normalizedStatus);
                 bookingPage = bookingRepository.findByFarmerIdAndFieldCropTypeContainingKeywordAndStatus(farmerId, keyword, bookingStatus, pageable);
+            }
+        }
+
+        List<BookingResponse> bookingResponses = bookingPage.getContent().stream()
+                .map(this::generateBookingResponse)
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(bookingResponses, pageable, bookingPage.getTotalElements());
+    }
+
+    @PreAuthorize("hasRole('SPRAYER')")
+    public Page<BookingResponse> getAssignedBookings(int pageNo, int pageSize, String status, String keyword) {
+        Long sprayerId = userAPI.getCurrentUserId();
+        SprayerDTO sprayerDTO = userAPI.findSprayerById(sprayerId);
+        if (sprayerDTO == null) {
+            throw new CustomException(ErrorCode.SPRAYER_NOT_EXIST);
+        }
+
+        Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
+
+        Page<Booking> bookingPage;
+
+        // Normalize status to upper case
+        String normalizedStatus = status.toUpperCase();
+        keyword = keyword.toUpperCase();
+
+        // Check if the status is a valid BookingStatus, otherwise assign "ALL"
+        boolean isValidStatus = Arrays.stream(BookingStatus.values())
+                .anyMatch(s -> s.name().equals(normalizedStatus));
+
+        if (keyword.isEmpty()) {
+            if (normalizedStatus.equals("IN_PROGRESS")) {
+                List<BookingStatus> statuses = Arrays.asList(BookingStatus.IN_PROGRESS_1_2, BookingStatus.IN_PROGRESS_1_2, BookingStatus.IN_PROGRESS_2_2);
+                bookingPage = bookingRepository.findBySprayersIdContainingAndStatusIn(sprayerId, statuses, pageable);
+            } else if (!isValidStatus || normalizedStatus.equals("ALL")) {
+                // Fetch all bookings if status is "ALL" or invalid
+                bookingPage = bookingRepository.findBySprayersIdContaining(sprayerId, pageable);
+            }else {
+                // Convert the status to BookingStatus enum and fetch bookings by the specified status
+                BookingStatus bookingStatus = BookingStatus.valueOf(normalizedStatus);
+                bookingPage = bookingRepository.findBySprayersIdContainingAndStatus(sprayerId, bookingStatus, pageable);
+            }
+        } else if (isNumeric(keyword)) {
+            if (normalizedStatus.equals("IN_PROGRESS")) {
+                List<BookingStatus> statuses = Arrays.asList(BookingStatus.IN_PROGRESS_1_2, BookingStatus.IN_PROGRESS_1_2, BookingStatus.IN_PROGRESS_2_2);
+                bookingPage = bookingRepository.findBySprayersIdContainingAndIdContainingAndStatusIn(sprayerId, keyword, statuses, pageable);
+            } else if (!isValidStatus || normalizedStatus.equals("ALL")) {
+                // Fetch all bookings if status is "ALL" or invalid
+                bookingPage = bookingRepository.findBySprayersIdContainingAndIdContaining(sprayerId, keyword, pageable);
+            }else {
+                // Convert the status to BookingStatus enum and fetch bookings by the specified status
+                BookingStatus bookingStatus = BookingStatus.valueOf(normalizedStatus);
+                bookingPage = bookingRepository.findBySprayersIdContainingAndIdContainingAndStatus(sprayerId, keyword, bookingStatus, pageable);
+            }
+        } else {
+            if (normalizedStatus.equals("IN_PROGRESS")) {
+                List<BookingStatus> statuses = Arrays.asList(BookingStatus.IN_PROGRESS_1_2, BookingStatus.IN_PROGRESS_1_2, BookingStatus.IN_PROGRESS_2_2);
+                bookingPage = bookingRepository.findBySprayersIdContainingAndFieldCropTypeContainingKeywordAndStatusIn(sprayerId, keyword, statuses, pageable);
+            } else if (!isValidStatus || normalizedStatus.equals("ALL")) {
+                // Fetch all bookings if status is "ALL" or invalid
+                bookingPage = bookingRepository.findBySprayersIdContainingAndFieldCropTypeContainingKeyword(sprayerId, keyword, pageable);
+            }else {
+                // Convert the status to BookingStatus enum and fetch bookings by the specified status
+                BookingStatus bookingStatus = BookingStatus.valueOf(normalizedStatus);
+                bookingPage = bookingRepository.findBySprayersIdContainingAndFieldCropTypeContainingKeywordAndStatus(sprayerId, keyword, bookingStatus, pageable);
             }
         }
 

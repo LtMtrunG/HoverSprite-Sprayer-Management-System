@@ -86,4 +86,70 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             @Param("status") BookingStatus status,
             Pageable pageable
     );
+
+    Page<Booking> findBySprayersIdContainingAndStatusIn(Long sprayerId, List<BookingStatus> statuses, Pageable pageable);
+    Page<Booking> findBySprayersIdContainingAndStatus(Long sprayerId, BookingStatus status, Pageable pageable);
+    Page<Booking> findBySprayersIdContainingOrderByStatus(Long sprayerId, Pageable pageable);
+
+    Page<Booking> findBySprayersIdContaining(Long sprayerId, Pageable pageable);
+    @Query("SELECT b FROM Booking b JOIN Field f ON b.fieldId = f.id " +
+            "WHERE :sprayerId MEMBER OF b.sprayersId " +
+            "AND CAST(f.cropType AS string) LIKE %:keyword% " +
+            "AND b.status IN :statuses")
+    Page<Booking> findBySprayersIdContainingAndFieldCropTypeContainingKeywordAndStatusIn(
+            @Param("sprayerId") Long sprayerId,
+            @Param("keyword") String keyword,
+            @Param("statuses") List<BookingStatus> statuses,
+            Pageable pageable
+    );
+
+    @Query("SELECT b FROM Booking b JOIN Field f ON b.fieldId = f.id " +
+            "WHERE :sprayerId MEMBER OF b.sprayersId " +
+            "AND CAST(f.cropType AS string) LIKE %:keyword% " +
+            "AND b.status = :status")
+    Page<Booking> findBySprayersIdContainingAndFieldCropTypeContainingKeywordAndStatus(
+            @Param("sprayerId") Long sprayerId,
+            @Param("keyword") String keyword,
+            @Param("status") BookingStatus status,
+            Pageable pageable
+    );
+
+    @Query("SELECT b FROM Booking b JOIN Field f ON b.fieldId = f.id " +
+            "WHERE :sprayerId MEMBER OF b.sprayersId " +
+            "AND CAST(f.cropType AS string) LIKE %:keyword%")
+    Page<Booking> findBySprayersIdContainingAndFieldCropTypeContainingKeyword(
+            @Param("sprayerId") Long sprayerId,
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
+
+    @Query("SELECT b FROM Booking b WHERE :sprayerId MEMBER OF b.sprayersId " +
+            "AND CAST(b.id AS string) LIKE %:keyword% " +
+            "AND b.status IN :statuses")
+    Page<Booking> findBySprayersIdContainingAndIdContainingAndStatusIn(
+            @Param("sprayerId") Long sprayerId,
+            @Param("keyword") String keyword,
+            @Param("statuses") List<BookingStatus> statuses,
+            Pageable pageable
+    );
+
+    @Query("SELECT b FROM Booking b WHERE :sprayerId MEMBER OF b.sprayersId  " +
+            "AND CAST(b.id AS string) LIKE %:keyword%")
+    Page<Booking> findBySprayersIdContainingAndIdContaining(
+            @Param("sprayerId") Long sprayerId,
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
+
+    @Query("SELECT b FROM Booking b WHERE :sprayerId MEMBER OF b.sprayersId " +
+            "AND CAST(b.id AS string) LIKE %:keyword% " +
+            "AND b.status = :status")
+    Page<Booking> findBySprayersIdContainingAndIdContainingAndStatus(
+            @Param("sprayerId") Long sprayerId,
+            @Param("keyword") String keyword,
+            @Param("status") BookingStatus status,
+            Pageable pageable
+    );
+
+
 }

@@ -114,6 +114,16 @@ public class BookingController {
         return apiResponse;
     }
 
+    @GetMapping("/assignedBookings")
+    ApiResponse<Page<BookingResponse>> getAssignedBookings(@RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+                                                     @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
+                                                     @RequestParam(value = "status", defaultValue = "ALL", required = false) String status,
+                                                     @RequestParam(value = "keyword", defaultValue = "", required = false) String keyword){
+        ApiResponse<Page<BookingResponse>> apiResponse = new ApiResponse<>();
+        apiResponse.setResult(bookingService.getAssignedBookings(pageNo, pageSize, status, keyword));
+        return apiResponse;
+    }
+
     @GetMapping("/sprayers/available")
     ApiResponse<Page<AvailableSprayersResponse>> getAvailableSprayers(
             @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
