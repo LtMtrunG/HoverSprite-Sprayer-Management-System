@@ -97,10 +97,12 @@ public class BookingController {
      }
 
     @GetMapping()
-    ApiResponse<ListResponse<BookingResponse>> getBookings(@RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
-                                                           @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize){
-        ApiResponse<ListResponse<BookingResponse>> apiResponse = new ApiResponse<>();
-        apiResponse.setResult(bookingService.getBookings(pageNo, pageSize));
+    ApiResponse<Page<BookingResponse>> getBookings(@RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+                                                           @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
+                                                   @RequestParam(value = "status", defaultValue = "ALL", required = false) String status,
+                                                   @RequestParam(value = "keyword", defaultValue = "", required = false) String keyword){
+        ApiResponse<Page<BookingResponse>> apiResponse = new ApiResponse<>();
+        apiResponse.setResult(bookingService.getBookings(pageNo, pageSize, status, keyword));
         return apiResponse;
     }
 
@@ -128,9 +130,9 @@ public class BookingController {
     ApiResponse<Page<AvailableSprayersResponse>> getAvailableSprayers(
             @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
             @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
-            @RequestBody @Valid AvailableSprayersRequest request) {
+            @RequestParam("id") @Valid Long timeSlotId) {
         ApiResponse<Page<AvailableSprayersResponse>> apiResponse = new ApiResponse<>();
-        apiResponse.setResult(bookingService.getAvailableSprayersByTimeSlot(pageNo, pageSize, request));
+        apiResponse.setResult(bookingService.getAvailableSprayersByTimeSlot(pageNo, pageSize, timeSlotId));
         return apiResponse;
     }
 

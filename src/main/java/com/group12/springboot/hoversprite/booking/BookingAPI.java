@@ -18,8 +18,6 @@ public interface BookingAPI {
 
     public BookingResponse completeBookingByFarmer(BookingCompleteRequest request);
 
-    public ListResponse<BookingResponse> getBookings(int pageNo, int pageSize);
-
     public void deleteBooking(Long bookingId);
 
     public BookingResponse assignSprayers(BookingAssignRequest request);

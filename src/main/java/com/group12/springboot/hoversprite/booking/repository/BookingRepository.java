@@ -151,5 +151,57 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             Pageable pageable
     );
 
+    @Query("SELECT b FROM Booking b WHERE b.status IN :statuses")
+    Page<Booking> findByStatusIn(
+            @Param("statuses") List<BookingStatus> statuses,
+            Pageable pageable
+    );
+
+    Page<Booking> findByStatus(BookingStatus bookingStatus, Pageable pageable);
+
+    @Query("SELECT b FROM Booking b WHERE CAST(b.id AS string) LIKE %:keyword% AND b.status IN :statuses")
+    Page<Booking> findByIdContainingAndStatusIn(
+            @Param("keyword") String keyword,
+            @Param("statuses") List<BookingStatus> statuses,
+            Pageable pageable
+    );
+
+    @Query("SELECT b FROM Booking b WHERE CAST(b.id AS string) LIKE %:keyword%")
+    Page<Booking> findByIdContaining(
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
+
+    @Query("SELECT b FROM Booking b WHERE CAST(b.id AS string) LIKE %:keyword% AND b.status = :status")
+    Page<Booking> findByIdContainingAndStatus(
+            @Param("keyword") String keyword,
+            @Param("status") BookingStatus status,
+            Pageable pageable
+    );
+
+    @Query("SELECT b FROM Booking b JOIN Field f ON b.fieldId = f.id " +
+            "WHERE CAST(f.cropType AS string) LIKE %:keyword% " +
+            "AND b.status IN :statuses")
+    Page<Booking> findByFieldCropTypeContainingKeywordAndStatusIn(
+            @Param("keyword") String keyword,
+            @Param("statuses") List<BookingStatus> statuses,
+            Pageable pageable
+    );
+
+    @Query("SELECT b FROM Booking b JOIN Field f ON b.fieldId = f.id " +
+            "WHERE CAST(f.cropType AS string) LIKE %:keyword%")
+    Page<Booking> findByFieldCropTypeContainingKeyword(
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
+
+    @Query("SELECT b FROM Booking b JOIN Field f ON b.fieldId = f.id " +
+            "WHERE CAST(f.cropType AS string) LIKE %:keyword% " +
+            "AND b.status = :status")
+    Page<Booking> findByFieldCropTypeContainingKeywordAndStatus(
+            @Param("keyword") String keyword,
+            @Param("status") BookingStatus status,
+            Pageable pageable
+    );
 
 }

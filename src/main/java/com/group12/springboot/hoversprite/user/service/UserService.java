@@ -323,14 +323,24 @@ public class UserService implements UserAPI {
     @Override
     @PreAuthorize("hasRole('RECEPTIONIST')")
     public Page<SprayerDTO> getAvailableSprayers(List<Long> bookedSprayersId, Pageable pageable) {
-        // Fetch the list of sprayers
-        List<SprayerDTO> sprayersId = userRepository.findPagedSprayersExcludeByIds(bookedSprayersId, pageable)
+        Page<User> page;
+
+        if (bookedSprayersId == null || bookedSprayersId.isEmpty()) {
+            // Fetch all sprayers
+            page = userRepository.findAllByRoleName("SPRAYER", pageable);
+        } else {
+            // Fetch sprayers excluding those in the bookedSprayersId list
+            page = userRepository.findPagedSprayersExcludeByIds(bookedSprayersId, pageable);
+        }
+
+        // Convert Page<User> to Page<SprayerDTO>
+        List<SprayerDTO> sprayers = page.getContent()
                 .stream()
-                .map(user -> new SprayerDTO(user))
+                .map(SprayerDTO::new)
                 .collect(Collectors.toList());
 
-        // Manually create a Page object
-        return new PageImpl<>(sprayersId, pageable, sprayersId.size());
+        // Return PageImpl with correct total number of elements
+        return new PageImpl<>(sprayers, pageable, page.getTotalElements());
     }
 
     @Override

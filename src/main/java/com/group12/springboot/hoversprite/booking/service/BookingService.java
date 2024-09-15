@@ -399,17 +399,69 @@ public class BookingService implements BookingAPI {
         return generateBookingResponse(booking);
     }
 
-    @Override
     @PreAuthorize("hasRole('RECEPTIONIST')")
-    public ListResponse<BookingResponse> getBookings(int pageNo, int pageSize) {
-        Pageable pageable = PageRequest.of(pageNo, pageSize);
-        Page<Booking> bookingPage = bookingRepository.findAllOrderByStatus(pageable);
+    public Page<BookingResponse> getBookings(int pageNo, int pageSize, String status, String keyword) {
+        Long receptionistId = userAPI.getCurrentUserId();
+        ReceptionistDTO receptionistDTO = userAPI.findReceptionistById(receptionistId);
+        if (receptionistDTO == null) {
+            throw new CustomException(ErrorCode.RECEPTIONIST_NOT_EXIST);
+        }
+
+        Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by("id").descending());
+        Page<Booking> bookingPage;
+
+        // Normalize status to upper case
+        String normalizedStatus = status.toUpperCase();
+        keyword = keyword.toUpperCase();
+
+        // Check if the status is a valid BookingStatus, otherwise assign "ALL"
+        boolean isValidStatus = Arrays.stream(BookingStatus.values())
+                .anyMatch(s -> s.name().equals(normalizedStatus));
+
+        if (keyword.isEmpty()) {
+            if (normalizedStatus.equals("IN_PROGRESS")) {
+                List<BookingStatus> statuses = Arrays.asList(BookingStatus.IN_PROGRESS_1_2, BookingStatus.IN_PROGRESS_1_2, BookingStatus.IN_PROGRESS_2_2);
+                bookingPage = bookingRepository.findByStatusIn(statuses, pageable);
+            } else if (!isValidStatus || normalizedStatus.equals("ALL")) {
+                // Fetch all bookings if status is "ALL" or invalid
+                System.out.println("ALL");
+                bookingPage = bookingRepository.findAll(pageable);
+            }else {
+                // Convert the status to BookingStatus enum and fetch bookings by the specified status
+                BookingStatus bookingStatus = BookingStatus.valueOf(normalizedStatus);
+                bookingPage = bookingRepository.findByStatus(bookingStatus, pageable);
+            }
+        } else if (isNumeric(keyword)) {
+            if (normalizedStatus.equals("IN_PROGRESS")) {
+                List<BookingStatus> statuses = Arrays.asList(BookingStatus.IN_PROGRESS_1_2, BookingStatus.IN_PROGRESS_1_2, BookingStatus.IN_PROGRESS_2_2);
+                bookingPage = bookingRepository.findByIdContainingAndStatusIn(keyword, statuses, pageable);
+            } else if (!isValidStatus || normalizedStatus.equals("ALL")) {
+                // Fetch all bookings if status is "ALL" or invalid
+                bookingPage = bookingRepository.findByIdContaining(keyword, pageable);
+            }else {
+                // Convert the status to BookingStatus enum and fetch bookings by the specified status
+                BookingStatus bookingStatus = BookingStatus.valueOf(normalizedStatus);
+                bookingPage = bookingRepository.findByIdContainingAndStatus(keyword, bookingStatus, pageable);
+            }
+        } else {
+            if (normalizedStatus.equals("IN_PROGRESS")) {
+                List<BookingStatus> statuses = Arrays.asList(BookingStatus.IN_PROGRESS_1_2, BookingStatus.IN_PROGRESS_1_2, BookingStatus.IN_PROGRESS_2_2);
+                bookingPage = bookingRepository.findByFieldCropTypeContainingKeywordAndStatusIn(keyword, statuses, pageable);
+            } else if (!isValidStatus || normalizedStatus.equals("ALL")) {
+                // Fetch all bookings if status is "ALL" or invalid
+                bookingPage = bookingRepository.findByFieldCropTypeContainingKeyword(keyword, pageable);
+            }else {
+                // Convert the status to BookingStatus enum and fetch bookings by the specified status
+                BookingStatus bookingStatus = BookingStatus.valueOf(normalizedStatus);
+                bookingPage = bookingRepository.findByFieldCropTypeContainingKeywordAndStatus(keyword, bookingStatus, pageable);
+            }
+        }
 
         List<BookingResponse> bookingResponses = bookingPage.getContent().stream()
                 .map(this::generateBookingResponse)
                 .collect(Collectors.toList());
 
-        return createListResponse(bookingPage, bookingResponses);
+        return new PageImpl<>(bookingResponses, pageable, bookingPage.getTotalElements());
     }
 
     @PreAuthorize("hasRole('FARMER')")
@@ -656,10 +708,9 @@ public class BookingService implements BookingAPI {
     }
 
     @PreAuthorize("hasRole('RECEPTIONIST')")
-    public Page<AvailableSprayersResponse> getAvailableSprayersByTimeSlot(int pageNo, int pageSize,
-                                                                                  AvailableSprayersRequest request) {
+    public Page<AvailableSprayersResponse> getAvailableSprayersByTimeSlot(int pageNo, int pageSize, Long timeSlotId) {
 
-        TimeSlotDTO timeSlotDTO = timeSlotAPI.findById(request.getTimeSlotId());
+        TimeSlotDTO timeSlotDTO = timeSlotAPI.findById(timeSlotId);
         if (timeSlotDTO == null) {
             throw new CustomException(ErrorCode.TIME_SLOT_NOT_EXISTS);
         }
@@ -669,7 +720,7 @@ public class BookingService implements BookingAPI {
 
         // Convert SprayerDTO to AvailableSprayersResponse
         List<AvailableSprayersResponse> availableSprayerResponses = availableSprayersPage.getContent().stream()
-                .map(sprayer -> new AvailableSprayersResponse(sprayer))
+                .map(AvailableSprayersResponse::new)
                 .collect(Collectors.toList());
 
         return new PageImpl<>(availableSprayerResponses, pageable, availableSprayersPage.getTotalElements());
@@ -733,11 +784,15 @@ public class BookingService implements BookingAPI {
             return;
         }
         for (Booking booking : unAssignedBooking) {
-            TimeSlotDTO timeSlotDTO = timeSlotAPI.findById(booking.getTimeSlotId());
-            if (timeSlotDTO == null) {
-                throw new RuntimeException();
+            if (booking.getId() % 2 == 0) {
+                System.out.println("Unassigned booking ID: ");
+                System.out.println(booking.getId());
+                TimeSlotDTO timeSlotDTO = timeSlotAPI.findById(booking.getTimeSlotId());
+                if (timeSlotDTO == null) {
+                    throw new RuntimeException();
+                }
+                autoAssign(booking, timeSlotDTO);
             }
-            autoAssign(booking, timeSlotDTO);
         }
     }
 
