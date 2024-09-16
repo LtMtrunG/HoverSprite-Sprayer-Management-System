@@ -347,10 +347,9 @@ public class BookingService implements BookingAPI {
         return generateBookingResponse(booking);
     }
 
-    @Override
     @PreAuthorize("hasRole('FARMER')")
-    public BookingResponse completeBookingByFarmer(BookingCompleteRequest request) {
-        Booking booking = bookingRepository.findById(request.getId())
+    public BookingResponse completeBookingByFarmer(Long id) {
+        Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Booking Not Found."));
 
         long farmerId = userAPI.getCurrentUserId();
@@ -374,9 +373,8 @@ public class BookingService implements BookingAPI {
     }
 
     @PreAuthorize("hasRole('SPRAYER')")
-    public BookingResponse completeBookingBySprayer(BookingCompleteRequest
-                                                            request) throws AccessDeniedException {
-        Booking booking = bookingRepository.findById(request.getId())
+    public BookingResponse completeBookingBySprayer(Long id) throws AccessDeniedException {
+        Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new CustomException(ErrorCode.BOOKING_NOT_EXISTS));
 
         Long sprayerId = userAPI.getCurrentUserId();
@@ -422,7 +420,10 @@ public class BookingService implements BookingAPI {
             if (normalizedStatus.equals("IN_PROGRESS")) {
                 List<BookingStatus> statuses = Arrays.asList(BookingStatus.IN_PROGRESS_1_2, BookingStatus.IN_PROGRESS_1_2, BookingStatus.IN_PROGRESS_2_2);
                 bookingPage = bookingRepository.findByStatusIn(statuses, pageable);
-            } else if (!isValidStatus || normalizedStatus.equals("ALL")) {
+            } else if (normalizedStatus.equals("COMPLETED")) {
+                List<BookingStatus> statuses = Arrays.asList(BookingStatus.COMPLETED_BY_FARMER, BookingStatus.COMPLETED);
+                bookingPage = bookingRepository.findByStatusIn(statuses, pageable);
+            }else if (!isValidStatus || normalizedStatus.equals("ALL")) {
                 // Fetch all bookings if status is "ALL" or invalid
                 System.out.println("ALL");
                 bookingPage = bookingRepository.findAll(pageable);
@@ -435,6 +436,9 @@ public class BookingService implements BookingAPI {
             if (normalizedStatus.equals("IN_PROGRESS")) {
                 List<BookingStatus> statuses = Arrays.asList(BookingStatus.IN_PROGRESS_1_2, BookingStatus.IN_PROGRESS_1_2, BookingStatus.IN_PROGRESS_2_2);
                 bookingPage = bookingRepository.findByIdContainingAndStatusIn(keyword, statuses, pageable);
+            } else if (normalizedStatus.equals("COMPLETED")) {
+                List<BookingStatus> statuses = Arrays.asList(BookingStatus.COMPLETED_BY_FARMER, BookingStatus.COMPLETED);
+                bookingPage = bookingRepository.findByIdContainingAndStatusIn(keyword, statuses, pageable);
             } else if (!isValidStatus || normalizedStatus.equals("ALL")) {
                 // Fetch all bookings if status is "ALL" or invalid
                 bookingPage = bookingRepository.findByIdContaining(keyword, pageable);
@@ -446,6 +450,9 @@ public class BookingService implements BookingAPI {
         } else {
             if (normalizedStatus.equals("IN_PROGRESS")) {
                 List<BookingStatus> statuses = Arrays.asList(BookingStatus.IN_PROGRESS_1_2, BookingStatus.IN_PROGRESS_1_2, BookingStatus.IN_PROGRESS_2_2);
+                bookingPage = bookingRepository.findByFieldCropTypeContainingKeywordAndStatusIn(keyword, statuses, pageable);
+            } else if (normalizedStatus.equals("COMPLETED")) {
+                List<BookingStatus> statuses = Arrays.asList(BookingStatus.COMPLETED_BY_FARMER, BookingStatus.COMPLETED);
                 bookingPage = bookingRepository.findByFieldCropTypeContainingKeywordAndStatusIn(keyword, statuses, pageable);
             } else if (!isValidStatus || normalizedStatus.equals("ALL")) {
                 // Fetch all bookings if status is "ALL" or invalid
@@ -487,6 +494,9 @@ public class BookingService implements BookingAPI {
             if (normalizedStatus.equals("IN_PROGRESS")) {
                 List<BookingStatus> statuses = Arrays.asList(BookingStatus.IN_PROGRESS_1_2, BookingStatus.IN_PROGRESS_1_2, BookingStatus.IN_PROGRESS_2_2);
                 bookingPage = bookingRepository.findByFarmerIdAndStatusIn(farmerId, statuses, pageable);
+            } else if (normalizedStatus.equals("COMPLETED")) {
+                List<BookingStatus> statuses = Arrays.asList(BookingStatus.COMPLETED_BY_FARMER, BookingStatus.COMPLETED);
+                bookingPage = bookingRepository.findByFarmerIdAndStatusIn(farmerId, statuses, pageable);
             } else if (!isValidStatus || normalizedStatus.equals("ALL")) {
                 // Fetch all bookings if status is "ALL" or invalid
                 bookingPage = bookingRepository.findByFarmerIdOrderByStatus(farmerId, pageable);
@@ -499,6 +509,9 @@ public class BookingService implements BookingAPI {
             if (normalizedStatus.equals("IN_PROGRESS")) {
                 List<BookingStatus> statuses = Arrays.asList(BookingStatus.IN_PROGRESS_1_2, BookingStatus.IN_PROGRESS_1_2, BookingStatus.IN_PROGRESS_2_2);
                 bookingPage = bookingRepository.findByFarmerIdAndIdContainingAndStatusIn(farmerId, keyword, statuses, pageable);
+            } else if (normalizedStatus.equals("COMPLETED")) {
+                List<BookingStatus> statuses = Arrays.asList(BookingStatus.COMPLETED_BY_FARMER, BookingStatus.COMPLETED);
+                bookingPage = bookingRepository.findByFarmerIdAndIdContainingAndStatusIn(farmerId, keyword, statuses, pageable);
             } else if (!isValidStatus || normalizedStatus.equals("ALL")) {
                 // Fetch all bookings if status is "ALL" or invalid
                 bookingPage = bookingRepository.findByFarmerIdAndIdContaining(farmerId, keyword, pageable);
@@ -510,6 +523,9 @@ public class BookingService implements BookingAPI {
         } else {
             if (normalizedStatus.equals("IN_PROGRESS")) {
                 List<BookingStatus> statuses = Arrays.asList(BookingStatus.IN_PROGRESS_1_2, BookingStatus.IN_PROGRESS_1_2, BookingStatus.IN_PROGRESS_2_2);
+                bookingPage = bookingRepository.findByFarmerIdAndFieldCropTypeContainingKeywordAndStatusIn(farmerId, keyword, statuses, pageable);
+            } else if (normalizedStatus.equals("COMPLETED")) {
+                List<BookingStatus> statuses = Arrays.asList(BookingStatus.COMPLETED_BY_FARMER, BookingStatus.COMPLETED);
                 bookingPage = bookingRepository.findByFarmerIdAndFieldCropTypeContainingKeywordAndStatusIn(farmerId, keyword, statuses, pageable);
             } else if (!isValidStatus || normalizedStatus.equals("ALL")) {
                 // Fetch all bookings if status is "ALL" or invalid
@@ -552,6 +568,9 @@ public class BookingService implements BookingAPI {
             if (normalizedStatus.equals("IN_PROGRESS")) {
                 List<BookingStatus> statuses = Arrays.asList(BookingStatus.IN_PROGRESS_1_2, BookingStatus.IN_PROGRESS_1_2, BookingStatus.IN_PROGRESS_2_2);
                 bookingPage = bookingRepository.findBySprayersIdContainingAndStatusIn(sprayerId, statuses, pageable);
+            } else if (normalizedStatus.equals("COMPLETED")) {
+                List<BookingStatus> statuses = Arrays.asList(BookingStatus.COMPLETED_BY_FARMER, BookingStatus.COMPLETED);
+                bookingPage = bookingRepository.findBySprayersIdContainingAndStatusIn(sprayerId, statuses, pageable);
             } else if (!isValidStatus || normalizedStatus.equals("ALL")) {
                 // Fetch all bookings if status is "ALL" or invalid
                 bookingPage = bookingRepository.findBySprayersIdContaining(sprayerId, pageable);
@@ -564,6 +583,9 @@ public class BookingService implements BookingAPI {
             if (normalizedStatus.equals("IN_PROGRESS")) {
                 List<BookingStatus> statuses = Arrays.asList(BookingStatus.IN_PROGRESS_1_2, BookingStatus.IN_PROGRESS_1_2, BookingStatus.IN_PROGRESS_2_2);
                 bookingPage = bookingRepository.findBySprayersIdContainingAndIdContainingAndStatusIn(sprayerId, keyword, statuses, pageable);
+            } else if (normalizedStatus.equals("COMPLETED")) {
+                List<BookingStatus> statuses = Arrays.asList(BookingStatus.COMPLETED_BY_FARMER, BookingStatus.COMPLETED);
+                bookingPage = bookingRepository.findBySprayersIdContainingAndIdContainingAndStatusIn(sprayerId, keyword, statuses, pageable);
             } else if (!isValidStatus || normalizedStatus.equals("ALL")) {
                 // Fetch all bookings if status is "ALL" or invalid
                 bookingPage = bookingRepository.findBySprayersIdContainingAndIdContaining(sprayerId, keyword, pageable);
@@ -575,6 +597,9 @@ public class BookingService implements BookingAPI {
         } else {
             if (normalizedStatus.equals("IN_PROGRESS")) {
                 List<BookingStatus> statuses = Arrays.asList(BookingStatus.IN_PROGRESS_1_2, BookingStatus.IN_PROGRESS_1_2, BookingStatus.IN_PROGRESS_2_2);
+                bookingPage = bookingRepository.findBySprayersIdContainingAndFieldCropTypeContainingKeywordAndStatusIn(sprayerId, keyword, statuses, pageable);
+            } else if (normalizedStatus.equals("COMPLETED")) {
+                List<BookingStatus> statuses = Arrays.asList(BookingStatus.COMPLETED_BY_FARMER, BookingStatus.COMPLETED);
                 bookingPage = bookingRepository.findBySprayersIdContainingAndFieldCropTypeContainingKeywordAndStatusIn(sprayerId, keyword, statuses, pageable);
             } else if (!isValidStatus || normalizedStatus.equals("ALL")) {
                 // Fetch all bookings if status is "ALL" or invalid

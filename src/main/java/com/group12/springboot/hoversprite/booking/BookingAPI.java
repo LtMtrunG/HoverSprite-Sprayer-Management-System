@@ -16,8 +16,6 @@ public interface BookingAPI {
 
     public BookingResponse confirmBooking(BookingConfirmationRequest request);
 
-    public BookingResponse completeBookingByFarmer(BookingCompleteRequest request);
-
     public void deleteBooking(Long bookingId);
 
     public BookingResponse assignSprayers(BookingAssignRequest request);

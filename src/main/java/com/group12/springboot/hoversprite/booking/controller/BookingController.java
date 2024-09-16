@@ -81,17 +81,17 @@ public class BookingController {
     }
 
     @PostMapping("/completeByFarmer")
-    ApiResponse<BookingResponse> completeBookingByFarmer(@RequestBody BookingCompleteRequest request) {
+    ApiResponse<BookingResponse> completeBookingByFarmer(@RequestParam("id") Long id) {
         ApiResponse<BookingResponse> apiResponse = new ApiResponse<>();
-        BookingResponse bookingResponse = bookingService.completeBookingByFarmer(request);
+        BookingResponse bookingResponse = bookingService.completeBookingByFarmer(id);
         apiResponse.setResult(bookingResponse);
         return apiResponse;
     }
 
      @PostMapping("/completeBySprayer")
-     ApiResponse<BookingResponse> completeBookingBySprayer(@RequestBody BookingCompleteRequest request) throws AccessDeniedException {
+     ApiResponse<BookingResponse> completeBookingBySprayer(@RequestParam("id") Long id) throws AccessDeniedException {
          ApiResponse<BookingResponse> apiResponse = new ApiResponse<>();
-         BookingResponse bookingResponse = bookingService.completeBookingBySprayer(request);
+         BookingResponse bookingResponse = bookingService.completeBookingBySprayer(id);
          apiResponse.setResult(bookingResponse);
          return apiResponse;
      }
