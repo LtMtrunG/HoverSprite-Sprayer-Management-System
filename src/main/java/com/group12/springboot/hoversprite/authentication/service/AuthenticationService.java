@@ -73,11 +73,11 @@ public class AuthenticationService implements AuthenticationAPI {
         var token = generateToken(user);
 
         ResponseCookie cookie = ResponseCookie.from("jwt", token)
-                .httpOnly(true)        // HTTP-only flag
-                .secure(false)          // Use secure flag if using HTTPS
+//                .httpOnly(true)        // HTTP-only flag
+                .secure(true)          // Use secure flag if using HTTPS
                 .path("/")             // Cookie available to the entire domain
                 .maxAge(6 * 60 * 60) // Set cookie expiration (7 days here)
-                .sameSite("Lax")    // CSRF protection
+                .sameSite("None")    // CSRF protection
                 .build();
 
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
@@ -155,11 +155,11 @@ public class AuthenticationService implements AuthenticationAPI {
 //        response.addCookie(cookie);
 
         ResponseCookie cookie = ResponseCookie.from("jwt", null)
-                .httpOnly(true)        // HTTP-only flag
-                .secure(false)          // Use secure flag if using HTTPS
+//                .httpOnly(true)        // HTTP-only flag
+                .secure(true)          // Use secure flag if using HTTPS
                 .path("/")             // Cookie available to the entire domain
                 .maxAge(0) // Set cookie expiration (7 days here)
-                .sameSite("Lax")    // CSRF protection
+                .sameSite("None")    // CSRF protection
                 .build();
 
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
