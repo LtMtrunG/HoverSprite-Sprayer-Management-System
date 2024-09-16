@@ -17,6 +17,7 @@ public class BookingResponse {
     private Long id;
     private Long receptionistId;
     private Long farmerId;
+    private boolean inProgress;
     private List<String> sprayersName;
     private BookingStatus status;
     private Long timeSlotId;
@@ -29,10 +30,11 @@ public class BookingResponse {
     private double farmlandArea;
     private double totalCost;
 
-    public BookingResponse(Booking booking, List<String> sprayersName, TimeSlotDTO timeSlotDTO, FieldDTO fieldDTO){
+    public BookingResponse(Booking booking, boolean inProgress, List<String> sprayersName, TimeSlotDTO timeSlotDTO, FieldDTO fieldDTO){
         this.id = booking.getId();
         this.receptionistId = booking.getReceptionistId();
         this.farmerId = booking.getFarmerId();
+        this.inProgress = inProgress;
         this.sprayersName = sprayersName;
         this.status = booking.getStatus();
         this.timeSlotId = booking.getTimeSlotId();

@@ -1005,6 +1005,13 @@ public class BookingService implements BookingAPI {
             }
         }
 
-        return new BookingResponse(booking, sprayersName, timeSlotDTO, fieldDTO);
+        List<Long> inProgressList = booking.getInProgressSprayerIds();
+        if (inProgressList != null && !inProgressList.isEmpty()) {
+            if (inProgressList.contains(userAPI.getCurrentUserId())) {
+                return new BookingResponse(booking, true, sprayersName, timeSlotDTO, fieldDTO);
+            }
+        }
+
+        return new BookingResponse(booking, false, sprayersName, timeSlotDTO, fieldDTO);
     }
 }
