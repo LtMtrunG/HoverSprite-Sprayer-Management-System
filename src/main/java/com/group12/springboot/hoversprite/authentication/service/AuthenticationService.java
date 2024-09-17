@@ -73,7 +73,7 @@ public class AuthenticationService implements AuthenticationAPI {
         var token = generateToken(user);
 
         ResponseCookie cookie = ResponseCookie.from("jwt", token)
-//                .httpOnly(true)        // HTTP-only flag
+                .httpOnly(true)        // HTTP-only flag
                 .secure(true)          // Use secure flag if using HTTPS
                 .path("/")             // Cookie available to the entire domain
                 .maxAge(6 * 60 * 60) // Set cookie expiration (7 days here)
@@ -155,7 +155,7 @@ public class AuthenticationService implements AuthenticationAPI {
 //        response.addCookie(cookie);
 
         ResponseCookie cookie = ResponseCookie.from("jwt", null)
-//                .httpOnly(true)        // HTTP-only flag
+                .httpOnly(true)        // HTTP-only flag
                 .secure(true)          // Use secure flag if using HTTPS
                 .path("/")             // Cookie available to the entire domain
                 .maxAge(0) // Set cookie expiration (7 days here)
