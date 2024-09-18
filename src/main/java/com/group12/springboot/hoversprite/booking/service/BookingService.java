@@ -6,6 +6,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import com.group12.springboot.hoversprite.booking.*;
+import com.group12.springboot.hoversprite.booking.enums.PaymentStatus;
 import com.group12.springboot.hoversprite.email.EmailAPI;
 import com.group12.springboot.hoversprite.field.FieldAPI;
 import com.group12.springboot.hoversprite.field.FieldDTO;
@@ -693,6 +694,7 @@ public class BookingService implements BookingAPI {
         booking.setStatus(status);
         booking.setCreatedTime(request.getCreatedTime());
         booking.setTimeSlotId(timeslotId);
+        booking.setPaymentStatus(PaymentStatus.UNPAID);
         booking.setTotalCost(farmlandArea * 30000);
 
         if (status == BookingStatus.CONFIRMED & receptionistId != null) {
@@ -1038,5 +1040,23 @@ public class BookingService implements BookingAPI {
         }
 
         return new BookingResponse(booking, false, sprayersName, timeSlotDTO, fieldDTO);
+    }
+
+    @Override
+    public void changeStatusToCardAndSave(Long id) {
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new CustomException(ErrorCode.BOOKING_NOT_EXISTS));
+
+        booking.setPaymentStatus(PaymentStatus.CARD);
+        bookingRepository.save(booking);
+    }
+
+    @Override
+    public void changeStatusToCashAndSave(Long id) {
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new CustomException(ErrorCode.BOOKING_NOT_EXISTS));
+
+        booking.setPaymentStatus(PaymentStatus.CASH);
+        bookingRepository.save(booking);
     }
 }
