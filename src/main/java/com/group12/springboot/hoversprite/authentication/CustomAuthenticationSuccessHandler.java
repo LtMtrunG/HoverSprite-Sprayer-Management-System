@@ -77,7 +77,7 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
                 if (user == null) {
                     String token = generateToken(email, name);
                     ResponseCookie cookie = ResponseCookie.from("jwt", token)
-//                            .httpOnly(true)         // HTTP-only flag
+                            .httpOnly(true)         // HTTP-only flag
                             .secure(true)          // Use secure flag if using HTTPS
                             .path("/")              // Cookie available to the entire domain
                             .maxAge(30 * 60)        // Set cookie expiration (360 minutes here)
@@ -89,7 +89,7 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
                     String token = generateToken(user);
 
                     ResponseCookie cookie = ResponseCookie.from("jwt", token)
-//                            .httpOnly(true)         // HTTP-only flag
+                            .httpOnly(true)         // HTTP-only flag
                             .secure(true)          // Use secure flag if using HTTPS
                             .path("/")              // Cookie available to the entire domain
                             .maxAge(6 * 60 * 60)        // Set cookie expiration (360 minutes here)
