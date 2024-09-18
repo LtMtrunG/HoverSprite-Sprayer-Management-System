@@ -22,6 +22,14 @@ public interface FieldRepository extends JpaRepository<Field, Long> {
 
     Page<Field> findByIdIn(List<Long> fieldIds, Pageable pageable);
 
+    @Query("SELECT f FROM Field f " +
+            "WHERE (LOWER(CAST(f.cropType AS string)) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "OR LOWER(f.name) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+            "AND f.id IN :ids")
+    Page<Field> findByIdInAndNameOrCropTypeContainingKeyword(@Param("ids") List<Long> ids,
+                                                             @Param("keyword") String keyword,
+                                                             Pageable pageable);
+
     @Query("SELECT f.longitude, f.latitude FROM Field f WHERE f.id IN :fieldIds")
     List<Object[]> findFieldCoordinatesByIds(@Param("fieldIds") List<Long> fieldIds);
 }

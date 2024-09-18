@@ -1,10 +1,7 @@
 
 package com.group12.springboot.hoversprite.user;
 
-import com.group12.springboot.hoversprite.validator.EmailConstraint;
-import com.group12.springboot.hoversprite.validator.NameConstraint;
-import com.group12.springboot.hoversprite.validator.PasswordConstraint;
-import com.group12.springboot.hoversprite.validator.PhoneConstraint;
+import com.group12.springboot.hoversprite.validator.*;
 import jakarta.validation.constraints.Email;
 import lombok.*;
 
@@ -14,13 +11,11 @@ import lombok.*;
 @Getter
 @Setter
 public class UserUpdateRequest {
-    @PasswordConstraint
-    private String password;
     @NameConstraint
     private String fullName;
     @PhoneConstraint
     private String phoneNumber;
-    @NonNull
+    @AddressConstraint
     private String address;
     @Email
     @EmailConstraint

@@ -2,6 +2,7 @@ package com.group12.springboot.hoversprite.field.service;
 
 import com.group12.springboot.hoversprite.booking.BookingAPI;
 import com.group12.springboot.hoversprite.booking.BookingDTO;
+import com.group12.springboot.hoversprite.booking.enums.BookingStatus;
 import com.group12.springboot.hoversprite.common.ListResponse;
 import com.group12.springboot.hoversprite.exception.CustomException;
 import com.group12.springboot.hoversprite.exception.ErrorCode;
@@ -20,10 +21,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.nimbusds.oauth2.sdk.util.StringUtils.isNumeric;
 
 @Transactional
 @Service
@@ -44,14 +45,15 @@ public class FieldService implements FieldAPI {
     public FieldResponse createField(FieldCreationRequest request) {
         Long farmerId = request.getFarmerId();
 
+        FarmerDTO farmerDTO;
         if (farmerId == null) {
             farmerId = userAPI.getCurrentUserId();
-            FarmerDTO farmerDTO = userAPI.findFarmerById(farmerId);
+            farmerDTO = userAPI.findFarmerById(farmerId);
             if (farmerDTO == null) {
                 throw new CustomException(ErrorCode.FARMER_NOT_EXIST);
             }
         } else {
-            FarmerDTO farmerDTO = userAPI.findFarmerById(farmerId);
+            farmerDTO = userAPI.findFarmerById(farmerId);
             if (farmerDTO == null) {
                 throw new CustomException(ErrorCode.FARMER_NOT_EXIST);
             }
@@ -69,6 +71,23 @@ public class FieldService implements FieldAPI {
             }
         }
 
+        List<Long> fieldIds = farmerDTO.getFieldsId();
+
+        if (fieldIds != null || !fieldIds.isEmpty()) {
+            List<Field> fields = fieldRepository.findFieldsOfFarmer(fieldIds);
+
+            // Check if any field has the same name as the requested field name
+            for (Field existingField : fields) {
+                if (existingField.getName().equalsIgnoreCase(request.getName())) {
+                    throw new CustomException(ErrorCode.FIELD_NAME_ALREADY_EXISTS);
+                } else if (existingField.getLatitude() == request.getLatitude() || existingField.getLongitude() == request.getLongitude()) {
+                    throw new CustomException(ErrorCode.FIELD_LOCATION_EXISTS);
+                }
+            }
+        }
+
+        // Fetch the fields from the repository
+
         Field field = new Field();
         field.setName(request.getName());
         field.setAddress(request.getAddress());
@@ -76,6 +95,7 @@ public class FieldService implements FieldAPI {
         field.setLongitude(request.getLongitude());
         field.setCropType(request.getCropType());
         field.setFarmlandArea(request.getFarmlandArea());
+        field.setTotalCost(request.getFarmlandArea() * 30000);
 
         Field savedField = fieldRepository.save(field);
 
@@ -116,7 +136,7 @@ public class FieldService implements FieldAPI {
 
 
     @PreAuthorize("hasAuthority('APPROVE_VIEW_FIELD')")
-    public Page<FieldResponse> getFarmersFieldsPage(Long farmerId, int pageNo, int pageSize, String sortBy , String order) {
+    public Page<FieldResponse> getFarmersFieldsPage(Long farmerId, int pageNo, int pageSize, String sortBy , String order, String keyword) {
         FarmerDTO farmerDTO;
 
         if (farmerId == null) {
@@ -150,7 +170,17 @@ public class FieldService implements FieldAPI {
         } else {
             pageable = PageRequest.of(pageNo, pageSize);
         }
-        Page<Field> fieldsPage = fieldRepository.findByIdIn(farmerDTO.getFieldsId(), pageable);
+
+        Page<Field> fieldsPage;
+
+        // Normalize status to upper case
+        String normalizedKeyword = keyword.toUpperCase();
+
+        if (keyword.isEmpty()) {
+            fieldsPage = fieldRepository.findByIdIn(farmerDTO.getFieldsId(), pageable);
+        } else {
+            fieldsPage = fieldRepository.findByIdInAndNameOrCropTypeContainingKeyword(farmerDTO.getFieldsId(), keyword, pageable);
+        }
 
         // Map Page<Field> to Page<FieldResponse> using existing constructor
         List<FieldResponse> fieldResponses = fieldsPage.stream()
@@ -204,12 +234,28 @@ public class FieldService implements FieldAPI {
             }
         }
 
+        List<Long> fieldIds = farmerDTO.getFieldsId();
+
+        if (fieldIds != null || !fieldIds.isEmpty()) {
+            List<Field> fields = fieldRepository.findFieldsOfFarmer(fieldIds);
+
+            // Check if any field has the same name as the requested field name
+            for (Field existingField : fields) {
+                if (!Objects.equals(existingField.getId(), request.getFieldId()) && existingField.getName().equalsIgnoreCase(request.getName())) {
+                    throw new CustomException(ErrorCode.FIELD_NAME_ALREADY_EXISTS);
+                } else if (!Objects.equals(existingField.getId(), request.getFieldId()) && existingField.getLatitude() == request.getLatitude() && existingField.getLongitude() == request.getLongitude()) {
+                    throw new CustomException(ErrorCode.FIELD_LOCATION_EXISTS);
+                }
+            }
+        }
+
         field.setName(request.getName());
         field.setAddress(request.getAddress());
         field.setLatitude(request.getLatitude());
         field.setLongitude(request.getLongitude());
         field.setFarmlandArea(request.getFarmlandArea());
         field.setCropType(request.getCropType());
+        field.setTotalCost(request.getFarmlandArea() * 30000);
 
         fieldRepository.save(field);
 

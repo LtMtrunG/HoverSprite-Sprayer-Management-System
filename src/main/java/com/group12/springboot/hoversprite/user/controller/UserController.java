@@ -6,14 +6,7 @@ import com.group12.springboot.hoversprite.user.*;
 import com.group12.springboot.hoversprite.validator.EmailConstraint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.group12.springboot.hoversprite.common.ApiResponse;
 import com.group12.springboot.hoversprite.common.ListResponse;
@@ -25,6 +18,7 @@ import jakarta.servlet.http.HttpServletRequest;
 
 @Validated
 @RestController
+@RequestMapping("/users")
 public class UserController {
     @Autowired
     private UserService userService;
@@ -104,11 +98,10 @@ public class UserController {
         return apiResponse;
     }
 
-    @PutMapping("/user/{userId}")
-    ApiResponse<UserResponse> updateUser(@PathVariable("userId") Long userId, @RequestBody UserUpdateRequest request)
-            throws AccessDeniedException {
+    @PatchMapping("/update")
+    ApiResponse<UserResponse> updateUser(@RequestBody @Valid UserUpdateRequest request) {
         ApiResponse<UserResponse> apiResponse = new ApiResponse<>();
-        apiResponse.setResult(userService.updateUser(userId, request));
+        apiResponse.setResult(userService.updateUser(request));
         return apiResponse;
     }
 
@@ -126,5 +119,13 @@ public class UserController {
         userService.forgetPassword(email);
         apiResponse.setResult("Check your email");
         return  apiResponse;
+    }
+
+    @PostMapping("/update/password")
+    ApiResponse<String> updatePassword(@RequestBody @Valid FarmerUpdatePassword request) {
+        ApiResponse<String> apiResponse = new ApiResponse<>();
+        userService.updatePassword(request);
+        apiResponse.setResult("Password changes successfully");
+        return apiResponse;
     }
 }

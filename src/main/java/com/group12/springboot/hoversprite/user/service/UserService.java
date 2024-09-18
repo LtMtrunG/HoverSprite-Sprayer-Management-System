@@ -120,6 +120,10 @@ public class UserService implements UserAPI {
             throw new CustomException(ErrorCode.PHONE_NUMBER_USED);
         }
 
+        if (!request.getPassword().equals(request.getConfirmPassword())) {
+            throw new CustomException(ErrorCode.PASSWORD_NOT_MATCH);
+        }
+
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         Role role = roleRepository.findByName(RoleType.FARMER.name())
                 .orElseThrow(() -> new RuntimeException("User's Role Not Found."));
@@ -231,30 +235,62 @@ public class UserService implements UserAPI {
         return new UserResponse(user);
     }
 
-    public UserResponse updateUser(Long userId, UserUpdateRequest request) throws AccessDeniedException {
+    public UserResponse updateUser(UserUpdateRequest request) {
+        Long userId = getCurrentUserId();
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_EXISTS));
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentUsername = authentication.getName();
-        boolean authorize = user.getEmail().equals(currentUsername) ||
-                authentication.getAuthorities().stream()
-                        .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_RECEPTIONIST"));
-
-        if (!authorize) {
-            throw new AccessDeniedException("You do not have permission to update this user.");
+        System.out.println(request.getEmail());
+        // Validate email and phone number if they are provided
+        if (request.getEmail() != null) {
+            User existingUserByEmail = userRepository.findByEmail(request.getEmail())
+                    .orElse(null);
+            if (existingUserByEmail != null && !existingUserByEmail.getId().equals(userId)) {
+                throw new CustomException(ErrorCode.EMAIL_USED);
+            }
+        }
+        if (request.getPhoneNumber() != null) {
+            User existingUserByPhone = userRepository.findByPhoneNumber(request.getPhoneNumber())
+                    .orElse(null);
+            if (existingUserByPhone != null && !existingUserByPhone.getId().equals(userId)) {
+                throw new CustomException(ErrorCode.PHONE_NUMBER_USED);
+            }
         }
 
-        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
-
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setFullName(request.getFullName());
-        user.setPhoneNumber(processPhoneNumber(request.getPhoneNumber()));
-        user.setAddress(request.getAddress());
+        if (request.getFullName() != null) {
+            user.setFullName(request.getFullName());
+        }
+        if (request.getPhoneNumber() != null) {
+            user.setPhoneNumber(processPhoneNumber(request.getPhoneNumber()));
+        }
+        if (request.getAddress() != null) {
+            user.setAddress(request.getAddress());
+        }
 
         userRepository.save(user);
 
         return new UserResponse(user);
+    }
+
+    public void updatePassword(FarmerUpdatePassword request) {
+        Long userId = getCurrentUserId();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_EXISTS));
+
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
+        boolean authenticated =  passwordEncoder.matches(request.getOldPassword(), user.getPassword());
+
+        if (!authenticated){
+            throw new CustomException(ErrorCode.PASSWORD_INCORRECT);
+        }
+
+        if (!request.getConfirmPassword().equals(request.getNewPassword())) {
+            throw new CustomException((ErrorCode.PASSWORD_NOT_MATCH));
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+
+        userRepository.save(user);
     }
 
     @PreAuthorize("hasRole('RECEPTIONIST')")

@@ -39,4 +39,7 @@ public class Field {
 
     @Column(name="last_spraying_date")
     private LocalDate lastSprayingDate;
+
+    @Column(name = "total_cost")
+    private double totalCost;
 }

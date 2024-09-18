@@ -6,6 +6,7 @@ import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.group12.springboot.hoversprite.timeslot.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -13,12 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.group12.springboot.hoversprite.exception.CustomException;
 import com.group12.springboot.hoversprite.exception.ErrorCode;
-import com.group12.springboot.hoversprite.timeslot.TimeSlotAPI;
-import com.group12.springboot.hoversprite.timeslot.TimeSlotByDateRequest;
-import com.group12.springboot.hoversprite.timeslot.TimeSlotByDateResponse;
-import com.group12.springboot.hoversprite.timeslot.TimeSlotCreateRequest;
-import com.group12.springboot.hoversprite.timeslot.TimeSlotCreateResponse;
-import com.group12.springboot.hoversprite.timeslot.TimeSlotDTO;
 import com.group12.springboot.hoversprite.timeslot.entity.TimeSlot;
 import com.group12.springboot.hoversprite.timeslot.repository.TimeSlotRepository;
 
@@ -240,5 +235,11 @@ public class TimeSlotService implements TimeSlotAPI {
          // Set the updated list back to the TimeSlot entity
          timeSlot.setBookedSprayersId(existingSprayers);
          timeSlotRepository.save(timeSlot);
+     }
+
+     public TimeSlotResponse getTimeSlotById(Long id) {
+        TimeSlot timeSlot = timeSlotRepository.findById(id).orElseThrow(() -> new CustomException(ErrorCode.TIME_SLOT_NOT_EXISTS));
+
+        return (new TimeSlotResponse(timeSlot));
      }
 }
