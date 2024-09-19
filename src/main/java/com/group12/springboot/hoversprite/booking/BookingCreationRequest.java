@@ -12,7 +12,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class BookingCreationRequest {
-    private Long receptionistId;
     private Long farmerId;
     private Long fieldId;
     private LocalDateTime createdTime;

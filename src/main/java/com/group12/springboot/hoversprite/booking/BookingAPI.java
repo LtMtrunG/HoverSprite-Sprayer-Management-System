@@ -33,4 +33,8 @@ public interface BookingAPI {
     public List<BookingDTO> findIncompleteBookingByFieldId(Long fieldId);
 
     public BookingDTO findBookingById(Long bookingId);
+
+    public void changeStatusToCardAndSave(Long id);
+
+    public void changeStatusToCashAndSave(Long id);
 }

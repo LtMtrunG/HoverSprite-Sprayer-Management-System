@@ -49,6 +49,11 @@ public enum ErrorCode {
     NOTIFICATION_NOT_EXISTS(1041, "The notification not existed", HttpStatus.NOT_FOUND),
     BOOKING_NOT_COMPLETE(1042, "The booking is not completed yet", HttpStatus.NOT_FOUND),
     KEYWORD_NOT_FOUND(1043, "The booking ID is not found, or the key word is invalid", HttpStatus.NOT_FOUND),
+    FIELD_NAME_ALREADY_EXISTS(1044, "The field with same name already exists", HttpStatus.BAD_REQUEST),
+    FIELD_LOCATION_EXISTS(1045, "The field with same location already exists", HttpStatus.BAD_REQUEST),
+    PASSWORD_INCORRECT(1046, "The old password is not correct", HttpStatus.BAD_REQUEST),
+    PASSWORD_NOT_MATCH(1047, "The new password and password confirmation are not matched", HttpStatus.BAD_REQUEST),
+    BOOKING_PAID(1048, "The booking is already paid", HttpStatus.BAD_REQUEST),
     UNCATEGORIZED_EXCEPTION(9999, "Uncategorized error", HttpStatus.INTERNAL_SERVER_ERROR),
     ;
     private int code;

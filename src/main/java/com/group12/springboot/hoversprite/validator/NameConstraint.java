@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
 @Target({ ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface NameConstraint {
-    String message() default "Each word should start with capital letters";
+    String message() default "Each word should start with capital letters, up to two non-adjacent capitalized letters are allowed";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
 }

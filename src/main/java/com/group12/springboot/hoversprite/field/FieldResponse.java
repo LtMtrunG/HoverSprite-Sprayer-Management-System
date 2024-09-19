@@ -21,6 +21,7 @@ public class FieldResponse {
     private CropType cropType;
     private double farmlandArea;
     private LocalDate lastSprayingDate;
+    private double totalCost;
 
     public FieldResponse(Field field) {
         this.id = field.getId();
@@ -31,5 +32,6 @@ public class FieldResponse {
         this.cropType = field.getCropType();
         this.farmlandArea = field.getFarmlandArea();
         this.lastSprayingDate = field.getLastSprayingDate();
+        this.totalCost = field.getTotalCost();
     }
 }

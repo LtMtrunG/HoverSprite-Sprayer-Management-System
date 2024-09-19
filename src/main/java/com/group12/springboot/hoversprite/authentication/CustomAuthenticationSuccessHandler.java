@@ -78,10 +78,10 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
                     String token = generateToken(email, name);
                     ResponseCookie cookie = ResponseCookie.from("jwt", token)
                             .httpOnly(true)         // HTTP-only flag
-                            .secure(false)          // Use secure flag if using HTTPS
+                            .secure(true)          // Use secure flag if using HTTPS
                             .path("/")              // Cookie available to the entire domain
                             .maxAge(30 * 60)        // Set cookie expiration (360 minutes here)
-                            .sameSite("Lax")     // CSRF protection
+                            .sameSite("None")     // CSRF protection
                             .build();
                     response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
                     response.sendRedirect("http://localhost:5500/SignUp/signup.html?external=true");
@@ -90,10 +90,10 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
 
                     ResponseCookie cookie = ResponseCookie.from("jwt", token)
                             .httpOnly(true)         // HTTP-only flag
-                            .secure(false)          // Use secure flag if using HTTPS
+                            .secure(true)          // Use secure flag if using HTTPS
                             .path("/")              // Cookie available to the entire domain
                             .maxAge(6 * 60 * 60)        // Set cookie expiration (360 minutes here)
-                            .sameSite("Lax")     // CSRF protection
+                            .sameSite("None")     // CSRF protection
                             .build();
 
                     response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());

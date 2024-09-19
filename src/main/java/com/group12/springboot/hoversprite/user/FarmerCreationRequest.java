@@ -11,6 +11,8 @@ public class FarmerCreationRequest {
     private String email;
     @PasswordConstraint
     private String password;
+    @PasswordConstraint
+    private String confirmPassword;
     @NameConstraint
     private String fullName;
     @PhoneConstraint

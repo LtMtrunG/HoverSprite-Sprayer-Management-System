@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.group12.springboot.hoversprite.booking.enums.BookingStatus;
 
+import com.group12.springboot.hoversprite.booking.enums.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -49,6 +50,10 @@ public class Booking {
     @Column(name="total_cost")
     private double totalCost;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name="payment_status")
+    private PaymentStatus paymentStatus;
+
     @Column(name="feedback_id")
     private Long feedbackId;
 
@@ -64,6 +69,7 @@ public class Booking {
         this.timeSlotId = booking.timeSlotId;
         this.fieldId = booking.fieldId;
         this.totalCost = booking.totalCost;
+        this.paymentStatus = booking.paymentStatus;
         this.feedbackId = booking.feedbackId;
     }
 }

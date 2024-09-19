@@ -48,8 +48,9 @@ public class GlobalExceptionHandler {
         exception.getBindingResult().getFieldErrors().forEach(fieldError -> {
             String field = fieldError.getField();
 
+            System.out.println(field);
             switch (field) {
-                case "password", "email", "fullName", "phoneNumber", "address":
+                case "password", "email", "fullName", "phoneNumber", "address", "oldPassword", "newPassword", "confirmPassword":
                     errorCode.set(ErrorCode.INVALID_SIGNUP_INFO);
                     break;
                 default:

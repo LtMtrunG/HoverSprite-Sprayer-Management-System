@@ -2,14 +2,12 @@ package com.group12.springboot.hoversprite.timeslot.controller;
 
 import java.util.List;
 
+import com.group12.springboot.hoversprite.timeslot.*;
+import com.group12.springboot.hoversprite.timeslot.entity.TimeSlot;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import com.group12.springboot.hoversprite.common.ApiResponse;
-import com.group12.springboot.hoversprite.timeslot.TimeSlotByDateRequest;
-import com.group12.springboot.hoversprite.timeslot.TimeSlotByDateResponse;
-import com.group12.springboot.hoversprite.timeslot.TimeSlotCreateRequest;
-import com.group12.springboot.hoversprite.timeslot.TimeSlotCreateResponse;
 import com.group12.springboot.hoversprite.timeslot.service.TimeSlotService;
 
 import jakarta.validation.Valid;
@@ -38,6 +36,13 @@ public class TimeSlotController {
     ApiResponse<List<TimeSlotByDateResponse>> getTimeSlotByWeek(@RequestParam("date") String date){
         ApiResponse<List<TimeSlotByDateResponse>> apiResponse = new ApiResponse<>();
         apiResponse.setResult(timeSlotService.getTimeSlotByWeek(date));
+        return apiResponse;
+    }
+
+    @GetMapping()
+    ApiResponse<TimeSlotResponse> getTimeSlotById(@RequestParam("id") Long id){
+        ApiResponse<TimeSlotResponse> apiResponse = new ApiResponse<>();
+        apiResponse.setResult(timeSlotService.getTimeSlotById(id));
         return apiResponse;
     }
 }

@@ -27,7 +27,6 @@ public class FieldController {
     ApiResponse<FieldResponse> createField(@RequestBody @Valid FieldCreationRequest request) {
         ApiResponse<FieldResponse> apiResponse = new ApiResponse<>();
         apiResponse.setResult(fieldService.createField(request));
-
         return apiResponse;
     }
 
@@ -44,9 +43,10 @@ public class FieldController {
             @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
             @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
             @RequestParam("sortBy") String sortBy,
-            @RequestParam("order") String order) {
+            @RequestParam("order") String order,
+            @RequestParam(value = "keyword", defaultValue = "", required = false) String keyword){
         ApiResponse<Page<FieldResponse>> apiResponse = new ApiResponse<>();
-        apiResponse.setResult(fieldService.getFarmersFieldsPage(farmerId, pageNo, pageSize, sortBy, order));
+        apiResponse.setResult(fieldService.getFarmersFieldsPage(farmerId, pageNo, pageSize, sortBy, order, keyword));
         return apiResponse;
     }
 
