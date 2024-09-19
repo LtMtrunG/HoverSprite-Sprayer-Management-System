@@ -431,7 +431,7 @@ public class BookingService implements BookingAPI {
             }else {
                 // Convert the status to BookingStatus enum and fetch bookings by the specified status
                 BookingStatus bookingStatus = BookingStatus.valueOf(normalizedStatus);
-                bookingPage = bookingRepository.findByStatus(bookingStatus, pageable);
+                bookingPage = bookingRepository.findByStatusPaginated(bookingStatus, pageable);
             }
         } else if (isNumeric(keyword)) {
             if (normalizedStatus.equals("IN_PROGRESS")) {
