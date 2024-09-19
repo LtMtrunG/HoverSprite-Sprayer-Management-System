@@ -157,7 +157,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             Pageable pageable
     );
 
-    Page<Booking> findByStatus(BookingStatus bookingStatus, Pageable pageable);
+    @Query("SELECT b FROM Booking b WHERE b.status = ?1")
+    Page<Booking> findByStatusPaginated(BookingStatus bookingStatus, Pageable pageable);
 
     @Query("SELECT b FROM Booking b WHERE CAST(b.id AS string) LIKE %:keyword% AND b.status IN :statuses")
     Page<Booking> findByIdContainingAndStatusIn(

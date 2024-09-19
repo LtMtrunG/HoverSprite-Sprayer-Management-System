@@ -84,7 +84,7 @@ public class UserController {
         return apiResponse;
     }
 
-    @GetMapping("/user")
+    @GetMapping()
     ApiResponse<UserResponse> getUserByPhone(@RequestParam("phoneNumber") String phoneNumber) {
         ApiResponse<UserResponse> apiResponse = new ApiResponse<>();
         apiResponse.setResult(userService.getUserByPhone(phoneNumber));

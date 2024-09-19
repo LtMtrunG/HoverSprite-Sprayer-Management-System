@@ -73,14 +73,14 @@ public class FieldService implements FieldAPI {
 
         List<Long> fieldIds = farmerDTO.getFieldsId();
 
-        if (fieldIds != null || !fieldIds.isEmpty()) {
+        if (fieldIds != null) {
             List<Field> fields = fieldRepository.findFieldsOfFarmer(fieldIds);
 
             // Check if any field has the same name as the requested field name
             for (Field existingField : fields) {
                 if (existingField.getName().equalsIgnoreCase(request.getName())) {
                     throw new CustomException(ErrorCode.FIELD_NAME_ALREADY_EXISTS);
-                } else if (existingField.getLatitude() == request.getLatitude() || existingField.getLongitude() == request.getLongitude()) {
+                } else if (existingField.getLatitude() == request.getLatitude() && existingField.getLongitude() == request.getLongitude()) {
                     throw new CustomException(ErrorCode.FIELD_LOCATION_EXISTS);
                 }
             }

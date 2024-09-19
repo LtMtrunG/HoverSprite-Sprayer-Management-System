@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.group12.springboot.hoversprite.booking.entity.Booking;
 import com.group12.springboot.hoversprite.booking.enums.BookingStatus;
+import com.group12.springboot.hoversprite.booking.enums.PaymentStatus;
 import com.group12.springboot.hoversprite.field.FieldDTO;
 import com.group12.springboot.hoversprite.timeslot.TimeSlotDTO;
 import lombok.Getter;
@@ -28,6 +29,7 @@ public class BookingResponse {
     private double longitude;
     private String cropType;
     private double farmlandArea;
+    private PaymentStatus paymentStatus;
     private double totalCost;
 
     public BookingResponse(Booking booking, boolean inProgress, List<String> sprayersName, TimeSlotDTO timeSlotDTO, FieldDTO fieldDTO){
@@ -45,6 +47,7 @@ public class BookingResponse {
         this.longitude = fieldDTO.getLongitude();
         this.cropType = fieldDTO.getCropType().name();
         this.farmlandArea = fieldDTO.getFarmlandArea();
+        this.paymentStatus = booking.getPaymentStatus();
         this.totalCost = booking.getTotalCost();
     }
 }
