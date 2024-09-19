@@ -6,14 +6,7 @@ import java.util.List;
 
 import com.group12.springboot.hoversprite.booking.enums.BookingStatus;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -32,7 +25,9 @@ public class Booking {
     @Column(name="farmer_id")
     private Long farmerId;
 
-    @Column(name="sprayers_id")
+    @ElementCollection
+    @CollectionTable(name = "booking_sprayers", joinColumns = @JoinColumn(name = "booking_id"))
+    @Column(name = "sprayers_id")
     private List<Long> sprayersId;
 
     @Column(name="in_progress_sprayers_id")

@@ -5,6 +5,9 @@ import jakarta.validation.constraints.Min;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Setter
 @Getter
 public class FeedbackCreationRequest {
@@ -21,6 +24,6 @@ public class FeedbackCreationRequest {
     @Min(1)
     @Max(5)
     private int professional_rating;
-    private String[] images;
+    private List<String> images;
     private Long bookingId;
 }

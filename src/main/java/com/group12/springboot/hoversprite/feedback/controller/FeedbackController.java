@@ -9,19 +9,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@RequestMapping("/feedbacks")
 public class FeedbackController {
     @Autowired
     private FeedbackService feedbackService;
 
-    @PostMapping("/booking/feedback/create")
+    @PostMapping("/create")
     ApiResponse<FeedbackCreationResponse> createFeedback(@RequestBody FeedbackCreationRequest request){
         ApiResponse<FeedbackCreationResponse> apiResponse = new ApiResponse<>();
         apiResponse.setResult(feedbackService.createFeedBack(request));
         return apiResponse;
     }
 
-    @GetMapping("/booking/feedback/{feedbackId}")
-    ApiResponse<FeedbackResponse> getFeedbackById(@PathVariable("feedbackId") Long feedbackId) {
+    @GetMapping()
+    ApiResponse<FeedbackResponse> getFeedbackById(@RequestParam("id") Long feedbackId) {
         ApiResponse<FeedbackResponse> apiResponse = new ApiResponse<>();
         apiResponse.setResult(feedbackService.getFeedbackById(feedbackId));
         return apiResponse;

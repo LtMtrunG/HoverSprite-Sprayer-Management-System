@@ -83,7 +83,7 @@ public class AuthenticationService implements AuthenticationAPI {
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
         AuthenticationResponse authenticationResponse = new AuthenticationResponse();
-        authenticationResponse.setToken(token);
+        authenticationResponse.setRole(user.getRole().getName());
         authenticationResponse.setAuthenticated(true);
 
         return authenticationResponse;

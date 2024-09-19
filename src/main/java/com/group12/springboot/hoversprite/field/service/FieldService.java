@@ -245,4 +245,9 @@ public class FieldService implements FieldAPI {
         LocalDate currentDate = LocalDate.now();
         field.setLastSprayingDate(currentDate);
     }
+
+    @Override
+    public List<Object[]> findFieldCoordinatesByIds(List<Long> fieldIds) {
+        return fieldRepository.findFieldCoordinatesByIds(fieldIds);
+    }
 }

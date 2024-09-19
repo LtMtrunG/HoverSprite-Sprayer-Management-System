@@ -160,6 +160,15 @@ public class TimeSlotService implements TimeSlotAPI {
                 .collect(Collectors.toList());
     }
 
+    public List<TimeSlotDTO> getTimeSlotByDate(LocalDate date) {
+        List<TimeSlot> allTimeSlots = timeSlotRepository.findAllByDate(date);
+
+        return allTimeSlots.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+
     @Override
     public Optional<TimeSlotDTO> findByDateAndStartTime(LocalDate date, LocalTime startTime) {
         Optional<TimeSlot> optionalTimeSlot = timeSlotRepository.findByDateAndStartTime(date, startTime);

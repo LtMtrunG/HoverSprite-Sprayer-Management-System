@@ -46,6 +46,9 @@ public enum ErrorCode {
     FARMER_NOT_OWN_FIELD(1038, "The farmer does not own this field", HttpStatus.BAD_REQUEST),
     FIELD_IN_BOOKING(1039, "The field is having a spraying section", HttpStatus.BAD_REQUEST),
     INVALID_CROP_TYPE(1040, "The crop type is invalid", HttpStatus.NOT_ACCEPTABLE),
+    NOTIFICATION_NOT_EXISTS(1041, "The notification not existed", HttpStatus.NOT_FOUND),
+    BOOKING_NOT_COMPLETE(1042, "The booking is not completed yet", HttpStatus.NOT_FOUND),
+    KEYWORD_NOT_FOUND(1043, "The booking ID is not found, or the key word is invalid", HttpStatus.NOT_FOUND),
     UNCATEGORIZED_EXCEPTION(9999, "Uncategorized error", HttpStatus.INTERNAL_SERVER_ERROR),
     ;
     private int code;

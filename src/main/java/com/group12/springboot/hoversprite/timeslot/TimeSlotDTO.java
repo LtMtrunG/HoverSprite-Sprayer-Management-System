@@ -21,7 +21,7 @@ public class TimeSlotDTO {
     @StartTimeConstraint
     private final LocalTime startTime;
 
-//    private final LocalTime endTime;
+    private final LocalTime endTime;
 //
     private final int maxSessions;
 
@@ -34,7 +34,7 @@ public class TimeSlotDTO {
         this.date = timeSlot.getDate();
 //        this.dayOfWeek = timeSlot.getDayOfWeek();
         this.startTime = timeSlot.getStartTime();
-//        this.endTime = timeSlot.getEndTime();
+        this.endTime = timeSlot.getEndTime();
         this.maxSessions = timeSlot.getMaxSessions();
         this.bookedSessions = timeSlot.getBookedSessions();
         this.bookedSprayersId = timeSlot.getBookedSprayersId();

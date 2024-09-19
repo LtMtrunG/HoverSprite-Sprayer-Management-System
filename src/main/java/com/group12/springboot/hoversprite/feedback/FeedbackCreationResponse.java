@@ -4,6 +4,9 @@ import com.group12.springboot.hoversprite.feedback.entity.Feedback;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Setter
 @Getter
 public class FeedbackCreationResponse {
@@ -13,7 +16,7 @@ public class FeedbackCreationResponse {
     private int attentive_rating;
     private int friendly_rating;
     private int professional_rating;
-    private String[] images;
+    private List<String> images;
 
     public FeedbackCreationResponse(Feedback feedback) {
         this.id = feedback.getId();

@@ -31,7 +31,7 @@ import org.springframework.web.filter.CorsFilter;
 @Order(SecurityProperties.BASIC_AUTH_ORDER)
 public class SecurityConfig {
     private final String[] PUBLIC_ENDPOINT = { "/register/farmer/**", "/auth/login", "/auth/introspect", "/auth/logout",
-            "/**", "/login/**", "/oauth2/**"};
+            "/**", "/login/**", "/oauth2/**", "/api-docs", "/v3/api-docs", "/api-docs.yaml", "/swagger-ui/**"};
     private final String[] STATIC_RESOURCES = { "/assets/**", "/index.html" };
 
     @Autowired

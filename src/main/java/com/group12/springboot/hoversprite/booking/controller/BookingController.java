@@ -1,7 +1,10 @@
 package com.group12.springboot.hoversprite.booking.controller;
 
 import com.group12.springboot.hoversprite.booking.*;
+import com.group12.springboot.hoversprite.booking.enums.BookingStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,6 +21,7 @@ import com.group12.springboot.hoversprite.common.ListResponse;
 
 import jakarta.validation.Valid;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -59,9 +63,9 @@ public class BookingController {
     }
 
      @PostMapping("/inProgress")
-     ApiResponse<BookingResponse> inProgressBooking(@RequestBody BookingInProgressRequest request) throws AccessDeniedException {
+     ApiResponse<BookingResponse> inProgressBooking(@RequestParam("id") Long id) {
          ApiResponse<BookingResponse> apiResponse = new ApiResponse<>();
-         BookingResponse bookingResponse = bookingService.inProgressBooking(request);
+         BookingResponse bookingResponse = bookingService.inProgressBooking(id);
          apiResponse.setResult(bookingResponse);
          return apiResponse;
      }
@@ -77,44 +81,58 @@ public class BookingController {
     }
 
     @PostMapping("/completeByFarmer")
-    ApiResponse<BookingResponse> completeBookingByFarmer(@RequestBody BookingCompleteRequest request) {
+    ApiResponse<BookingResponse> completeBookingByFarmer(@RequestParam("id") Long id) {
         ApiResponse<BookingResponse> apiResponse = new ApiResponse<>();
-        BookingResponse bookingResponse = bookingService.completeBookingByFarmer(request);
+        BookingResponse bookingResponse = bookingService.completeBookingByFarmer(id);
         apiResponse.setResult(bookingResponse);
         return apiResponse;
     }
 
      @PostMapping("/completeBySprayer")
-     ApiResponse<BookingResponse> completeBookingBySprayer(@RequestBody BookingCompleteRequest request) throws AccessDeniedException {
+     ApiResponse<BookingResponse> completeBookingBySprayer(@RequestParam("id") Long id) throws AccessDeniedException {
          ApiResponse<BookingResponse> apiResponse = new ApiResponse<>();
-         BookingResponse bookingResponse = bookingService.completeBookingBySprayer(request);
+         BookingResponse bookingResponse = bookingService.completeBookingBySprayer(id);
          apiResponse.setResult(bookingResponse);
          return apiResponse;
      }
 
     @GetMapping()
-    ApiResponse<ListResponse<BookingResponse>> getBookings(@RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
-                                                           @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize){
-        ApiResponse<ListResponse<BookingResponse>> apiResponse = new ApiResponse<>();
-        apiResponse.setResult(bookingService.getBookings(pageNo, pageSize));
+    ApiResponse<Page<BookingResponse>> getBookings(@RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+                                                           @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
+                                                   @RequestParam(value = "status", defaultValue = "ALL", required = false) String status,
+                                                   @RequestParam(value = "keyword", defaultValue = "", required = false) String keyword){
+        ApiResponse<Page<BookingResponse>> apiResponse = new ApiResponse<>();
+        apiResponse.setResult(bookingService.getBookings(pageNo, pageSize, status, keyword));
         return apiResponse;
     }
 
     @GetMapping("/myBookings")
-    ApiResponse<ListResponse<BookingResponse>> getMyBookings(@RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
-                                                             @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize){
-        ApiResponse<ListResponse<BookingResponse>> apiResponse = new ApiResponse<>();
-        apiResponse.setResult(bookingService.getMyBookings(pageNo, pageSize));
+    ApiResponse<Page<BookingResponse>> getMyBookings(@RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+                                                             @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
+                                                             @RequestParam(value = "status", defaultValue = "ALL", required = false) String status,
+                                                     @RequestParam(value = "keyword", defaultValue = "", required = false) String keyword){
+        ApiResponse<Page<BookingResponse>> apiResponse = new ApiResponse<>();
+        apiResponse.setResult(bookingService.getMyBookings(pageNo, pageSize, status, keyword));
+        return apiResponse;
+    }
+
+    @GetMapping("/assignedBookings")
+    ApiResponse<Page<BookingResponse>> getAssignedBookings(@RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+                                                     @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
+                                                     @RequestParam(value = "status", defaultValue = "ALL", required = false) String status,
+                                                     @RequestParam(value = "keyword", defaultValue = "", required = false) String keyword){
+        ApiResponse<Page<BookingResponse>> apiResponse = new ApiResponse<>();
+        apiResponse.setResult(bookingService.getAssignedBookings(pageNo, pageSize, status, keyword));
         return apiResponse;
     }
 
     @GetMapping("/sprayers/available")
-    ApiResponse<ListResponse<AvailableSprayersResponse>> getAvailableSprayers(
+    ApiResponse<Page<AvailableSprayersResponse>> getAvailableSprayers(
             @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
             @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
-            @RequestBody @Valid AvailableSprayersRequest request) {
-        ApiResponse<ListResponse<AvailableSprayersResponse>> apiResponse = new ApiResponse<>();
-        apiResponse.setResult(bookingService.getAvailableSprayersByTimeSlot(pageNo, pageSize, request));
+            @RequestParam("id") @Valid Long timeSlotId) {
+        ApiResponse<Page<AvailableSprayersResponse>> apiResponse = new ApiResponse<>();
+        apiResponse.setResult(bookingService.getAvailableSprayersByTimeSlot(pageNo, pageSize, timeSlotId));
         return apiResponse;
     }
 
@@ -145,6 +163,13 @@ public class BookingController {
         ApiResponse<String> apiResponse = new ApiResponse<>();
         bookingService.deleteBooking(bookingId);
         apiResponse.setResult("Booking is deleted");
+        return apiResponse;
+    }
+
+    @GetMapping("/sprayer/route")
+    ApiResponse<List<double[]>> getBookingRoute(@RequestParam("date") String date) {
+        ApiResponse<List<double[]>> apiResponse = new ApiResponse<>();
+        apiResponse.setResult(bookingService.getBookingRoute(date));
         return apiResponse;
     }
 }

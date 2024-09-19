@@ -6,6 +6,9 @@ import jakarta.validation.constraints.Min;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Setter
 @Getter
@@ -38,6 +41,8 @@ public class Feedback {
     @Column(name = "professional_rating")
     private int professionalRating;
 
-    @Column(name = "images")
-    private String[] images;
+    @ElementCollection
+    @CollectionTable(name = "feedback_images", joinColumns = @JoinColumn(name = "feedback_id"))
+    @Column(name = "image_url")
+    private List<String> images = new ArrayList<>();
 }
