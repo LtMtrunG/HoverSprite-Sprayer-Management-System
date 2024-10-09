@@ -84,7 +84,7 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
                             .sameSite("None")     // CSRF protection
                             .build();
                     response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-                    response.sendRedirect("http://localhost:3000/SignUp/signup.html?external=true");
+                    response.sendRedirect("http://localhost:3000/auth/sign_up?external=true");
                 } else if (user.getRole().getName().equals("FARMER")){
                     String token = generateToken(user);
 
@@ -102,10 +102,10 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
                     response.sendRedirect("http://localhost:3000/auth/sign_in?error");
                 }
             } else {
-                response.sendRedirect("/login?error");
+                response.sendRedirect("http://localhost:3000/auth/sign_in?error");
             }
         } else {
-            response.sendRedirect("/login?error");
+            response.sendRedirect("http://localhost:3000/auth/sign_in?error");
         }
     }
 
