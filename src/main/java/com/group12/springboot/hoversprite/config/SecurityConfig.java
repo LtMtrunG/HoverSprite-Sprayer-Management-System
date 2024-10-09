@@ -48,7 +48,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(request -> {
                     CorsConfiguration config = new CorsConfiguration();
                     config.setAllowCredentials(true);
-                    config.addAllowedOrigin("http://localhost:5500");
+                    config.addAllowedOrigin("http://localhost:3000");
 //                    config.addAllowedOrigin("http://192.168.50.212:5500");  // IP address for mobile testing
                     config.addAllowedOrigin("https://ferret-fitting-pug.ngrok-free.app");  // ngrok URL
                     config.addAllowedHeader("*");
